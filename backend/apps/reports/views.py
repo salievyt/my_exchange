@@ -1,0 +1,419 @@
+"""
+Views for Reports app.
+Handles report generation and data export.
+"""
+from rest_framework import views, permissions, status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from django.db.models import Sum, Count, Avg, Q
+from django.http import HttpResponse
+from django.utils import timezone
+from datetime import timedelta
+import csv
+import io
+import json
+
+from apps.operations.models import Operation, OperationStatus, OperationType
+from apps.cash.models import CashTransaction, CashBalance, CashRegister
+from apps.currencies.models import Currency
+from apps.users.models import Role
+
+
+class DailyReportView(views.APIView):
+    """Generate daily report."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        date = request.query_params.get('date', timezone.now().date())
+        
+        # Filter operations for the day
+        operations = Operation.objects.filter(created_at__date=date)
+        
+        # Role-based filtering
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+        elif request.user.role == Role.SENIOR_CASHIER:
+            operations = operations.exclude(cashier__role=Role.ADMIN)
+        
+        # Calculate stats
+        active_ops = operations.filter(status=OperationStatus.ACTIVE)
+        
+        report = {
+            'date': str(date),
+            'total_operations': active_ops.count(),
+            'buy_operations': active_ops.filter(operation_type=OperationType.BUY).count(),
+            'sell_operations': active_ops.filter(operation_type=OperationType.SELL).count(),
+            'total_turnover': active_ops.aggregate(total=Sum('total_amount'))['total'] or 0,
+            'buy_turnover': active_ops.filter(
+                operation_type=OperationType.BUY
+            ).aggregate(total=Sum('total_amount'))['total'] or 0,
+            'sell_turnover': active_ops.filter(
+                operation_type=OperationType.SELL
+            ).aggregate(total=Sum('total_amount'))['total'] or 0,
+            'cancelled_operations': operations.filter(
+                status=OperationStatus.CANCELLED
+            ).count(),
+            'cashiers_count': operations.values('cashier').distinct().count(),
+        }
+        
+        # Add currency breakdown
+        currency_breakdown = []
+        for currency in Currency.objects.all():
+            ops = active_ops.filter(currency=currency)
+            currency_breakdown.append({
+                'currency': currency.code,
+                'operations': ops.count(),
+                'total_amount': ops.aggregate(total=Sum('amount'))['total'] or 0,
+                'turnover': ops.aggregate(total=Sum('total_amount'))['total'] or 0,
+            })
+        
+        report['currency_breakdown'] = currency_breakdown
+        
+        # Add cash balances
+        balances = CashBalance.objects.select_related('currency').all()
+        report['cash_balances'] = [
+            {
+                'currency': b.currency.code,
+                'balance': float(b.balance),
+            }
+            for b in balances
+        ]
+        
+        return Response(report)
+
+
+class MonthlyReportView(views.APIView):
+    """Generate monthly report."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        year = int(request.query_params.get('year', timezone.now().year))
+        month = int(request.query_params.get('month', timezone.now().month))
+        
+        # Date range
+        from datetime import date
+        from calendar import monthrange
+        
+        _, last_day = monthrange(year, month)
+        date_from = date(year, month, 1)
+        date_to = date(year, month, last_day)
+        
+        # Filter operations
+        operations = Operation.objects.filter(
+            created_at__date__gte=date_from,
+            created_at__date__lte=date_to,
+            status=OperationStatus.ACTIVE
+        )
+        
+        # Role-based filtering
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+        elif request.user.role == Role.SENIOR_CASHIER:
+            operations = operations.exclude(cashier__role=Role.ADMIN)
+        
+        report = {
+            'year': year,
+            'month': month,
+            'total_operations': operations.count(),
+            'total_turnover': operations.aggregate(total=Sum('total_amount'))['total'] or 0,
+            'avg_operation_amount': operations.aggregate(avg=Avg('total_amount'))['avg'] or 0,
+        }
+        
+        # Daily breakdown
+        daily_stats = []
+        for day in range(1, last_day + 1):
+            current_date = date(year, month, day)
+            day_ops = operations.filter(created_at__date=current_date)
+            daily_stats.append({
+                'date': str(current_date),
+                'operations': day_ops.count(),
+                'turnover': day_ops.aggregate(total=Sum('total_amount'))['total'] or 0,
+            })
+        
+        report['daily_stats'] = daily_stats
+        
+        # Cashier statistics
+        cashier_stats = []
+        cashiers = operations.values('cashier', 'cashier__username', 'cashier__first_name', 'cashier__last_name')
+        for cashier_info in cashiers.distinct():
+            cashier_id = cashier_info['cashier']
+            cashier_ops = operations.filter(cashier=cashier_id)
+            cashier_stats.append({
+                'cashier_id': cashier_id,
+                'username': cashier_info['cashier__username'],
+                'name': f"{cashier_info['cashier__first_name']} {cashier_info['cashier__last_name']}",
+                'operations': cashier_ops.count(),
+                'turnover': cashier_ops.aggregate(total=Sum('total_amount'))['total'] or 0,
+            })
+        
+        report['cashier_stats'] = cashier_stats
+        
+        return Response(report)
+
+
+class CashierReportView(views.APIView):
+    """Generate report for specific cashier."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, cashier_id=None):
+        if not cashier_id:
+            cashier_id = request.user.id
+        
+        # Check permissions
+        if request.user.role == Role.CASHIER and request.user.id != cashier_id:
+            return Response(
+                {"error": "Нет доступа к отчетам других кассиров"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        
+        operations = Operation.objects.filter(cashier_id=cashier_id)
+        
+        if date_from:
+            operations = operations.filter(created_at__date__gte=date_from)
+        if date_to:
+            operations = operations.filter(created_at__date__lte=date_to)
+        
+        active_ops = operations.filter(status=OperationStatus.ACTIVE)
+        cancelled_ops = operations.filter(status=OperationStatus.CANCELLED)
+        
+        report = {
+            'cashier_id': cashier_id,
+            'period': {
+                'from': date_from,
+                'to': date_to,
+            },
+            'total_operations': active_ops.count(),
+            'buy_operations': active_ops.filter(operation_type=OperationType.BUY).count(),
+            'sell_operations': active_ops.filter(operation_type=OperationType.SELL).count(),
+            'total_turnover': active_ops.aggregate(total=Sum('total_amount'))['total'] or 0,
+            'cancelled_count': cancelled_ops.count(),
+            'errors_count': cancelled_ops.count(),  # Treat cancellations as errors for stats
+        }
+        
+        # Currency breakdown
+        currency_stats = []
+        for currency in Currency.objects.all():
+            currency_ops = active_ops.filter(currency=currency)
+            currency_stats.append({
+                'currency': currency.code,
+                'operations': currency_ops.count(),
+                'total_amount': currency_ops.aggregate(total=Sum('amount'))['total'] or 0,
+            })
+        
+        report['currency_stats'] = currency_stats
+        
+        return Response(report)
+
+
+class ExportView(views.APIView):
+    """Export data to various formats."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        export_format = request.query_params.get('format', 'csv')
+        export_type = request.query_params.get('type', 'operations')
+        
+        if export_type == 'operations':
+            return self.export_operations(request, export_format)
+        elif export_type == 'cash':
+            return self.export_cash(request, export_format)
+        elif export_type == 'report':
+            return self.export_report(request, export_format)
+        
+        return Response(
+            {"error": "Неподдерживаемый тип экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    def export_operations(self, request, export_format):
+        """Export operations data."""
+        operations = Operation.objects.select_related(
+            'currency', 'cashier'
+        ).all()
+        
+        # Apply filters
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        if date_from:
+            operations = operations.filter(created_at__date__gte=date_from)
+        if date_to:
+            operations = operations.filter(created_at__date__lte=date_to)
+        
+        # Role-based filtering
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+        
+        if export_format == 'csv':
+            return self.export_to_csv(operations, 'operations')
+        elif export_format == 'xlsx':
+            return self.export_to_xlsx(operations, 'operations')
+        
+        return Response(
+            {"error": "Неподдерживаемый формат экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    def export_cash(self, request, export_format):
+        """Export cash transactions."""
+        transactions = CashTransaction.objects.select_related(
+            'currency', 'cashier'
+        ).all()
+        
+        if export_format == 'csv':
+            return self.export_to_csv(transactions, 'cash')
+        elif export_format == 'xlsx':
+            return self.export_to_xlsx(transactions, 'cash')
+        
+        return Response(
+            {"error": "Неподдерживаемый формат экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    def export_to_csv(self, queryset, export_type):
+        """Export data to CSV format."""
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        if export_type == 'operations':
+            writer.writerow([
+                'Номер операции', 'Дата', 'Время', 'Тип', 'Валюта',
+                'Курс', 'Сумма', 'Общая сумма', 'Кассир', 'Статус', 'Комментарий'
+            ])
+            for obj in queryset:
+                writer.writerow([
+                    obj.operation_number,
+                    obj.created_at.strftime('%Y-%m-%d'),
+                    obj.created_at.strftime('%H:%M:%S'),
+                    obj.get_operation_type_display(),
+                    obj.currency.code,
+                    obj.rate,
+                    obj.amount,
+                    obj.total_amount,
+                    obj.cashier.username,
+                    obj.get_status_display(),
+                    obj.comment
+                ])
+        elif export_type == 'cash':
+            writer.writerow([
+                'Тип операции', 'Дата', 'Время', 'Валюта', 'Сумма',
+                'Остаток до', 'Остаток после', 'Кассир', 'Комментарий'
+            ])
+            for obj in queryset:
+                writer.writerow([
+                    obj.get_transaction_type_display(),
+                    obj.created_at.strftime('%Y-%m-%d'),
+                    obj.created_at.strftime('%H:%M:%S'),
+                    obj.currency.code,
+                    obj.amount,
+                    obj.balance_before,
+                    obj.balance_after,
+                    obj.cashier.username,
+                    obj.comment
+                ])
+        
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().strftime("%Y%m%d")}.csv"'
+        return response
+    
+    def export_to_xlsx(self, queryset, export_type):
+        """Export data to Excel format."""
+        try:
+            from openpyxl import Workbook
+            
+            wb = Workbook()
+            ws = wb.active
+            ws.title = export_type
+            
+            if export_type == 'operations':
+                ws.append([
+                    'Номер операции', 'Дата', 'Время', 'Тип', 'Валюта',
+                    'Курс', 'Сумма', 'Общая сумма', 'Кассир', 'Статус', 'Комментарий'
+                ])
+                for obj in queryset:
+                    ws.append([
+                        obj.operation_number,
+                        obj.created_at.strftime('%Y-%m-%d'),
+                        obj.created_at.strftime('%H:%M:%S'),
+                        obj.get_operation_type_display(),
+                        obj.currency.code,
+                        float(obj.rate),
+                        float(obj.amount),
+                        float(obj.total_amount),
+                        obj.cashier.username,
+                        obj.get_status_display(),
+                        obj.comment
+                    ])
+            elif export_type == 'cash':
+                ws.append([
+                    'Тип операции', 'Дата', 'Время', 'Валюта', 'Сумма',
+                    'Остаток до', 'Остаток после', 'Кассир', 'Комментарий'
+                ])
+                for obj in queryset:
+                    ws.append([
+                        obj.get_transaction_type_display(),
+                        obj.created_at.strftime('%Y-%m-%d'),
+                        obj.created_at.strftime('%H:%M:%S'),
+                        obj.currency.code,
+                        float(obj.amount),
+                        float(obj.balance_before),
+                        float(obj.balance_after),
+                        obj.cashier.username,
+                        obj.comment
+                    ])
+            
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+            
+            response = HttpResponse(
+                output.getvalue(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().strftime("%Y%m%d")}.xlsx"'
+            return response
+            
+        except ImportError:
+            return Response(
+                {"error": "Библиотека openpyxl не установлена"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def export_report(self, request, export_format):
+        """Export report data."""
+        date = request.query_params.get('date', timezone.now().date())
+        
+        operations = Operation.objects.filter(
+            created_at__date=date,
+            status=OperationStatus.ACTIVE
+        )
+        
+        report_data = {
+            'date': str(date),
+            'total_operations': operations.count(),
+            'total_turnover': float(operations.aggregate(total=Sum('total_amount'))['total'] or 0),
+        }
+        
+        if export_format == 'json':
+            return Response(report_data)
+        elif export_format == 'csv':
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Параметр', 'Значение'])
+            for key, value in report_data.items():
+                writer.writerow([key, value])
+            
+            response = HttpResponse(output.getvalue(), content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="report_{date}.csv"'
+            return response
+        
+        return Response(
+            {"error": "Неподдерживаемый формат экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )

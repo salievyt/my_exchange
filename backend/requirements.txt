@@ -1,0 +1,35 @@
+# Django Core
+Django==5.0.1
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+django-filter==23.5
+
+# Database
+psycopg2-binary==2.9.9
+redis==5.0.1
+
+# Security
+django-cors-headers==4.3.1
+bcrypt==4.1.2
+
+# Export
+openpyxl==3.1.2
+reportlab==4.0.8
+pandas==2.1.4
+
+# Analytics
+numpy==1.26.3
+
+# Utils
+python-decouple==3.8
+Pillow==10.2.0
+
+# Documentation
+drf-spectacular==0.27.0
+
+# Backup
+django-storages==1.14.2
+
+# Notifications
+channels==4.0.0
+channels-redis==4.2.0

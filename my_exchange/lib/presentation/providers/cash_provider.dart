@@ -1,0 +1,154 @@
+import 'package:flutter/foundation.dart';
+import '../../domain/entities/cash_balance.dart';
+import '../../domain/entities/cash_register.dart';
+import '../../domain/entities/cash_transaction.dart';
+import '../../domain/repositories/cash_repository.dart';
+import '../../di/service_locator.dart';
+
+class CashProvider extends ChangeNotifier {
+  final CashRepository _repository;
+
+  CashProvider() : _repository = sl<CashRepository>();
+
+  List<CashBalance> _balances = [];
+  CashRegister? _currentRegister;
+  final List<CashTransaction> _transactions = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  List<CashBalance> get balances => _balances;
+  CashRegister? get currentRegister => _currentRegister;
+  List<CashTransaction> get transactions => _transactions;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get isRegisterOpen => _currentRegister?.isOpen ?? false;
+
+  Future<void> loadBalances() async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _repository.getBalances();
+
+    result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        _isLoading = false;
+        notifyListeners();
+      },
+      (balances) {
+        _balances = balances;
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> checkCurrentRegister() async {
+    final result = await _repository.getCurrentRegister();
+
+    result.fold(
+      (failure) {
+        _currentRegister = null;
+      },
+      (register) {
+        _currentRegister = register;
+      },
+    );
+    notifyListeners();
+  }
+
+  Future<bool> openRegister({
+    required Map<String, double> openingBalance,
+    String? comment,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _repository.openRegister(
+      openingBalance: openingBalance,
+      comment: comment,
+    );
+
+    _isLoading = false;
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (register) {
+        _currentRegister = register;
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> closeRegister({
+    required Map<String, double> closingBalance,
+    String? comment,
+  }) async {
+    if (_currentRegister == null) return false;
+
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _repository.closeRegister(
+      id: _currentRegister!.id,
+      closingBalance: closingBalance,
+      comment: comment,
+    );
+
+    _isLoading = false;
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (register) {
+        _currentRegister = register;
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> createTransaction({
+    required String transactionType,
+    required int currencyId,
+    required double amount,
+    String? comment,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _repository.createTransaction(
+      transactionType: transactionType,
+      currencyId: currencyId,
+      amount: amount,
+      comment: comment,
+    );
+
+    _isLoading = false;
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (transaction) {
+        _transactions.insert(0, transaction);
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  void clearError() {
+    _errorMessage = null;
+  }
+}
