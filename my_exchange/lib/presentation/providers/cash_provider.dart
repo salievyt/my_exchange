@@ -25,6 +25,7 @@ class CashProvider extends ChangeNotifier {
 
   Future<void> loadBalances() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.getBalances();
@@ -37,6 +38,7 @@ class CashProvider extends ChangeNotifier {
       },
       (balances) {
         _balances = balances;
+        _errorMessage = null;
         _isLoading = false;
         notifyListeners();
       },
@@ -62,6 +64,7 @@ class CashProvider extends ChangeNotifier {
     String? comment,
   }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.openRegister(
@@ -92,6 +95,7 @@ class CashProvider extends ChangeNotifier {
     if (_currentRegister == null) return false;
 
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.closeRegister(
@@ -123,6 +127,7 @@ class CashProvider extends ChangeNotifier {
     String? comment,
   }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.createTransaction(

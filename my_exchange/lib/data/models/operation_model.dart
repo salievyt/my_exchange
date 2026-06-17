@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../../core/utils/json_helpers.dart';
 import '../../domain/entities/operation.dart';
 
 part 'operation_model.g.dart';

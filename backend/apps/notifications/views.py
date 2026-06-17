@@ -14,6 +14,8 @@ from asgiref.sync import async_to_sync
 from apps.cash.models import CashBalance
 from apps.operations.models import Operation, OperationStatus
 from apps.users.models import Role
+from .models import AppVersion
+from .serializers import AppVersionSerializer, AppVersionCheckSerializer
 
 
 class NotificationView(views.APIView):
@@ -200,4 +202,66 @@ class ErrorNotificationView(views.APIView):
             'error': error_message,
             'operation_id': operation_id,
             'timestamp': timezone.now().isoformat(),
+        })
+
+
+class AppVersionCheckView(views.APIView):
+    """Check if a newer app version is available."""
+    
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        """
+        Check for app update.
+        
+        Request body:
+        {
+            "platform": "android" | "ios",
+            "current_version": "0.1.0",
+            "build_number": 1
+        }
+        
+        Response on update available:
+        {
+            "update_available": true,
+            "version": "1.1.0",
+            "is_required": false,
+            "update_url": "...",
+            "changelog": "..."
+        }
+        
+        Response on no update:
+        {
+            "update_available": false
+        }
+        """
+        serializer = AppVersionCheckSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        platform = serializer.validated_data['platform']
+        current_version = serializer.validated_data['current_version']
+        build_number = serializer.validated_data.get('build_number', 0)
+        
+        # Find latest active version for this platform (highest build number)
+        latest = AppVersion.objects.filter(
+            platform=platform,
+            is_active=True,
+        ).order_by('-build_number').first()
+        
+        if not latest:
+            return Response({'update_available': False})
+        
+        # Compare versions (simple string comparison may not work for semver)
+        # Use build_number for definitive comparison
+        if build_number >= latest.build_number:
+            return Response({'update_available': False})
+        
+        return Response({
+            'update_available': True,
+            'version': latest.version,
+            'build_number': latest.build_number,
+            'is_required': latest.is_required,
+            'update_url': latest.update_url,
+            'changelog': latest.changelog,
         })

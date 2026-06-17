@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/cash_provider.dart';
+import '../../../presentation/widgets/error_widgets.dart';
 import 'open_register_dialog.dart';
 import 'close_register_dialog.dart';
 import 'transaction_dialog.dart';
@@ -66,6 +67,24 @@ class _CashScreenState extends State<CashScreen> {
               _buildRegisterCard(),
               const SizedBox(height: 16),
 
+              // Error banner (if error and we have data)
+              Consumer<CashProvider>(
+                builder: (context, provider, child) {
+                  if (provider.errorMessage != null &&
+                      provider.balances.isNotEmpty) {
+                    return ErrorBanner(
+                      message: provider.errorMessage!,
+                      onRetry: () {
+                        provider.loadBalances();
+                        provider.checkCurrentRegister();
+                      },
+                      onDismiss: () => provider.clearError(),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
               // Balances
               const Text(
                 'Остатки',
@@ -76,6 +95,19 @@ class _CashScreenState extends State<CashScreen> {
                 builder: (context, provider, child) {
                   if (provider.isLoading && provider.balances.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // Error state with retry (no data)
+                  if (provider.errorMessage != null &&
+                      provider.balances.isEmpty) {
+                    return ErrorStateWidget(
+                      message: provider.errorMessage!,
+                      details: 'Не удалось загрузить остатки',
+                      onRetry: () {
+                        provider.loadBalances();
+                        provider.checkCurrentRegister();
+                      },
+                    );
                   }
 
                   if (provider.balances.isEmpty) {

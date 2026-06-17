@@ -8,6 +8,8 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/currency_provider.dart';
 import 'presentation/providers/operation_provider.dart';
 import 'presentation/providers/cash_provider.dart';
+import 'presentation/providers/analytics_provider.dart';
+import 'presentation/providers/update_notification_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'presentation/screens/main_screen.dart';
 
@@ -49,6 +51,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => OperationProvider()),
         ChangeNotifierProvider(create: (_) => CashProvider()),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
+        ChangeNotifierProvider(create: (_) => UpdateNotificationProvider()),
       ],
       child: MaterialApp(
         title: 'My Exchange',
@@ -87,7 +91,7 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Show main screen if authenticated
+        // Show main screen if authenticated (update check happens inside)
         return const MainScreen();
       },
     );

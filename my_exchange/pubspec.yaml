@@ -45,6 +45,7 @@ dependencies:
   get_it: ^7.6.4
   intl: ^0.20.2
   chucker_flutter: ^1.9.2
+  fl_chart: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +53,12 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.7
   json_serializable: ^6.7.1
+  change_app_package_name: ^1.5.0
+  rename_app: ^1.6.6
 
 flutter:
   uses-material-design: true
+
+
+config_name:
+  name: "Моя волюта"

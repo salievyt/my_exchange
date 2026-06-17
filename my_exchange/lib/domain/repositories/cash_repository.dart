@@ -28,7 +28,7 @@ abstract class CashRepository {
     String? ordering,
   });
 
-  Future<Either<Failure, CashRegister>> getRegisterById(String id);
+  Future<Either<Failure, CashRegister>> getRegisterById(int id);
 
   Future<Either<Failure, CashRegister>> getCurrentRegister();
 
@@ -38,13 +38,13 @@ abstract class CashRepository {
   });
 
   Future<Either<Failure, CashRegister>> closeRegister({
-    required String id,
+    required int id,
     required Map<String, double> closingBalance,
     String? comment,
   });
 
   Future<Either<Failure, CashRegister>> updateRegister({
-    required String id,
+    required int id,
     String? comment,
   });
 
@@ -56,7 +56,7 @@ abstract class CashRepository {
     String? ordering,
   });
 
-  Future<Either<Failure, CashTransaction>> getTransactionById(String id);
+  Future<Either<Failure, CashTransaction>> getTransactionById(int id);
 
   Future<Either<Failure, CashTransaction>> createTransaction({
     required String transactionType,
@@ -65,5 +65,5 @@ abstract class CashRepository {
     String? comment,
   });
 
-  Future<Either<Failure, void>> deleteTransaction(String id);
+  Future<Either<Failure, void>> deleteTransaction(int id);
 }

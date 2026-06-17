@@ -6,6 +6,7 @@ import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/datasources/cash_remote_datasource.dart';
 import '../../data/datasources/currency_remote_datasource.dart';
+import '../../data/datasources/notification_remote_datasource.dart';
 import '../../data/datasources/operation_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/cash_repository_impl.dart';
@@ -68,6 +69,10 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<CashRemoteDataSource>(
     () => CashRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+  );
+
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(dioClient: sl<DioClient>()),
   );
 
   // Repositories

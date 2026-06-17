@@ -8,15 +8,15 @@ part of 'cash_balance_model.dart';
 
 CashBalanceModel _$CashBalanceModelFromJson(Map<String, dynamic> json) =>
     CashBalanceModel(
-      id: (json['id'] as num).toInt(),
-      currencyId: (json['currency'] as num).toInt(),
-      currencyCode: json['currency_code'] as String,
-      currencyName: json['currency_name'] as String,
-      currencySymbol: json['currency_symbol'] as String,
-      balance: (json['balance'] as num).toDouble(),
-      reserved: (json['reserved'] as num).toDouble(),
-      availableBalance: (json['available_balance'] as num).toDouble(),
-      lastUpdated: DateTime.parse(json['last_updated'] as String),
+      id: jsonInt(json['id']),
+      currencyId: jsonInt(json['currency']),
+      currencyCode: json['currency_code'] as String? ?? '',
+      currencyName: json['currency_name'] as String? ?? '',
+      currencySymbol: json['currency_symbol'] as String? ?? '',
+      balance: jsonDouble(json['balance']),
+      reserved: jsonDouble(json['reserved']),
+      availableBalance: jsonDouble(json['available_balance']),
+      lastUpdated: jsonDateTime(json['last_updated']),
     );
 
 Map<String, dynamic> _$CashBalanceModelToJson(CashBalanceModel instance) =>

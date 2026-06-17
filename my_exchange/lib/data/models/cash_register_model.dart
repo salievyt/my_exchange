@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
+import '../../core/utils/json_helpers.dart';
 import '../../domain/entities/cash_register.dart';
 
 part 'cash_register_model.g.dart';

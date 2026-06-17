@@ -18,6 +18,7 @@ class CurrencyProvider extends ChangeNotifier {
 
   Future<void> loadCurrencies() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.getActiveCurrencies();
@@ -30,6 +31,7 @@ class CurrencyProvider extends ChangeNotifier {
       },
       (currencies) {
         _currencies = currencies;
+        _errorMessage = null;
         _isLoading = false;
         notifyListeners();
       },

@@ -51,6 +51,7 @@ class ApiEndpoints {
   static const String notifications = '/api/notifications/';
   static const String notificationsSend = '/api/notifications/send/';
   static const String notificationsError = '/api/notifications/error/';
+  static const String notificationsAppVersion = '/api/notifications/app-version/';
 
   // Logs
   static const String auditLogs = '/api/logs/audit/';

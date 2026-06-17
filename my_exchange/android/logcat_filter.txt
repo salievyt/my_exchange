@@ -1,0 +1,9 @@
+# Logcat filter for My Exchange
+# Run flutter with filtered logs:
+#   flutter run --verbose-logging=false 2>&1 | grep -v "InsetsSource\|ViewRootImplStubImpl\|BLASTBufferQueue\|BufferQueueConsumer\|PowerHalMgrImpl\|HandWritingStubImpl\|MIUIInput\|ForceDarkHelper\|ImeTracker\|Choreographer\|ScrollIdentify\|InsetsAnimation\|InsetsController"
+# 
+# OR use adb directly:
+#   adb logcat -s flutter:* DEBUG:* ActivityManager:I WindowManager:I
+#
+# OR in terminal run:
+#   flutter run 2>&1 | grep -E "(flutter|Dart|═══)"

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../features/operations/screens/operations_screen.dart';
 import '../../features/cash/screens/cash_screen.dart';
 import '../../features/currencies/screens/currencies_screen.dart';
 import '../../features/analytics/screens/analytics_screen.dart';
+import '../providers/update_notification_provider.dart';
+import '../widgets/update_notification_dialog.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -20,6 +23,45 @@ class _MainScreenState extends State<MainScreen> {
     const CurrenciesScreen(),
     const AnalyticsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Delay update check to avoid calling notifyListeners during build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdate();
+    });
+  }
+
+  void _checkForUpdate() {
+    final updateProvider = context.read<UpdateNotificationProvider>();
+    updateProvider.addListener(_onUpdateChecked);
+    updateProvider.checkForUpdate();
+  }
+
+  void _onUpdateChecked() {
+    if (!mounted) return;
+    final updateProvider = context.read<UpdateNotificationProvider>();
+    updateProvider.removeListener(_onUpdateChecked);
+
+    final update = updateProvider.pendingUpdate;
+    if (update != null) {
+      showDialog(
+        context: context,
+        barrierDismissible: !update.isRequired,
+        builder: (context) => UpdateNotificationDialog(
+          version: update.version,
+          isRequired: update.isRequired,
+          updateUrl: update.updateUrl,
+          changelog: update.changelog,
+        ),
+      ).then((_) {
+        if (mounted && !update.isRequired) {
+          updateProvider.dismiss();
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

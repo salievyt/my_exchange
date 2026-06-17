@@ -25,6 +25,7 @@ class OperationProvider extends ChangeNotifier {
     String? ordering,
   }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.getOperations(
@@ -42,6 +43,7 @@ class OperationProvider extends ChangeNotifier {
       },
       (operations) {
         _operations = operations;
+        _errorMessage = null;
         _isLoading = false;
         notifyListeners();
       },
@@ -58,6 +60,7 @@ class OperationProvider extends ChangeNotifier {
     String? comment,
   }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.createOperation(
@@ -88,6 +91,7 @@ class OperationProvider extends ChangeNotifier {
 
   Future<void> loadTodayStats() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.getTodayStats();
@@ -100,6 +104,7 @@ class OperationProvider extends ChangeNotifier {
       },
       (stats) {
         _todayStats = stats;
+        _errorMessage = null;
         _isLoading = false;
         notifyListeners();
       },

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../../core/utils/json_helpers.dart';
 import '../../domain/entities/cash_transaction.dart';
 
 part 'cash_transaction_model.g.dart';

@@ -9,21 +9,21 @@ part of 'cash_transaction_model.dart';
 CashTransactionModel _$CashTransactionModelFromJson(
   Map<String, dynamic> json,
 ) => CashTransactionModel(
-  id: json['id'] as String,
-  transactionType: $enumDecode(
+  id: jsonInt(json['id']),
+  transactionType: $enumDecodeNullable(
     _$TransactionTypeEnumMap,
     json['transaction_type'],
-  ),
-  currencyId: (json['currency'] as num).toInt(),
-  currencyCode: json['currency_code'] as String,
-  amount: (json['amount'] as num).toDouble(),
-  balanceBefore: (json['balance_before'] as num).toDouble(),
-  balanceAfter: (json['balance_after'] as num).toDouble(),
-  cashierId: (json['cashier'] as num).toInt(),
-  cashierUsername: json['cashier_username'] as String,
-  cashierName: json['cashier_name'] as String,
+  ) ?? TransactionType.deposit,
+  currencyId: jsonInt(json['currency']),
+  currencyCode: json['currency_code'] as String? ?? '',
+  amount: jsonDouble(json['amount']),
+  balanceBefore: jsonDouble(json['balance_before']),
+  balanceAfter: jsonDouble(json['balance_after']),
+  cashierId: jsonInt(json['cashier']),
+  cashierUsername: json['cashier_username'] as String? ?? '',
+  cashierName: json['cashier_name'] as String? ?? '',
   comment: json['comment'] as String?,
-  createdAt: DateTime.parse(json['created_at'] as String),
+  createdAt: jsonDateTime(json['created_at']),
 );
 
 Map<String, dynamic> _$CashTransactionModelToJson(

@@ -3,6 +3,7 @@ import 'package:my_exchange/presentation/providers/currency_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../presentation/widgets/error_widgets.dart';
 
 class CurrenciesScreen extends StatefulWidget {
   const CurrenciesScreen({super.key});
@@ -33,13 +34,22 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => context.read<CurrencyProvider>().loadCurrencies(),
-        child: Consumer<CurrencyProvider>(
+        onRefresh: () => context.read<CurrencyProvider>().loadCurrencies(),          child: Consumer<CurrencyProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading && provider.currencies.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
+            // Error state with retry (no data)
+            if (provider.errorMessage != null && provider.currencies.isEmpty) {
+              return ErrorStateWidget(
+                message: provider.errorMessage!,
+                details: 'Не удалось загрузить список валют',
+                onRetry: () => provider.loadCurrencies(),
+              );
+            }
+
+            // Empty state
             if (provider.currencies.isEmpty) {
               return Center(
                 child: Column(
@@ -58,19 +68,39 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => provider.loadCurrencies(),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Загрузить'),
+                    ),
                   ],
                 ),
               );
             }
 
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: provider.currencies.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final currency = provider.currencies[index];
-                return _CurrencyCard(currency: currency);
-              },
+            return Column(
+              children: [
+                // Error banner when refresh fails but we have data
+                if (provider.errorMessage != null)
+                  ErrorBanner(
+                    message: provider.errorMessage!,
+                    onRetry: () => provider.loadCurrencies(),
+                    onDismiss: () => provider.clearError(),
+                  ),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: provider.currencies.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final currency = provider.currencies[index];
+                      return _CurrencyCard(currency: currency);
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -122,11 +152,12 @@ class _CurrencyCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       if (currency.buyRate != null)
                         Container(
-                          margin: const EdgeInsets.only(right: 12),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,

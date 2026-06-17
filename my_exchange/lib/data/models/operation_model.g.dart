@@ -8,27 +8,30 @@ part of 'operation_model.dart';
 
 OperationModel _$OperationModelFromJson(Map<String, dynamic> json) =>
     OperationModel(
-      id: json['id'] as String,
-      operationNumber: json['operation_number'] as String,
-      operationType: $enumDecode(
+      id: jsonInt(json['id']),
+      operationNumber: json['operation_number'] as String? ?? '',
+      operationType: $enumDecodeNullable(
         _$OperationTypeEnumMap,
         json['operation_type'],
-      ),
-      status: $enumDecode(_$OperationStatusEnumMap, json['status']),
+      ) ?? OperationType.buy,
+      status: $enumDecodeNullable(
+        _$OperationStatusEnumMap,
+        json['status'],
+      ) ?? OperationStatus.active,
       clientName: json['client_name'] as String?,
       clientCompany: json['client_company'] as String?,
-      currencyId: (json['currency'] as num).toInt(),
-      currencyCode: json['currency_code'] as String,
-      currencyName: json['currency_name'] as String,
-      rate: (json['rate'] as num).toDouble(),
-      amount: (json['amount'] as num).toDouble(),
-      totalAmount: (json['total_amount'] as num).toDouble(),
-      cashierId: (json['cashier'] as num).toInt(),
-      cashierUsername: json['cashier_username'] as String,
-      cashierName: json['cashier_name'] as String,
+      currencyId: jsonInt(json['currency']),
+      currencyCode: json['currency_code'] as String? ?? '',
+      currencyName: json['currency_name'] as String? ?? '',
+      rate: jsonDouble(json['rate']),
+      amount: jsonDouble(json['amount']),
+      totalAmount: jsonDouble(json['total_amount']),
+      cashierId: jsonInt(json['cashier']),
+      cashierUsername: json['cashier_username'] as String? ?? '',
+      cashierName: json['cashier_name'] as String? ?? '',
       comment: json['comment'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: jsonDateTime(json['created_at']),
+      updatedAt: jsonDateTime(json['updated_at']),
     );
 
 Map<String, dynamic> _$OperationModelToJson(OperationModel instance) =>

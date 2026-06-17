@@ -14,6 +14,14 @@ class AuditLogMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        # Cache request body early to avoid RawPostDataException
+        # DRF consumes the body during view processing, so we need to
+        # read it before passing the request through the middleware chain.
+        if request.method in ['POST', 'PUT', 'PATCH'] and request.path.startswith('/api/'):
+            # Force caching of request._body by reading body early
+            # This prevents RawPostDataException when DRF accesses it later
+            _ = request.body
+        
         # Process request
         response = self.get_response(request)
         
@@ -47,13 +55,14 @@ class AuditLogMiddleware:
         # Get object ID from URL
         object_id = self._extract_object_id(request.path)
         
-        # Get request body for details
+        # Get request body for details (Django caches it internally after first read)
         details = {}
-        if request.body:
-            try:
-                details = json.loads(request.body)
-            except (json.JSONDecodeError, ValueError):
-                pass
+        try:
+            raw_body = request.body
+            if raw_body:
+                details = json.loads(raw_body)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            pass
         
         # Create audit log entry
         AuditLog.objects.create(

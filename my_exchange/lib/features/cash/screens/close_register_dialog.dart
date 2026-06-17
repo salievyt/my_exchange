@@ -24,12 +24,15 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
 
     for (var currency in currencies) {
       _controllers[currency.id] = TextEditingController();
-      // Set current balance as placeholder
-      final balance = provider.balances.firstWhere(
-        (b) => b.currencyId == currency.id,
-        orElse: () => throw Exception('Balance not found'),
-      );
-      _controllers[currency.id]!.text = balance.balance.toString();
+      // Set current balance as placeholder, default to 0 if not loaded
+      try {
+        final balance = provider.balances.firstWhere(
+          (b) => b.currencyId == currency.id,
+        );
+        _controllers[currency.id]!.text = balance.balance.toString();
+      } catch (_) {
+        _controllers[currency.id]!.text = '0';
+      }
     }
   }
 

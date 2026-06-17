@@ -86,7 +86,7 @@ class CashRepositoryImpl implements CashRepository {
   }
 
   @override
-  Future<Either<Failure, CashRegister>> getRegisterById(String id) async {
+  Future<Either<Failure, CashRegister>> getRegisterById(int id) async {
     try {
       final register = await remoteDataSource.getRegisterById(id);
       return Right(register.toEntity());
@@ -127,7 +127,7 @@ class CashRepositoryImpl implements CashRepository {
 
   @override
   Future<Either<Failure, CashRegister>> closeRegister({
-    required String id,
+    required int id,
     required Map<String, double> closingBalance,
     String? comment,
   }) async {
@@ -145,7 +145,7 @@ class CashRepositoryImpl implements CashRepository {
 
   @override
   Future<Either<Failure, CashRegister>> updateRegister({
-    required String id,
+    required int id,
     String? comment,
   }) async {
     try {
@@ -180,7 +180,7 @@ class CashRepositoryImpl implements CashRepository {
   }
 
   @override
-  Future<Either<Failure, CashTransaction>> getTransactionById(String id) async {
+  Future<Either<Failure, CashTransaction>> getTransactionById(int id) async {
     try {
       final transaction = await remoteDataSource.getTransactionById(id);
       return Right(transaction.toEntity());
@@ -212,7 +212,7 @@ class CashRepositoryImpl implements CashRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteTransaction(String id) async {
+  Future<Either<Failure, void>> deleteTransaction(int id) async {
     try {
       await remoteDataSource.deleteTransaction(id);
       return const Right(null);

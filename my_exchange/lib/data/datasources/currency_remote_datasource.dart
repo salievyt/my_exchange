@@ -62,14 +62,23 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
         queryParameters: queryParams,
       );
 
-      final results =
-          response.data['results'] as List? ?? response.data as List;
+      final data = response.data;
+      final List<dynamic> results;
+      if (data is List) {
+        results = data;
+      } else {
+        results = (data['results'] as List?) ?? data as List;
+      }
       return results.map((json) => CurrencyModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
         message:
             e.response?.data['detail']?.toString() ?? 'Ошибка получения валют',
         statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        message: 'Ошибка обработки данных валют: ${e.toString()}',
       );
     }
   }
@@ -78,13 +87,23 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
   Future<List<CurrencyModel>> getActiveCurrencies() async {
     try {
       final response = await dioClient.dio.get(ApiEndpoints.currenciesActive);
-      final results =
-          response.data['results'] as List? ?? response.data as List;
+      // Active currencies endpoint returns a flat JSON array (not paginated)
+      final data = response.data;
+      final List<dynamic> results;
+      if (data is List) {
+        results = data;
+      } else {
+        results = (data['results'] as List?) ?? data as List;
+      }
       return results.map((json) => CurrencyModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
         message: 'Ошибка получения активных валют',
         statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        message: 'Ошибка обработки данных валют: ${e.toString()}',
       );
     }
   }

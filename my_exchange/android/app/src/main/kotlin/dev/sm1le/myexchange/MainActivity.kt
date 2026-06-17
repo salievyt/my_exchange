@@ -1,4 +1,4 @@
-package com.example.my_exchange
+package dev.sm1le.myexchange
 
 import io.flutter.embedding.android.FlutterActivity
 

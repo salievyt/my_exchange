@@ -30,7 +30,7 @@ abstract class CashRemoteDataSource {
     String? ordering,
   });
 
-  Future<CashRegisterModel> getRegisterById(String id);
+  Future<CashRegisterModel> getRegisterById(int id);
 
   Future<CashRegisterModel> getCurrentRegister();
 
@@ -40,13 +40,13 @@ abstract class CashRemoteDataSource {
   });
 
   Future<CashRegisterModel> closeRegister({
-    required String id,
+    required int id,
     required Map<String, double> closingBalance,
     String? comment,
   });
 
   Future<CashRegisterModel> updateRegister({
-    required String id,
+    required int id,
     String? comment,
   });
 
@@ -65,9 +65,9 @@ abstract class CashRemoteDataSource {
     String? comment,
   });
 
-  Future<CashTransactionModel> getTransactionById(String id);
+  Future<CashTransactionModel> getTransactionById(int id);
 
-  Future<void> deleteTransaction(String id);
+  Future<void> deleteTransaction(int id);
 }
 
 /// Cash remote data source implementation
@@ -179,7 +179,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
   }
 
   @override
-  Future<CashRegisterModel> getRegisterById(String id) async {
+  Future<CashRegisterModel> getRegisterById(int id) async {
     try {
       final response = await dioClient.dio.get(
         '${ApiEndpoints.cashRegisters}$id/',
@@ -235,7 +235,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
 
   @override
   Future<CashRegisterModel> closeRegister({
-    required String id,
+    required int id,
     required Map<String, double> closingBalance,
     String? comment,
   }) async {
@@ -260,7 +260,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
 
   @override
   Future<CashRegisterModel> updateRegister({
-    required String id,
+    required int id,
     String? comment,
   }) async {
     try {
@@ -345,7 +345,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
   }
 
   @override
-  Future<CashTransactionModel> getTransactionById(String id) async {
+  Future<CashTransactionModel> getTransactionById(int id) async {
     try {
       final response = await dioClient.dio.get(
         '${ApiEndpoints.cashTransactions}$id/',
@@ -363,7 +363,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
   }
 
   @override
-  Future<void> deleteTransaction(String id) async {
+  Future<void> deleteTransaction(int id) async {
     try {
       await dioClient.dio.delete('${ApiEndpoints.cashTransactions}$id/');
     } on DioException catch (e) {

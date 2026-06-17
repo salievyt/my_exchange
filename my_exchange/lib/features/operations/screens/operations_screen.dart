@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/operation_provider.dart';
 import '../../../presentation/widgets/operation_card.dart';
+import '../../../presentation/widgets/error_widgets.dart';
 import 'create_operation_screen.dart';
 
 class OperationsScreen extends StatefulWidget {
@@ -51,6 +52,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                // Error state with retry (no data)
+                if (provider.errorMessage != null &&
+                    provider.operations.isEmpty) {
+                  return ErrorStateWidget(
+                    message: provider.errorMessage!,
+                    details: 'Не удалось загрузить операции',
+                    onRetry: () {
+                      provider.loadOperations();
+                      provider.loadTodayStats();
+                    },
+                  );
+                }
+
                 if (provider.operations.isEmpty) {
                   return Center(
                     child: Column(
@@ -69,26 +83,51 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             color: AppColors.textSecondary,
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            provider.loadOperations();
+                            provider.loadTodayStats();
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Загрузить'),
+                        ),
                       ],
                     ),
                   );
                 }
 
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    await provider.loadOperations();
-                    await provider.loadTodayStats();
-                  },
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: provider.operations.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final operation = provider.operations[index];
-                      return OperationCard(operation: operation);
-                    },
-                  ),
+                return Column(
+                  children: [
+                    // Error banner when refresh fails but we have data
+                    if (provider.errorMessage != null)
+                      ErrorBanner(
+                        message: provider.errorMessage!,
+                        onRetry: () {
+                          provider.loadOperations();
+                          provider.loadTodayStats();
+                        },
+                        onDismiss: () => provider.clearError(),
+                      ),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          await provider.loadOperations();
+                          await provider.loadTodayStats();
+                        },
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: provider.operations.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final operation = provider.operations[index];
+                            return OperationCard(operation: operation);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
