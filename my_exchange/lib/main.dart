@@ -31,6 +31,19 @@ void main() async {
   runApp(const MyApp());
 }
 
+
+/// Parse a custom locale string into a [Locale] object.
+Locale _parseLocale(String code) {
+  if (code == 'uz_Cyrl') {
+    return const Locale.fromSubtags(
+      languageCode: 'uz',
+      scriptCode: 'Cyrl',
+      countryCode: 'UZ',
+    );
+  }
+  return Locale(code);
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -66,8 +79,11 @@ class MyApp extends StatelessWidget {
             supportedLocales: const [
               Locale('ru', 'RU'),
               Locale('ky', 'KG'),
+              Locale('en', 'US'),
+              Locale('uz', 'UZ'),
+              Locale.fromSubtags(languageCode: 'uz', scriptCode: 'Cyrl', countryCode: 'UZ'),
             ],
-            locale: Locale(local.locale),
+            locale: _parseLocale(local.locale),
             home: const AuthWrapper(),
           );
         },

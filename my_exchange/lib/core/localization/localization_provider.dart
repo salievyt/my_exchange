@@ -11,6 +11,9 @@ class LocalizationProvider extends ChangeNotifier {
   String get locale => _locale;
   bool get isRussian => _locale == 'ru';
   bool get isKyrgyz => _locale == 'ky';
+  bool get isEnglish => _locale == 'en';
+  bool get isUzbek => _locale == 'uz';
+  bool get isUzbekCyrillic => _locale == 'uz_Cyrl';
 
   /// Shorthand to get a translated string for the current locale.
   String t(String key) => AppStrings.t(key, locale: _locale);

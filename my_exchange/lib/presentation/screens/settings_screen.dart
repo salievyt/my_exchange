@@ -467,43 +467,84 @@ class _BiometricSwitchState extends State<_BiometricSwitch> {
   }
 }
 
-class _LanguageSwitcher extends StatefulWidget {
-  @override
-  State<_LanguageSwitcher> createState() => _LanguageSwitcherState();
-}
-
-class _LanguageSwitcherState extends State<_LanguageSwitcher> {
+class _LanguageSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final local = context.watch<LocalizationProvider>();
 
-    return SizedBox(
-      width: 80,
-      child: ToggleButtons(
-        isSelected: [local.isRussian, local.isKyrgyz],
-        onPressed: (index) {
-          final newLocale = index == 0 ? 'ru' : 'ky';
-          local.setLocale(newLocale);
-        },
-        borderRadius: BorderRadius.circular(8),
-        constraints: const BoxConstraints(minWidth: 36, minHeight: 32),
-        selectedColor: Colors.white,
-        fillColor: AppColors.primary,
-        color: AppColors.textSecondary,
-        textStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+    // Build the list of languages
+    final languages = [
+      ('ru', 'RU'),
+      ('ky', 'KG'),
+      ('en', 'EN'),
+      ('uz', "O'Z"),
+      ('uz_Cyrl', 'ЎЗ'),
+    ];
+
+    // Find current locale index
+    int currentIndex = languages.indexWhere(
+      (lang) => lang.$1 == local.locale,
+    );
+    if (currentIndex < 0) currentIndex = 0;
+
+    return PopupMenuButton<String>(
+      onSelected: (locale) => local.setLocale(locale),
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      itemBuilder: (context) => languages.map((lang) {
+        final code = lang.$1;
+        final label = lang.$2;
+        final isSelected = code == local.locale;
+        return PopupMenuItem<String>(
+          value: code,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: 6),
+                Icon(Icons.check, size: 16, color: AppColors.primary),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.3),
+          ),
         ),
-        children: const [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6),
-            child: Text('RU'),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6),
-            child: Text('KG'),
-          ),
-        ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              languages[currentIndex].$2,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
       ),
     );
   }
