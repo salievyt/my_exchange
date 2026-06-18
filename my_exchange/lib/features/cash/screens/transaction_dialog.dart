@@ -51,9 +51,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
       Navigator.pop(context);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Транзакция успешно создана'),
-            backgroundColor: AppColors.success,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
       } else {
@@ -62,7 +62,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
             content: Text(
               provider.errorMessage ?? 'Ошибка создания транзакции',
             ),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -71,6 +71,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SingleChildScrollView(
@@ -86,12 +87,12 @@ class _TransactionDialogState extends State<TransactionDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.add_circle,
-                      color: AppColors.primary,
+                      color: colors.primary,
                       size: 28,
                     ),
                   ),
@@ -229,7 +230,8 @@ class _TransactionTypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = type == 'deposit' ? AppColors.success : AppColors.warning;
+      final colors = Theme.of(context).colorScheme;
+    final color = type == 'deposit' ? colors.tertiary : Colors.orange;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

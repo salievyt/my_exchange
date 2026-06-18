@@ -11,6 +11,8 @@ import 'presentation/providers/operation_provider.dart';
 import 'presentation/providers/cash_provider.dart';
 import 'presentation/providers/analytics_provider.dart';
 import 'presentation/providers/update_notification_provider.dart';
+import 'presentation/providers/theme_provider.dart';
+import 'presentation/providers/reports_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'presentation/screens/main_screen.dart';
 
@@ -26,16 +28,6 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.white,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
-
   runApp(const MyApp());
 }
 
@@ -46,6 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..init()),
         ChangeNotifierProvider(create: (_) => LocalizationProvider()..init()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuth()),
         ChangeNotifierProvider(
@@ -55,15 +48,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CashProvider()),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => UpdateNotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ReportsProvider()),
       ],
-      child: Consumer<LocalizationProvider>(
-        builder: (context, local, child) {
+      child: Consumer2<LocalizationProvider, ThemeProvider>(
+        builder: (context, local, themeProvider, child) {
           return MaterialApp(
             title: 'My Exchange',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.light,
+            themeMode: themeProvider.themeMode,
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,

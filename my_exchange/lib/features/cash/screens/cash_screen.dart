@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/localization_provider.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
+import '../../../presentation/widgets/skeleton_widgets.dart';
 import 'open_register_dialog.dart';
 import 'close_register_dialog.dart';
 import 'transaction_dialog.dart';
@@ -26,8 +26,20 @@ class _CashScreenState extends State<CashScreen> {
     });
   }
 
+  Widget _buildSkeletonBalanceList() {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: 4,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => const SkeletonBalanceCard(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +110,7 @@ class _CashScreenState extends State<CashScreen> {
                 builder: (context, provider, child) {
                   final loc = context.watch<LocalizationProvider>();
                   if (provider.isLoading && provider.balances.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
+                    return _buildSkeletonBalanceList();
                   }
 
                   // Error state with retry (no data)
@@ -121,7 +133,7 @@ class _CashScreenState extends State<CashScreen> {
                         child: Center(
                           child: Text(
                             loc.t('cash_no_data'),
-                            style: TextStyle(color: AppColors.textSecondary),
+                            style: TextStyle(color: colors.onSurfaceVariant),
                           ),
                         ),
                       ),
@@ -166,13 +178,14 @@ class _CashScreenState extends State<CashScreen> {
   }
 
   Widget _buildRegisterCard() {
+      final colors = Theme.of(context).colorScheme;
     return Consumer<CashProvider>(
       builder: (context, provider, child) {
         final loc = context.watch<LocalizationProvider>();
         final register = provider.currentRegister;
         if (register == null) {
           return Card(
-            color: AppColors.warning.withValues(alpha: 0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -180,12 +193,12 @@ class _CashScreenState extends State<CashScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.2),
+                      color: Colors.orange.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.info_outline,
-                      color: AppColors.warning,
+                      color: Colors.orange,
                       size: 32,
                     ),
                   ),
@@ -206,7 +219,7 @@ class _CashScreenState extends State<CashScreen> {
                           loc.t('cash_register_open_desc'),
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -219,7 +232,7 @@ class _CashScreenState extends State<CashScreen> {
         }
 
         return Card(
-          color: AppColors.success.withValues(alpha: 0.1),
+          color: colors.tertiary.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -230,12 +243,12 @@ class _CashScreenState extends State<CashScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.2),
+                        color: colors.tertiary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check_circle,
-                        color: AppColors.success,
+                        color: colors.tertiary,
                         size: 32,
                       ),
                     ),
@@ -256,15 +269,15 @@ class _CashScreenState extends State<CashScreen> {
                             '${loc.t('cash_cashier')}: ${register.cashierName}',
                             style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.circle,
-                      color: AppColors.success,
+                      color: colors.tertiary,
                       size: 12,
                     ),
                   ],
@@ -277,7 +290,7 @@ class _CashScreenState extends State<CashScreen> {
                   children: [
                     Text(
                       '${loc.t('cash_opened_at')}:',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                     Text(
                       DateFormatter.formatDateTime(register.openedAt),
@@ -322,6 +335,7 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
     return Card(
       child: Padding(
@@ -332,16 +346,16 @@ class _BalanceCard extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: colors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: Text(
                   balance.currencyCode,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: AppColors.primary,
+                    color: colors.primary,
                   ),
                 ),
               ),
@@ -363,7 +377,7 @@ class _BalanceCard extends StatelessWidget {
                     '${local.t('cash_available')}: ${CurrencyFormatter.format(balance.availableBalance, symbol: balance.currencySymbol)}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -385,7 +399,7 @@ class _BalanceCard extends StatelessWidget {
                 if (balance.reserved > 0)
                   Text(
                     '${local.t('cash_reserved')}: ${CurrencyFormatter.format(balance.reserved, symbol: balance.currencySymbol)}',
-                    style: TextStyle(fontSize: 12, color: AppColors.warning),
+                    style: TextStyle(fontSize: 12, color: Colors.orange),
                   ),
               ],
             ),

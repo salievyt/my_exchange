@@ -6,6 +6,7 @@ import '../../core/localization/localization_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/user.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -40,6 +41,28 @@ class SettingsScreen extends StatelessWidget {
             trailing: _LanguageSwitcher(),
           ),
           const Divider(height: 1, indent: 72),
+
+          // Theme selector
+          _SettingsTile(
+            icon: Icons.dark_mode,
+            title: local.t('settings_theme'),
+            subtitle: context.watch<ThemeProvider>().isDark
+                ? local.t('settings_theme_dark')
+                : local.t('settings_theme_light'),
+            trailing: _ThemeSwitcher(),
+          ),
+          const Divider(height: 1, indent: 72),
+
+          // Biometric login toggle
+          if (context.watch<AuthProvider>().biometricAvailable)
+            _SettingsTile(
+              icon: Icons.fingerprint,
+              title: local.t('settings_biometric_login'),
+              subtitle: local.t('settings_biometric_login_desc'),
+              trailing: _BiometricSwitch(),
+            ),
+          if (context.watch<AuthProvider>().biometricAvailable)
+            const Divider(height: 1, indent: 72),
 
           // App version
           _SettingsTile(
@@ -367,6 +390,79 @@ class _SettingsTile extends StatelessWidget {
           : null),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+    );
+  }
+}
+
+class _ThemeSwitcher extends StatefulWidget {
+  @override
+  State<_ThemeSwitcher> createState() => _ThemeSwitcherState();
+}
+
+class _ThemeSwitcherState extends State<_ThemeSwitcher> {
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    return SizedBox(
+      width: 160,
+      child: ToggleButtons(
+        isSelected: [theme.isLight, theme.isDark],
+        onPressed: (index) {
+          theme.setThemeMode(
+            index == 0 ? ThemeMode.light : ThemeMode.dark,
+          );
+        },
+        borderRadius: BorderRadius.circular(8),
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 32),
+        selectedColor: Colors.white,
+        fillColor: AppColors.primary,
+        color: AppColors.textSecondary,
+        textStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.light_mode, size: 14),
+                const SizedBox(width: 2),
+                Text(context.watch<LocalizationProvider>().t('settings_theme_light')),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.dark_mode, size: 14),
+                const SizedBox(width: 2),
+                Text(context.watch<LocalizationProvider>().t('settings_theme_dark')),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BiometricSwitch extends StatefulWidget {
+  @override
+  State<_BiometricSwitch> createState() => _BiometricSwitchState();
+}
+
+class _BiometricSwitchState extends State<_BiometricSwitch> {
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    return Switch(
+      value: auth.biometricEnabled,
+      onChanged: (v) => auth.setBiometricEnabled(v),
+      activeThumbColor: AppColors.primary,
     );
   }
 }

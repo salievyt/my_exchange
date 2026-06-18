@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/providers/currency_provider.dart';
 
@@ -68,19 +67,20 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
     );
 
     if (mounted) {
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+        messenger.showSnackBar(
+          SnackBar(
             content: Text('Смена успешно закрыта'),
-            backgroundColor: AppColors.success,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(provider.errorMessage ?? 'Ошибка закрытия смены'),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -104,12 +104,12 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
-                      color: AppColors.error,
+                      color: Theme.of(context).colorScheme.error,
                       size: 28,
                     ),
                   ),
@@ -121,9 +121,9 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Внесите фактические остатки по валютам',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               Consumer<CurrencyProvider>(
@@ -185,7 +185,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                     child: ElevatedButton(
                       onPressed: _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                       child: const Text('Закрыть смену'),
                     ),

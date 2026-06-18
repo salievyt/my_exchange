@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/providers/currency_provider.dart';
 
@@ -67,19 +66,20 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
     );
 
     if (mounted) {
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+        messenger.showSnackBar(
+          SnackBar(
             content: Text('Смена успешно открыта'),
-            backgroundColor: AppColors.success,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(provider.errorMessage ?? 'Ошибка открытия смены'),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -103,12 +103,12 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.play_arrow,
-                      color: AppColors.success,
+                      color: Theme.of(context).colorScheme.tertiary,
                       size: 28,
                     ),
                   ),
@@ -120,9 +120,9 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Внесите начальные остатки по валютам',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               Consumer<CurrencyProvider>(

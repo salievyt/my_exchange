@@ -9,6 +9,9 @@ abstract class OperationRepository {
     int? pageSize,
     String? search,
     String? ordering,
+    String? operationType,
+    String? dateFrom,
+    String? dateTo,
   });
 
   Future<Either<Failure, Operation>> getOperationById(String id);

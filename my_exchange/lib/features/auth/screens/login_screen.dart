@@ -17,6 +17,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _saveForBiometric = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthProvider>();
+      auth.checkBiometricAvailability();
+      auth.loadBiometricSetting();
+    });
+  }
 
   @override
   void dispose() {
@@ -32,22 +43,50 @@ class _LoginScreenState extends State<LoginScreen> {
     await authProvider.login(
       username: _usernameController.text.trim(),
       password: _passwordController.text,
+      saveForBiometric: _saveForBiometric,
     );
 
     if (mounted && authProvider.isAuthenticated) {
-      // Navigate to main screen handled by auth wrapper
+      setState(() => _saveForBiometric = false);
     } else if (mounted) {
+      final loc = context.read<LocalizationProvider>();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Ошибка входа'),
-          backgroundColor: AppColors.error,
+          content: Text(authProvider.errorMessage ?? loc.t('login_error')),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
   }
 
+  Future<void> _loginWithBiometric() async {
+    final authProvider = context.read<AuthProvider>();
+    final local = context.read<LocalizationProvider>();
+    final success = await authProvider.loginWithBiometric(
+      localizedReason: local.t('login_biometric_reason'),
+    );
+
+    if (mounted && !success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            authProvider.errorMessage ?? local.t('login_biometric_failed'),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  IconData _getBiometricIcon(AuthProvider authProvider) {
+    // Use fingerprint icon by default; iOS Face ID could use a different icon
+    // but Icons.fingerprint works well for both on all platforms
+    return Icons.fingerprint;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
     return Scaffold(
       body: SafeArea(
@@ -65,11 +104,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: LinearGradient(
+                        colors: [
+                          colors.primary,
+                          colors.primary.withValues(alpha: 0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: colors.primary.withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -84,12 +130,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 32),
 
                   // Title
-                  const Text(
+                  Text(
                     'My Exchange',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: colors.onSurface,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -98,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     local.t('login_title'),
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.textSecondary,
+                      color: colors.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -156,6 +202,42 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
+                  // Save for biometric checkbox
+                  if (context.watch<AuthProvider>().biometricAvailable)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: Checkbox(
+                              value: _saveForBiometric,
+                              onChanged: (v) => setState(
+                                () => _saveForBiometric = v ?? false,
+                              ),
+                              activeColor: colors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(
+                                () => _saveForBiometric = !_saveForBiometric,
+                              ),
+                              child: Text(
+                                local.t('login_biometric_save'),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Login button
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
@@ -179,12 +261,42 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 16),
+
+                  // Biometric login button
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      if (!authProvider.biometricAvailable ||
+                          !authProvider.hasSavedCredentials) {
+                        return const SizedBox.shrink();
+                      }
+                      return OutlinedButton.icon(
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : _loginWithBiometric,
+                        icon: Icon(
+                          _getBiometricIcon(authProvider),
+                          color: colors.primary,
+                        ),
+                        label: Text(
+                          local.t('login_biometric'),
+                          style: TextStyle(color: colors.primary),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
 
                   // Version
                   Text(
                     '${local.t('login_version')} ${AppConstants.appVersion}',
-                    style: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    style: TextStyle(fontSize: 12, color: colors.outline),
                     textAlign: TextAlign.center,
                   ),
                 ],

@@ -233,48 +233,52 @@ class ExportView(views.APIView):
         )
     
     def export_operations(self, request, export_format):
-        """Export operations data."""
-        operations = Operation.objects.select_related(
-            'currency', 'cashier'
-        ).all()
-        
-        # Apply filters
-        date_from = request.query_params.get('date_from')
-        date_to = request.query_params.get('date_to')
-        if date_from:
-            operations = operations.filter(created_at__date__gte=date_from)
-        if date_to:
-            operations = operations.filter(created_at__date__lte=date_to)
-        
-        # Role-based filtering
-        if request.user.role == Role.CASHIER:
-            operations = operations.filter(cashier=request.user)
-        
-        if export_format == 'csv':
-            return self.export_to_csv(operations, 'operations')
-        elif export_format == 'xlsx':
-            return self.export_to_xlsx(operations, 'operations')
-        
-        return Response(
-            {"error": "Неподдерживаемый формат экспорта"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+          """Export operations data."""
+          operations = Operation.objects.select_related(
+              'currency', 'cashier'
+          ).all()
+          
+          # Apply filters
+          date_from = request.query_params.get('date_from')
+          date_to = request.query_params.get('date_to')
+          if date_from:
+              operations = operations.filter(created_at__date__gte=date_from)
+          if date_to:
+              operations = operations.filter(created_at__date__lte=date_to)
+          
+          # Role-based filtering
+          if request.user.role == Role.CASHIER:
+              operations = operations.filter(cashier=request.user)
+          
+          if export_format == 'csv':
+              return self.export_to_csv(operations, 'operations')
+          elif export_format == 'xlsx':
+              return self.export_to_xlsx(operations, 'operations')
+          elif export_format == 'pdf':
+              return self.export_to_pdf(operations, 'operations')
+          
+          return Response(
+              {"error": "Неподдерживаемый формат экспорта"},
+              status=status.HTTP_400_BAD_REQUEST
+          )
     
     def export_cash(self, request, export_format):
-        """Export cash transactions."""
-        transactions = CashTransaction.objects.select_related(
-            'currency', 'cashier'
-        ).all()
-        
-        if export_format == 'csv':
-            return self.export_to_csv(transactions, 'cash')
-        elif export_format == 'xlsx':
-            return self.export_to_xlsx(transactions, 'cash')
-        
-        return Response(
-            {"error": "Неподдерживаемый формат экспорта"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+          """Export cash transactions."""
+          transactions = CashTransaction.objects.select_related(
+              'currency', 'cashier'
+          ).all()
+          
+          if export_format == 'csv':
+              return self.export_to_csv(transactions, 'cash')
+          elif export_format == 'xlsx':
+              return self.export_to_xlsx(transactions, 'cash')
+          elif export_format == 'pdf':
+              return self.export_to_pdf(transactions, 'cash')
+          
+          return Response(
+              {"error": "Неподдерживаемый формат экспорта"},
+              status=status.HTTP_400_BAD_REQUEST
+          )
     
     def export_to_csv(self, queryset, export_type):
         """Export data to CSV format."""
@@ -378,13 +382,200 @@ class ExportView(views.APIView):
             )
             response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().strftime("%Y%m%d")}.xlsx"'
             return response
+        except ImportError:
+              return Response(
+                  {"error": "Библиотека openpyxl не установлена"},
+                  status=status.HTTP_500_INTERNAL_SERVER_ERROR
+              )
+    
+    def export_to_pdf(self, queryset, export_type):
+        """Export data to PDF format using reportlab."""
+        try:
+            from reportlab.lib.pagesizes import A4, landscape
+            from reportlab.platypus import (
+                SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            )
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import mm
             
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+
+            # Try to register a Unicode font for Cyrillic support
+            # If DejaVu is available, use it – otherwise fall back to Helvetica
+            font_name = 'Helvetica'
+            for candidate_path, candidate_name in [
+                ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'DejaVuSans'),
+                ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'DejaVu'),
+                ('/usr/share/fonts/truetype/msttcorefonts/arial.ttf', 'Arial'),
+            ]:
+                try:
+                    pdfmetrics.registerFont(TTFont(candidate_name, candidate_path))
+                    font_name = candidate_name
+                    break
+                except Exception:
+                    continue
+
+            styles = getSampleStyleSheet()
+            style_normal = ParagraphStyle(
+                'TableHeader',
+                parent=styles['Normal'],
+                fontName=font_name,
+                fontSize=8,
+                leading=10,
+            )
+            style_header = ParagraphStyle(
+                'TableHeaderBold',
+                parent=styles['Normal'],
+                fontName=font_name,
+                fontSize=8,
+                leading=10,
+                textColor=colors.white,
+            )
+            style_title = ParagraphStyle(
+                'Title',
+                parent=styles['Normal'],
+                fontName=font_name,
+                fontSize=16,
+                leading=20,
+                spaceAfter=6,
+            )
+            style_subtitle = ParagraphStyle(
+                'Subtitle',
+                parent=styles['Normal'],
+                fontName=font_name,
+                fontSize=10,
+                leading=14,
+                textColor=colors.grey,
+                spaceAfter=12,
+            )
+
+            def p(text, style=style_normal):
+                return Paragraph(str(text if text is not None else ''), style)
+
+            # Prepare table headers and data
+            if export_type == 'operations':
+                headers = [
+                    'Номер', 'Дата', 'Время', 'Тип', 'Валюта',
+                    'Курс', 'Сумма', 'Итого', 'Кассир', 'Статус',
+                ]
+                rows = []
+                for obj in queryset:
+                    rows.append([
+                        obj.operation_number,
+                        obj.created_at.strftime('%Y-%m-%d'),
+                        obj.created_at.strftime('%H:%M'),
+                        obj.get_operation_type_display(),
+                        obj.currency.code,
+                        f'{obj.rate:.4f}',
+                        f'{obj.amount:.2f}',
+                        f'{obj.total_amount:.2f}',
+                        obj.cashier.username,
+                        obj.get_status_display(),
+                    ])
+            elif export_type == 'cash':
+                headers = [
+                    'Тип', 'Дата', 'Время', 'Валюта', 'Сумма',
+                    'Остаток до', 'Остаток после', 'Кассир', 'Комментарий',
+                ]
+                rows = []
+                for obj in queryset:
+                    rows.append([
+                        obj.get_transaction_type_display(),
+                        obj.created_at.strftime('%Y-%m-%d'),
+                        obj.created_at.strftime('%H:%M'),
+                        obj.currency.code,
+                        f'{obj.amount:.2f}',
+                        f'{obj.balance_before:.2f}',
+                        f'{obj.balance_after:.2f}',
+                        obj.cashier.username,
+                        obj.comment or '',
+                    ])
+            else:
+                return Response(
+                    {"error": "Неподдерживаемый тип данных для PDF"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            date_str = timezone.now().strftime('%Y-%m-%d_%H%M%S')
+            filename = f'export_{export_type}_{date_str}.pdf'
+
+            # Use landscape for more columns
+            page_size = landscape(A4) if len(headers) > 8 else A4
+
+            output = io.BytesIO()
+            doc = SimpleDocTemplate(
+                output,
+                pagesize=page_size,
+                topMargin=20*mm,
+                bottomMargin=15*mm,
+                leftMargin=15*mm,
+                rightMargin=15*mm,
+            )
+
+            elements = []
+
+            # Title
+            title_text = f'Экспорт {"операций" if export_type == "operations" else "кассы"}'
+            elements.append(Paragraph(title_text, style_title))
+            elements.append(
+                Paragraph(f'Сформировано: {timezone.now().strftime("%d.%m.%Y %H:%M")}', style_subtitle)
+            )
+            elements.append(Spacer(1, 6*mm))
+
+            # Build table
+            table_data = [[p(h, style_header) for h in headers]]
+            for row in rows:
+                table_data.append([p(cell) for cell in row])
+
+            col_width = page_size[0] / len(headers)
+            available_width = page_size[0] - 30*mm
+            col_widths = [available_width / len(headers)] * len(headers)
+
+            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a73e8')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f5f5')]),
+                ('FONTNAME', (0, 0), (-1, -1), font_name),
+            ]))
+            elements.append(table)
+
+            # Footer
+            elements.append(Spacer(1, 8*mm))
+            elements.append(
+                Paragraph(
+                    f'Всего записей: {len(rows)}',
+                    ParagraphStyle(
+                        'Footer',
+                        parent=styles['Normal'],
+                        fontName=font_name,
+                        fontSize=8,
+                        textColor=colors.grey,
+                    )
+                )
+            )
+
+            doc.build(elements)
+            pdf_bytes = output.getvalue()
+            output.close()
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response['Content-Length'] = len(pdf_bytes)
+            return response
+
         except ImportError:
             return Response(
-                {"error": "Библиотека openpyxl не установлена"},
+                {"error": "Библиотека reportlab не установлена"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
+
     def export_report(self, request, export_format):
         """Export report data."""
         date = request.query_params.get('date', timezone.now().date())

@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/analytics_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
+import '../../reports/screens/reports_screen.dart';
 import '../widgets/analytics_charts.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -30,6 +31,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       appBar: AppBar(
         title: Text(local.t('analytics_title')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            tooltip: local.t('analytics_reports'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ReportsScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<AnalyticsProvider>().loadAll(),

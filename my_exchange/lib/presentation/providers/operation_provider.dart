@@ -13,26 +13,72 @@ class OperationProvider extends ChangeNotifier {
   String? _errorMessage;
   Map<String, dynamic>? _todayStats;
 
+  // Filter state
+  String _searchQuery = '';
+  String? _operationTypeFilter;
+  String? _dateFrom;
+  String? _dateTo;
+  String _ordering = '-created_at';
+
   List<Operation> get operations => _operations;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get todayStats => _todayStats;
 
-  Future<void> loadOperations({
-    int? page,
-    int? pageSize,
-    String? search,
-    String? ordering,
-  }) async {
+  // Filter getters
+  String get searchQuery => _searchQuery;
+  String? get operationTypeFilter => _operationTypeFilter;
+  String? get dateFrom => _dateFrom;
+  String? get dateTo => _dateTo;
+  String get ordering => _ordering;
+  bool get hasActiveFilters =>
+      _searchQuery.isNotEmpty ||
+      _operationTypeFilter != null ||
+      _dateFrom != null ||
+      _dateTo != null ||
+      _ordering != '-created_at';
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    loadOperations();
+  }
+
+  void setOperationTypeFilter(String? type) {
+    _operationTypeFilter = type;
+    loadOperations();
+  }
+
+  void setDateFilter({String? from, String? to}) {
+    _dateFrom = from;
+    _dateTo = to;
+    loadOperations();
+  }
+
+  void setOrdering(String ordering) {
+    _ordering = ordering;
+    loadOperations();
+  }
+
+  void clearFilters() {
+    _searchQuery = '';
+    _operationTypeFilter = null;
+    _dateFrom = null;
+    _dateTo = null;
+    _ordering = '-created_at';
+    loadOperations();
+  }
+
+  Future<void> loadOperations() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     final result = await _repository.getOperations(
-      page: page,
-      pageSize: pageSize,
-      search: search,
-      ordering: ordering,
+      search: _searchQuery.isNotEmpty ? _searchQuery : null,
+      ordering: _ordering,
+      operationType: _operationTypeFilter,
+      dateFrom: _dateFrom,
+      dateTo: _dateTo,
     );
 
     result.fold(

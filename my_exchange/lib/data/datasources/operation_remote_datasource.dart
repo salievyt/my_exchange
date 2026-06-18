@@ -11,6 +11,9 @@ abstract class OperationRemoteDataSource {
     int? pageSize,
     String? search,
     String? ordering,
+    String? operationType,
+    String? dateFrom,
+    String? dateTo,
   });
 
   Future<OperationModel> getOperationById(String id);
@@ -58,6 +61,9 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     int? pageSize,
     String? search,
     String? ordering,
+    String? operationType,
+    String? dateFrom,
+    String? dateTo,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -65,6 +71,11 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       if (pageSize != null) queryParams['page_size'] = pageSize;
       if (search != null) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
+      if (operationType != null) {
+        queryParams['operation_type'] = operationType;
+      }
+      if (dateFrom != null) queryParams['date_from'] = dateFrom;
+      if (dateTo != null) queryParams['date_to'] = dateTo;
 
       final response = await dioClient.dio.get(
         ApiEndpoints.operations,

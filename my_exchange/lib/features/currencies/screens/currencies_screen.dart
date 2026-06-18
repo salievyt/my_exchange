@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/localization_provider.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/currency_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
+import '../../../presentation/widgets/skeleton_widgets.dart';
 
 class CurrenciesScreen extends StatefulWidget {
   const CurrenciesScreen({super.key});
@@ -22,8 +22,19 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     });
   }
 
+  Widget _buildSkeletonList() {
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 5,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => const SkeletonCurrencyCard(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(context.watch<LocalizationProvider>().t('currencies_title')),
@@ -40,7 +51,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
           builder: (context, provider, child) {
             final local = context.watch<LocalizationProvider>();
             if (provider.isLoading && provider.currencies.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildSkeletonList();
             }
 
             // Error state with retry (no data)
@@ -61,14 +72,14 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                     Icon(
                       Icons.currency_exchange,
                       size: 80,
-                      color: AppColors.textHint,
+                      color: colors.outline,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       local.t('cash_no_data'),
                       style: TextStyle(
                         fontSize: 18,
-                        color: AppColors.textSecondary,
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -119,6 +130,7 @@ class _CurrencyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
     return Card(
       child: Padding(
@@ -129,7 +141,7 @@ class _CurrencyCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: LinearGradient(colors: [colors.primary, colors.primary.withValues(alpha: 0.8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -167,23 +179,23 @@ class _CurrencyCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.buyColor.withValues(alpha: 0.1),
+                            color: colors.tertiary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.trending_up,
                                 size: 14,
-                                color: AppColors.buyColor,
+                                color: colors.tertiary,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '${local.t('currencies_buy')}: ${CurrencyFormatter.formatRate(currency.buyRate!)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.buyColor,
+                                  color: colors.tertiary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -197,23 +209,23 @@ class _CurrencyCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.sellColor.withValues(alpha: 0.1),
+                            color: colors.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.trending_down,
                                 size: 14,
-                                color: AppColors.sellColor,
+                                color: colors.error,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '${local.t('currencies_sell')}: ${CurrencyFormatter.formatRate(currency.sellRate!)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.sellColor,
+                                  color: colors.error,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -230,15 +242,15 @@ class _CurrencyCard extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: currency.isActive
-                    ? AppColors.success.withValues(alpha: 0.1)
-                    : AppColors.textHint.withValues(alpha: 0.1),
+                    ? colors.tertiary.withValues(alpha: 0.1)
+                    : colors.outline.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 currency.isActive ? Icons.check_circle : Icons.cancel,
                 color: currency.isActive
-                    ? AppColors.success
-                    : AppColors.textHint,
+                    ? colors.tertiary
+                    : colors.outline,
                 size: 24,
               ),
             ),

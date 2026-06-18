@@ -17,6 +17,9 @@ class OperationRepositoryImpl implements OperationRepository {
     int? pageSize,
     String? search,
     String? ordering,
+    String? operationType,
+    String? dateFrom,
+    String? dateTo,
   }) async {
     try {
       final operations = await remoteDataSource.getOperations(
@@ -24,6 +27,9 @@ class OperationRepositoryImpl implements OperationRepository {
         pageSize: pageSize,
         search: search,
         ordering: ordering,
+        operationType: operationType,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
       );
       return Right(operations.map((o) => o.toEntity()).toList());
     } on ServerException catch (e) {

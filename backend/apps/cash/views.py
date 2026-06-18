@@ -20,7 +20,7 @@ class CashBalanceViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return CashBalance.objects.select_related('currency').all()
+        return CashBalance.objects.select_related('currency').all().order_by('id')
     
     @action(detail=False, methods=['get'])
     def summary(self, request):
@@ -168,7 +168,7 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
         
         # Get opening balances
         opening_balances = {}
-        balances = CashBalance.objects.all()
+        balances = CashBalance.objects.all().order_by('id')
         for balance in balances:
             opening_balances[balance.currency.code] = float(balance.balance)
         
@@ -197,7 +197,7 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
         
         # Get closing balances
         closing_balances = {}
-        balances = CashBalance.objects.all()
+        balances = CashBalance.objects.all().order_by('id')
         for balance in balances:
             closing_balances[balance.currency.code] = float(balance.balance)
         

@@ -4,7 +4,7 @@ class AppStrings {
   const AppStrings._();
 
   /// All supported locales.
-  static const List<String> supportedLocales = ['ru', 'ky'];
+  static const List<String> supportedLocales = ['ru', 'ky',];
   static const String defaultLocale = 'ru';
 
   /// Map of locale -> (string key -> translated value).
@@ -49,6 +49,11 @@ class AppStrings {
     'login_password_required': 'Введите пароль',
     'login_password_min': 'Пароль должен быть не менее 6 символов',
     'login_version': 'Версия',
+    'login_biometric': 'Войти по Touch ID / Face ID',
+    'login_biometric_error': 'Биометрическая аутентификация недоступна',
+    'login_biometric_failed': 'Не удалось выполнить вход по биометрии',
+    'login_biometric_save': 'Запомнить для быстрого входа',
+    'login_biometric_reason': 'Подтвердите личность для входа в приложение',
 
     // Settings / Profile
     'settings_title': 'Профиль и настройки',
@@ -71,6 +76,11 @@ class AppStrings {
     'settings_delete_account': 'Запросить удаление аккаунта',
     'settings_delete_account_desc': 'Отправить запрос на удаление вашего аккаунта и всех связанных данных.',
     'settings_delete_account_confirm': 'Запрос отправлен. С вами свяжутся в ближайшее время.',
+    'settings_theme': 'Тема оформления',
+    'settings_theme_light': 'Светлая',
+    'settings_theme_dark': 'Тёмная',
+    'settings_biometric_login': 'Вход по биометрии',
+    'settings_biometric_login_desc': 'Использовать Touch ID / Face ID для быстрого входа',
     'settings_support_email': 'salievyt@gmail.com',
     'settings_privacy_note': 'Нажимая «Выйти», вы завершаете текущую сессию.',
 
@@ -84,6 +94,22 @@ class AppStrings {
     'operations_sells': 'Продажи',
     'operations_buy': 'Покупка',
     'operations_sell': 'Продажа',
+    'operations_search': 'Поиск по номеру, клиенту...',
+    'operations_search_hint': 'Номер операции, имя клиента',
+    'operations_filter_type': 'Тип',
+    'operations_filter_all': 'Все',
+    'operations_filter_period': 'Период',
+    'operations_filter_period_today': 'Сегодня',
+    'operations_filter_period_week': 'Неделя',
+    'operations_filter_period_month': 'Месяц',
+    'operations_filter_period_all': 'Всё время',
+    'operations_filter_sort': 'Сортировка',
+    'operations_filter_sort_newest': 'Новые',
+    'operations_filter_sort_oldest': 'Старые',
+    'operations_filter_sort_amount_asc': 'Сумма ↑',
+    'operations_filter_sort_amount_desc': 'Сумма ↓',
+    'operations_clear_filters': 'Сбросить фильтры',
+    'operations_found': 'Найдено:',
 
     // Cash
     'cash_title': 'Касса',
@@ -120,6 +146,25 @@ class AppStrings {
     'analytics_profitability': 'Рентабельность (маржа %)',
     'analytics_cashiers': 'Кассиры',
     'analytics_cash_balances': 'Остатки в кассе',
+    'analytics_reports': 'Отчёты',
+
+    // Reports
+    'reports_title': 'Отчёты',
+    'reports_subtitle': 'Скачать отчёты',
+    'reports_desc': 'Экспорт данных в формате CSV, Excel или PDF по нажатию одной кнопки',
+    'reports_daily': 'Дневной отчёт',
+    'reports_daily_desc': 'Итоги дня: операции, оборот, остатки',
+    'reports_monthly': 'Месячный отчёт',
+    'reports_monthly_desc': 'Статистика за месяц по дням',
+    'reports_operations': 'Экспорт операций',
+    'reports_operations_desc': 'Все операции за период в таблице',
+    'reports_cash': 'Экспорт кассы',
+    'reports_cash_desc': 'Движение денег по кассе',
+    'reports_download': 'Скачать',
+    'reports_generating': 'Формирование отчёта...',
+    'reports_saved': 'Файл сохранён',
+    'reports_saved_desc': 'Файл готов к использованию. Нажмите «Поделиться», чтобы отправить или сохранить его.',
+    'reports_open_share': 'Поделиться / Сохранить',
 
     // General
     'general_retry': 'Повторить',
@@ -161,6 +206,11 @@ class AppStrings {
     'login_password_required': 'Сырсөздү жазыңыз',
     'login_password_min': 'Сырсөз кеминде 6 символ болушу керек',
     'login_version': 'Версия',
+    'login_biometric': 'Touch ID / Face ID аркылуу кирүү',
+    'login_biometric_error': 'Биометриялык аутентификация жеткиликтүү эмес',
+    'login_biometric_failed': 'Биометрия аркылуу кирүү мүмкүн болгон жок',
+    'login_biometric_save': 'Тез кирүү үчүн сактоо',
+    'login_biometric_reason': 'Кирүү үчүн инсандыгыңызды тастыктаңыз',
 
     // Settings / Profile
     'settings_title': 'Профиль жана орнотуулар',
@@ -183,6 +233,11 @@ class AppStrings {
     'settings_delete_account': 'Аккаунтту жок кылуу',
     'settings_delete_account_desc': 'Аккаунтуңузду жана бардык маалыматтарды жок кылуу өтүнүчүн жөнөтүү.',
     'settings_delete_account_confirm': 'Өтүнүч жөнөтүлдү. Жакында сиз менен байланышабыз.',
+    'settings_theme': 'Тема',
+    'settings_theme_light': 'Жарык',
+    'settings_theme_dark': 'Караңгы',
+    'settings_biometric_login': 'Биометриялык кирүү',
+    'settings_biometric_login_desc': 'Тез кирүү үчүн Touch ID / Face ID колдонуу',
     'settings_support_email': 'salievyt@gmail.com',
     'settings_privacy_note': '«Чыгуу» баскычын басуу менен, сиз учурдагы сессияны аяктайсыз.',
 
@@ -196,6 +251,22 @@ class AppStrings {
     'operations_sells': 'Сатуулар',
     'operations_buy': 'Сатып алуу',
     'operations_sell': 'Сатуу',
+    'operations_search': 'Номери, кардар аты боюнча издөө...',
+    'operations_search_hint': 'Операция номери, кардардын аты',
+    'operations_filter_type': 'Түрү',
+    'operations_filter_all': 'Баары',
+    'operations_filter_period': 'Мөөнөт',
+    'operations_filter_period_today': 'Бүгүн',
+    'operations_filter_period_week': 'Апта',
+    'operations_filter_period_month': 'Ай',
+    'operations_filter_period_all': 'Бардык убакыт',
+    'operations_filter_sort': 'Иреттөө',
+    'operations_filter_sort_newest': 'Жаңылары',
+    'operations_filter_sort_oldest': 'Эскилери',
+    'operations_filter_sort_amount_asc': 'Сумма ↑',
+    'operations_filter_sort_amount_desc': 'Сумма ↓',
+    'operations_clear_filters': 'Чыпкаларды тазалоо',
+    'operations_found': 'Табылды:',
 
     // Cash
     'cash_title': 'Касса',
@@ -232,6 +303,25 @@ class AppStrings {
     'analytics_profitability': 'Рентабелдүүлүк (маржа %)',
     'analytics_cashiers': 'Кассирлер',
     'analytics_cash_balances': 'Кассадагы калдыктар',
+    'analytics_reports': 'Отчёты',
+
+    // Reports
+    'reports_title': 'Отчёттор',
+    'reports_subtitle': 'Отчётторду жүктөө',
+    'reports_desc': 'Маалыматтарды CSV, Excel же PDF форматында бир баскыч менен экспорттоо',
+    'reports_daily': 'Күндүк отчёт',
+    'reports_daily_desc': 'Күндүн жыйынтыгы: операциялар, жүгүртүү, калдыктар',
+    'reports_monthly': 'Айлык отчёт',
+    'reports_monthly_desc': 'Ай ичиндеги күндөр боюнча статистика',
+    'reports_operations': 'Операцияларды экспорттоо',
+    'reports_operations_desc': 'Бардык операциялар таблицада',
+    'reports_cash': 'Кассаны экспорттоо',
+    'reports_cash_desc': 'Кассадагы акча кыймылы',
+    'reports_download': 'Жүктөө',
+    'reports_generating': 'Отчёт түзүлүүдө...',
+    'reports_saved': 'Файл сакталды',
+    'reports_saved_desc': 'Файл колдонууга даяр. Жөнөтүү же сактоо үчүн «Бөлүшүү» баскычын басыңыз.',
+    'reports_open_share': 'Бөлүшүү / Сактоо',
 
     // General
     'general_retry': 'Кайталоо',
