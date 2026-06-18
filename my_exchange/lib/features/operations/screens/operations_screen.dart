@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/operation_provider.dart';
@@ -26,9 +27,10 @@ class _OperationsScreenState extends State<OperationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Операции'),
+        title: Text(local.t('operations_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -57,7 +59,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     provider.operations.isEmpty) {
                   return ErrorStateWidget(
                     message: provider.errorMessage!,
-                    details: 'Не удалось загрузить операции',
+                    details: '${local.t('operations_title')} — ${provider.errorMessage!}',
                     onRetry: () {
                       provider.loadOperations();
                       provider.loadTodayStats();
@@ -77,7 +79,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Нет операций',
+                          local.t('operations_empty'),
                           style: TextStyle(
                             fontSize: 18,
                             color: AppColors.textSecondary,
@@ -90,7 +92,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             provider.loadTodayStats();
                           },
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Загрузить'),
+                          label: Text(local.t('operations_load')),
                         ),
                       ],
                     ),
@@ -148,7 +150,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           });
         },
         icon: const Icon(Icons.add),
-        label: const Text('Операция'),
+        label: Text(local.t('operations_create')),
       ),
     );
   }
@@ -184,8 +186,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 children: [
                   const Icon(Icons.today, color: Colors.white),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Сегодня',
+                  Text(
+                    context.watch<LocalizationProvider>().t('operations_today'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -201,7 +203,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     child: _StatItem(
                       icon: Icons.trending_up,
                       color: AppColors.buyColor,
-                      label: 'Покупки',
+                      label: context.watch<LocalizationProvider>().t('operations_buys'),
                       value: '$buyCount',
                       amount: CurrencyFormatter.format(
                         buyAmount,
@@ -214,7 +216,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     child: _StatItem(
                       icon: Icons.trending_down,
                       color: AppColors.sellColor,
-                      label: 'Продажи',
+                      label: context.watch<LocalizationProvider>().t('operations_sells'),
                       value: '$sellCount',
                       amount: CurrencyFormatter.format(
                         sellAmount,

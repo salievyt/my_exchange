@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../presentation/providers/auth_provider.dart';
@@ -47,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -93,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Вход в систему',
+                    local.t('login_title'),
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
@@ -107,13 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _usernameController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Имя пользователя',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      labelText: local.t('login_username'),
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Введите имя пользователя';
+                        return local.t('login_username_required');
                       }
                       return null;
                     },
@@ -126,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
-                      labelText: 'Пароль',
+                      labelText: local.t('login_password'),
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -143,10 +145,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Введите пароль';
+                        return local.t('login_password_required');
                       }
                       if (value.length < 6) {
-                        return 'Пароль должен быть не менее 6 символов';
+                        return local.t('login_password_min');
                       }
                       return null;
                     },
@@ -172,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 )
-                              : const Text('Войти'),
+                              : Text(local.t('login_button')),
                         ),
                       );
                     },
@@ -181,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Version
                   Text(
-                    'Версия ${AppConstants.appVersion}',
+                    '${local.t('login_version')} ${AppConstants.appVersion}',
                     style: TextStyle(fontSize: 12, color: AppColors.textHint),
                     textAlign: TextAlign.center,
                   ),

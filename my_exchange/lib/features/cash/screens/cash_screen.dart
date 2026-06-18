@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/cash_provider.dart';
@@ -27,17 +28,19 @@ class _CashScreenState extends State<CashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Касса'),
+        title: Text(local.t('cash_title')),
         actions: [
           Consumer<CashProvider>(
             builder: (context, provider, child) {
+              final loc = context.watch<LocalizationProvider>();
               if (provider.isRegisterOpen) {
                 return IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => _showCloseRegisterDialog(),
-                  tooltip: 'Закрыть смену',
+                  tooltip: loc.t('cash_register_close'),
                 );
               }
               return const SizedBox.shrink();
@@ -86,13 +89,14 @@ class _CashScreenState extends State<CashScreen> {
               ),
 
               // Balances
-              const Text(
-                'Остатки',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                local.t('cash_balances'),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Consumer<CashProvider>(
                 builder: (context, provider, child) {
+                  final loc = context.watch<LocalizationProvider>();
                   if (provider.isLoading && provider.balances.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -102,7 +106,7 @@ class _CashScreenState extends State<CashScreen> {
                       provider.balances.isEmpty) {
                     return ErrorStateWidget(
                       message: provider.errorMessage!,
-                      details: 'Не удалось загрузить остатки',
+                      details: '${loc.t('cash_title')} — ${provider.errorMessage!}',
                       onRetry: () {
                         provider.loadBalances();
                         provider.checkCurrentRegister();
@@ -116,7 +120,7 @@ class _CashScreenState extends State<CashScreen> {
                         padding: const EdgeInsets.all(32),
                         child: Center(
                           child: Text(
-                            'Нет данных',
+                            loc.t('cash_no_data'),
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
                         ),
@@ -143,17 +147,18 @@ class _CashScreenState extends State<CashScreen> {
       ),
       floatingActionButton: Consumer<CashProvider>(
         builder: (context, provider, child) {
+          final loc = context.watch<LocalizationProvider>();
           if (!provider.isRegisterOpen) {
             return FloatingActionButton.extended(
               onPressed: () => _showOpenRegisterDialog(),
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Открыть смену'),
+              label: Text(loc.t('cash_open_shift')),
             );
           }
           return FloatingActionButton.extended(
             onPressed: () => _showTransactionDialog(),
             icon: const Icon(Icons.add),
-            label: const Text('Транзакция'),
+            label: Text(loc.t('cash_transaction')),
           );
         },
       ),
@@ -163,6 +168,7 @@ class _CashScreenState extends State<CashScreen> {
   Widget _buildRegisterCard() {
     return Consumer<CashProvider>(
       builder: (context, provider, child) {
+        final loc = context.watch<LocalizationProvider>();
         final register = provider.currentRegister;
         if (register == null) {
           return Card(
@@ -188,16 +194,16 @@ class _CashScreenState extends State<CashScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Смена не открыта',
-                          style: TextStyle(
+                        Text(
+                          loc.t('cash_register_closed'),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Откройте смену для начала работы',
+                          loc.t('cash_register_open_desc'),
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
@@ -238,16 +244,16 @@ class _CashScreenState extends State<CashScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Смена открыта',
-                            style: TextStyle(
+                          Text(
+                            loc.t('cash_register_open'),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Кассир: ${register.cashierName}',
+                            '${loc.t('cash_cashier')}: ${register.cashierName}',
                             style: TextStyle(
                               fontSize: 14,
                               color: AppColors.textSecondary,
@@ -270,7 +276,7 @@ class _CashScreenState extends State<CashScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Открыта:',
+                      '${loc.t('cash_opened_at')}:',
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                     Text(
@@ -316,6 +322,7 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -353,7 +360,7 @@ class _BalanceCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Доступно: ${CurrencyFormatter.format(balance.availableBalance, symbol: balance.currencySymbol)}',
+                    '${local.t('cash_available')}: ${CurrencyFormatter.format(balance.availableBalance, symbol: balance.currencySymbol)}',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
@@ -377,7 +384,7 @@ class _BalanceCard extends StatelessWidget {
                 ),
                 if (balance.reserved > 0)
                   Text(
-                    'Зарезервировано: ${CurrencyFormatter.format(balance.reserved, symbol: balance.currencySymbol)}',
+                    '${local.t('cash_reserved')}: ${CurrencyFormatter.format(balance.reserved, symbol: balance.currencySymbol)}',
                     style: TextStyle(fontSize: 12, color: AppColors.warning),
                   ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'core/localization/localization_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'di/service_locator.dart';
 import 'presentation/providers/auth_provider.dart';
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LocalizationProvider()..init()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuth()),
         ChangeNotifierProvider(
           create: (_) => CurrencyProvider()..loadCurrencies(),
@@ -54,20 +56,27 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => UpdateNotificationProvider()),
       ],
-      child: MaterialApp(
-        title: 'My Exchange',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ru', 'RU')],
-        locale: const Locale('ru', 'RU'),
-        home: const AuthWrapper(),
+      child: Consumer<LocalizationProvider>(
+        builder: (context, local, child) {
+          return MaterialApp(
+            title: 'My Exchange',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.light,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('ru', 'RU'),
+              Locale('ky', 'KG'),
+            ],
+            locale: Locale(local.locale),
+            home: const AuthWrapper(),
+          );
+        },
       ),
     );
   }

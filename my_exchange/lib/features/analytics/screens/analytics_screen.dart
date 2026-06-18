@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/analytics_provider.dart';
@@ -24,9 +25,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Аналитика'),
+        title: Text(local.t('analytics_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -46,16 +48,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             if (provider.errorMessage != null && provider.data == null) {
               return ErrorStateWidget(
                 message: provider.errorMessage!,
-                details: 'Не удалось загрузить аналитику',
+                details: '${local.t('analytics_title')} — ${provider.errorMessage!}',
                 onRetry: () => provider.loadAll(),
               );
             }
 
             // No data yet
             if (provider.data == null) {
-              return const Center(
+              return Center(
                 child: Text(
-                  'Нет данных',
+                  local.t('cash_no_data'),
                   style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
                 ),
               );
@@ -78,27 +80,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
                   // Today stats card
                   _DashboardCard(
-                    title: 'Общая статистика',
+                    title: local.t('analytics_overall'),
                     icon: Icons.dashboard,
                     children: [
                       _StatRow(
-                        label: 'Операций сегодня',
+                        label: local.t('analytics_operations_today'),
                         value: '${data.operationsToday}',
                       ),
                       const Divider(),
                       _StatRow(
-                        label: 'Покупок / Продаж',
+                        label: local.t('analytics_buys_sells'),
                         value:
                             '${data.buyOperations} / ${data.sellOperations}',
                       ),
                       const Divider(),
                       _StatRow(
-                        label: 'Оборот (сом)',
+                        label: local.t('analytics_turnover'),
                         value: CurrencyFormatter.format(data.turnoverToday),
                       ),
                       const Divider(),
                       _StatRow(
-                        label: 'Клиентов',
+                        label: local.t('analytics_clients'),
                         value: '${data.clientsToday}',
                       ),
                     ],
@@ -108,7 +110,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Exchange rates card
                   if (data.exchangeRates.isNotEmpty)
                     _DashboardCard(
-                      title: 'Курсы валют',
+                      title: local.t('analytics_rates'),
                       icon: Icons.currency_exchange,
                       children: data.exchangeRates.take(5).map((rate) {
                         return Padding(
@@ -172,12 +174,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Daily operations chart
                   if (provider.dailyData.isNotEmpty)
                     _DashboardCard(
-                      title: 'Операции по дням',
+                      title: local.t('analytics_daily_chart'),
                       icon: Icons.bar_chart,
                       children: [
-                        const ChartLegend(items: [
-                          LegendItem(color: AppColors.buyColor, label: 'Покупка'),
-                          LegendItem(color: AppColors.sellColor, label: 'Продажа'),
+                        ChartLegend(items: [
+                          LegendItem(color: AppColors.buyColor, label: local.t('operations_buy')),
+                          LegendItem(color: AppColors.sellColor, label: local.t('operations_sell')),
                         ]),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -193,7 +195,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Currency popularity chart
                   if (provider.currencyStats.isNotEmpty)
                     _DashboardCard(
-                      title: 'Популярные валюты',
+                      title: local.t('analytics_popular_currencies'),
                       icon: Icons.trending_up,
                       children: [
                         const SizedBox(height: 4),
@@ -210,7 +212,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Profitability chart
                   if (provider.profitability.isNotEmpty)
                     _DashboardCard(
-                      title: 'Рентабельность (маржа %)',
+                      title: local.t('analytics_profitability'),
                       icon: Icons.trending_up,
                       children: [
                         const SizedBox(height: 4),
@@ -227,7 +229,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Cashier stats card
                   if (provider.cashierStats.isNotEmpty)
                     _DashboardCard(
-                      title: 'Кассиры',
+                      title: local.t('analytics_cashiers'),
                       icon: Icons.people,
                       children: provider.cashierStats.map((stat) {
                         final name = stat['name'] as String? ?? '—';
@@ -287,7 +289,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Cash balances card
                   if (data.cashBalances.isNotEmpty)
                     _DashboardCard(
-                      title: 'Остатки в кассе',
+                      title: local.t('analytics_cash_balances'),
                       icon: Icons.account_balance,
                       children: data.cashBalances.map((bal) {
                         final code = bal['currency'] as String? ?? '';
@@ -358,8 +360,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               color: AppColors.info,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Нет данных для отображения',
+                            Text(
+                              local.t('analytics_no_data'),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -367,7 +369,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Статистика появится после совершения операций',
+                              local.t('analytics_no_data_desc'),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,

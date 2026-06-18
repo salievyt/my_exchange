@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:my_exchange/presentation/providers/currency_provider.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../presentation/providers/currency_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
 
 class CurrenciesScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Валюты'),
+        title: Text(context.watch<LocalizationProvider>().t('currencies_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -34,8 +35,10 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => context.read<CurrencyProvider>().loadCurrencies(),          child: Consumer<CurrencyProvider>(
+        onRefresh: () => context.read<CurrencyProvider>().loadCurrencies(),
+        child: Consumer<CurrencyProvider>(
           builder: (context, provider, child) {
+            final local = context.watch<LocalizationProvider>();
             if (provider.isLoading && provider.currencies.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -44,7 +47,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
             if (provider.errorMessage != null && provider.currencies.isEmpty) {
               return ErrorStateWidget(
                 message: provider.errorMessage!,
-                details: 'Не удалось загрузить список валют',
+                details: '${local.t('currencies_title')} — ${provider.errorMessage!}',
                 onRetry: () => provider.loadCurrencies(),
               );
             }
@@ -62,7 +65,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Нет данных',
+                      local.t('cash_no_data'),
                       style: TextStyle(
                         fontSize: 18,
                         color: AppColors.textSecondary,
@@ -72,7 +75,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                     ElevatedButton.icon(
                       onPressed: () => provider.loadCurrencies(),
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Загрузить'),
+                      label: Text(local.t('operations_load')),
                     ),
                   ],
                 ),
@@ -116,6 +119,7 @@ class _CurrencyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -176,7 +180,7 @@ class _CurrencyCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Покупка: ${CurrencyFormatter.formatRate(currency.buyRate!)}',
+                                '${local.t('currencies_buy')}: ${CurrencyFormatter.formatRate(currency.buyRate!)}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.buyColor,
@@ -206,7 +210,7 @@ class _CurrencyCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Продажа: ${CurrencyFormatter.formatRate(currency.sellRate!)}',
+                                '${local.t('currencies_sell')}: ${CurrencyFormatter.formatRate(currency.sellRate!)}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.sellColor,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/localization/localization_provider.dart';
 import '../../features/operations/screens/operations_screen.dart';
 import '../../features/cash/screens/cash_screen.dart';
 import '../../features/currencies/screens/currencies_screen.dart';
 import '../../features/analytics/screens/analytics_screen.dart';
 import '../providers/update_notification_provider.dart';
+import '../screens/settings_screen.dart';
 import '../widgets/update_notification_dialog.dart';
 
 class MainScreen extends StatefulWidget {
@@ -22,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
     const CashScreen(),
     const CurrenciesScreen(),
     const AnalyticsScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -66,37 +69,47 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        indicatorColor: Colors.blue,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+      bottomNavigationBar: Consumer<LocalizationProvider>(
+        builder: (context, local, child) {
+          return NavigationBar(
+            selectedIndex: _currentIndex,
+            indicatorColor: Colors.blue,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.swap_horiz_outlined),
+                selectedIcon: const Icon(Icons.swap_horiz, color: Colors.white,),
+                label: local.t('nav_operations'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.account_balance_outlined),
+                selectedIcon: const Icon(Icons.account_balance, color: Colors.white,),
+                label: local.t('nav_cash'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.currency_exchange_outlined),
+                selectedIcon: const Icon(Icons.currency_exchange, color: Colors.white,),
+                label: local.t('nav_currencies'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.analytics_outlined),
+                selectedIcon: const Icon(Icons.analytics, color: Colors.white,),
+                label: local.t('nav_analytics'),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.person_outline),
+                selectedIcon: const Icon(Icons.person, color: Colors.white,),
+                label: local.t('nav_settings'),
+              ),
+            ],
+          );
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.swap_horiz_outlined),
-            selectedIcon: Icon(Icons.swap_horiz, color: Colors.white,),
-            label: 'Операции',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_outlined),
-            selectedIcon: Icon(Icons.account_balance, color: Colors.white,),
-            label: 'Касса',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.currency_exchange_outlined),
-            selectedIcon: Icon(Icons.currency_exchange, color: Colors.white,),
-            label: 'Валюты',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.analytics_outlined),
-            selectedIcon: Icon(Icons.analytics, color: Colors.white,),
-            label: 'Аналитика',
-          ),
-        ],
       ),
     );
   }
