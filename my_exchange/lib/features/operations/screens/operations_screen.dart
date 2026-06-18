@@ -445,6 +445,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildTodayStats() {
     return Consumer<OperationProvider>(
       builder: (context, provider, child) {
