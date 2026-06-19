@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/operation.dart';
 import '../../../presentation/providers/currency_provider.dart';
 import '../../../presentation/providers/operation_provider.dart';
+import '../../../presentation/providers/cash_provider.dart';
 
 class CreateOperationScreen extends StatefulWidget {
   const CreateOperationScreen({super.key});
@@ -26,12 +27,32 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
   double _totalAmount = 0.0;
 
   @override
+  void initState() {
+    super.initState();
+    // Load cash balances for validation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CashProvider>().loadBalances();
+    });
+  }
+
+  @override
   void dispose() {
     _clientNameController.dispose();
     _clientCompanyController.dispose();
     _amountController.dispose();
     _commentController.dispose();
     super.dispose();
+  }
+
+  /// Get available balance for a currency by code.
+  double _getBalanceByCurrencyCode(String code) {
+    final cashBalances = context.read<CashProvider>().balances;
+    try {
+      final balance = cashBalances.firstWhere((b) => b.currencyCode == code);
+      return balance.availableBalance;
+    } catch (_) {
+      return 0.0;
+    }
   }
 
   void _calculateTotal() {
@@ -53,6 +74,51 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
 
     final provider = context.read<OperationProvider>();
     final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+
+    // Check cash balance before submitting
+    if (_operationType == OperationType.buy) {
+      // Buying foreign currency - need enough KGS (som) in cash
+      final kgsBalance = _getBalanceByCurrencyCode('KGS');
+      if (kgsBalance < _totalAmount) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Недостаточно сом (KGS) в кассе. Доступно: '
+                '${CurrencyFormatter.format(kgsBalance, symbol: "сом")}, '
+                'требуется: ${CurrencyFormatter.format(_totalAmount, symbol: "сом")}',
+              ),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+    } else {
+      // Selling foreign currency - need enough of the selected currency
+      final currency = context.read<CurrencyProvider>().getCurrencyById(
+        _selectedCurrencyId!,
+      );
+      if (currency != null) {
+        final currencyBalance = _getBalanceByCurrencyCode(currency.code);
+        if (currencyBalance < amount) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Недостаточно ${currency.code} в кассе. Доступно: '
+                  '${CurrencyFormatter.format(currencyBalance)}, '
+                ),
+                backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+          return;
+        }
+      }
+    }
 
     final operation = await provider.createOperation(
       operationType: _operationType.value,
@@ -226,7 +292,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Сумма валюты',
-                          prefixIcon: Icon(Icons.attach_money),
+                          // prefixIcon: Icon(Icons.attach_money),
                         ),
                         onChanged: (_) => _calculateTotal(),
                         validator: (value) {
@@ -248,7 +314,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-               // Rate (read-only)
+              // Rate (read-only)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),

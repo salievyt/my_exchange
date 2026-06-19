@@ -13,6 +13,7 @@ from .serializers import (
     OperationEditHistorySerializer, OperationCancellationSerializer
 )
 from apps.cash.models import CashBalance
+from apps.currencies.models import Currency
 from apps.users.models import Role
 
 
@@ -95,8 +96,10 @@ class OperationViewSet(viewsets.ModelViewSet):
         operation_type = serializer.validated_data['operation_type']
         currency = serializer.validated_data['currency']
         amount = serializer.validated_data['amount']
+        rate = serializer.validated_data.get('rate', 0)
+        total_amount = float(amount) * float(rate)
         
-        # Check cash balance for sell operations
+        # Check cash balance based on operation type
         if operation_type == OperationType.SELL:
             cash_balance = CashBalance.objects.filter(currency=currency).first()
             if not cash_balance or cash_balance.balance < amount:
@@ -105,22 +108,54 @@ class OperationViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
+        elif operation_type == OperationType.BUY:
+            # Buying foreign currency - need enough KGS (som) in cash
+            kgs_currency = Currency.objects.filter(code='KGS').first()
+            if kgs_currency:
+                kgs_balance = CashBalance.objects.filter(currency=kgs_currency).first()
+                if not kgs_balance or kgs_balance.balance < total_amount:
+                    return Response(
+                        {"error": "Недостаточно сом (KGS) в кассе для покупки валюты"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
         # Create operation
         self.perform_create(serializer)
         
         # Update cash balance
-        self._update_cash_balance(operation_type, currency, amount)
+        self._update_cash_balance(operation_type, currency, amount, total_amount)
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    def _update_cash_balance(self, operation_type, currency, amount):
+    def _update_cash_balance(self, operation_type, currency, amount, total_amount):
         """Update cash balance based on operation type."""
         cash_balance, created = CashBalance.objects.get_or_create(
             currency=currency,
             defaults={'balance': 0}
         )
         
+        # Also update KGS (som) balance
+        # When buying, we give KGS to client (KGS decreases)
+        # When selling, we receive KGS from client (KGS increases)
+        kgs_currency = Currency.objects.filter(code='KGS').first()
+        if kgs_currency:
+            # Use the total_amount passed from create method
+            total_amount_kgs = total_amount
+            
+            kgs_balance, created = CashBalance.objects.get_or_create(
+                currency=kgs_currency,
+                defaults={'balance': 0}
+            )
+            
+            if operation_type == OperationType.BUY:
+                # Giving KGS to client
+                kgs_balance.balance -= total_amount_kgs
+            else:
+                # Receiving KGS from client
+                kgs_balance.balance += total_amount_kgs
+            
+            kgs_balance.save()
+
         if operation_type == OperationType.BUY:
             # Buying from client = adding to cash
             cash_balance.balance += amount

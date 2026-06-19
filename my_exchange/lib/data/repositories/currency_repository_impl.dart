@@ -59,14 +59,18 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
   Future<Either<Failure, Currency>> createCurrency({
     required String code,
     required String name,
-    required String symbol,
-    required bool isActive,
+    String? symbol,
+    double? buyRate,
+    double? sellRate,
+    bool isActive = true,
   }) async {
     try {
       final currency = await remoteDataSource.createCurrency(
         code: code,
         name: name,
         symbol: symbol,
+        buyRate: buyRate,
+        sellRate: sellRate,
         isActive: isActive,
       );
       return Right(currency.toEntity());
@@ -81,6 +85,8 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
     String? code,
     String? name,
     String? symbol,
+    double? buyRate,
+    double? sellRate,
     bool? isActive,
   }) async {
     try {
@@ -89,6 +95,8 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
         code: code,
         name: name,
         symbol: symbol,
+        buyRate: buyRate,
+        sellRate: sellRate,
         isActive: isActive,
       );
       return Right(currency.toEntity());

@@ -46,6 +46,75 @@ class CurrencyProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateCurrency({
+    required int id,
+    String? code,
+    String? name,
+    String? symbol,
+    double? buyRate,
+    double? sellRate,
+    bool? isActive,
+  }) async {
+    final result = await _repository.updateCurrency(
+      id: id,
+      code: code,
+      name: name,
+      symbol: symbol,
+      buyRate: buyRate,
+      sellRate: sellRate,
+      isActive: isActive,
+    );
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (currency) {
+        final index = _currencies.indexWhere((c) => c.id == currency.id);
+        if (index != -1) {
+          _currencies[index] = currency;
+        }
+        _errorMessage = null;
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> createCurrency({
+    required String code,
+    required String name,
+    String? symbol,
+    double? buyRate,
+    double? sellRate,
+    bool isActive = true,
+  }) async {
+    final result = await _repository.createCurrency(
+      code: code,
+      name: name,
+      symbol: symbol ?? code,
+      buyRate: buyRate,
+      sellRate: sellRate,
+      isActive: isActive,
+    );
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (currency) {
+        _currencies.add(currency);
+        _errorMessage = null;
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
   void clearError() {
     _errorMessage = null;
   }

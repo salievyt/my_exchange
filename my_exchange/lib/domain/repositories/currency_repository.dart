@@ -18,8 +18,10 @@ abstract class CurrencyRepository {
   Future<Either<Failure, Currency>> createCurrency({
     required String code,
     required String name,
-    required String symbol,
-    required bool isActive,
+    String? symbol,
+    double? buyRate,
+    double? sellRate,
+    bool isActive = true,
   });
 
   Future<Either<Failure, Currency>> updateCurrency({
@@ -27,6 +29,8 @@ abstract class CurrencyRepository {
     String? code,
     String? name,
     String? symbol,
+    double? buyRate,
+    double? sellRate,
     bool? isActive,
   });
 

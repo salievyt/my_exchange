@@ -153,6 +153,7 @@ class _CashScreenState extends State<CashScreen> {
                   );
                 },
               ),
+              const SizedBox(height: 300),
             ],
           ),
         ),
@@ -232,7 +233,7 @@ class _CashScreenState extends State<CashScreen> {
         }
 
         return Card(
-          color: colors.tertiary.withValues(alpha: 0.1),
+          color: colors.primary.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -243,12 +244,12 @@ class _CashScreenState extends State<CashScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: colors.tertiary.withValues(alpha: 0.2),
+                        color: colors.primary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.check_circle,
-                        color: colors.tertiary,
+                        color: colors.primary,
                         size: 32,
                       ),
                     ),
@@ -277,7 +278,7 @@ class _CashScreenState extends State<CashScreen> {
                     ),
                     Icon(
                       Icons.circle,
-                      color: colors.tertiary,
+                      color: colors.primary,
                       size: 12,
                     ),
                   ],

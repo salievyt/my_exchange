@@ -20,7 +20,9 @@ abstract class CurrencyRemoteDataSource {
   Future<CurrencyModel> createCurrency({
     required String code,
     required String name,
-    required String symbol,
+    String? symbol,
+    required double? buyRate,
+    required double? sellRate,
     required bool isActive,
   });
 
@@ -29,6 +31,8 @@ abstract class CurrencyRemoteDataSource {
     String? code,
     String? name,
     String? symbol,
+    double? buyRate,
+    double? sellRate,
     bool? isActive,
   });
 
@@ -124,7 +128,9 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
   Future<CurrencyModel> createCurrency({
     required String code,
     required String name,
-    required String symbol,
+    String? symbol,
+    required double? buyRate,
+    required double? sellRate,
     required bool isActive,
   }) async {
     try {
@@ -133,7 +139,9 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
         data: {
           'code': code,
           'name': name,
-          'symbol': symbol,
+          if (symbol != null) 'symbol': symbol,
+          if (buyRate != null) 'buy_rate': buyRate,
+          if (sellRate != null) 'sell_rate': sellRate,
           'is_active': isActive,
         },
       );
@@ -152,6 +160,8 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
     String? code,
     String? name,
     String? symbol,
+    double? buyRate,
+    double? sellRate,
     bool? isActive,
   }) async {
     try {
@@ -159,6 +169,8 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       if (code != null) data['code'] = code;
       if (name != null) data['name'] = name;
       if (symbol != null) data['symbol'] = symbol;
+      if (buyRate != null) data['buy_rate'] = buyRate;
+      if (sellRate != null) data['sell_rate'] = sellRate;
       if (isActive != null) data['is_active'] = isActive;
 
       final response = await dioClient.dio.patch(
