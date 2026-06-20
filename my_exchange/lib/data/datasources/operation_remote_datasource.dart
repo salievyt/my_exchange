@@ -12,6 +12,7 @@ abstract class OperationRemoteDataSource {
     String? search,
     String? ordering,
     String? operationType,
+    String? currencyId,
     String? dateFrom,
     String? dateTo,
   });
@@ -62,6 +63,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     String? search,
     String? ordering,
     String? operationType,
+    String? currencyId,
     String? dateFrom,
     String? dateTo,
   }) async {
@@ -74,6 +76,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       if (operationType != null) {
         queryParams['operation_type'] = operationType;
       }
+      if (currencyId != null) queryParams['currency'] = currencyId;
       if (dateFrom != null) queryParams['date_from'] = dateFrom;
       if (dateTo != null) queryParams['date_to'] = dateTo;
 

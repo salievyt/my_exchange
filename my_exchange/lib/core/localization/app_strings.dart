@@ -4,7 +4,13 @@ class AppStrings {
   const AppStrings._();
 
   /// All supported locales.
-  static const List<String> supportedLocales = ['ru', 'ky', 'en', 'uz', 'uz_Cyrl',];
+  static const List<String> supportedLocales = [
+    'ru',
+    'ky',
+    'en',
+    'uz',
+    'uz_Cyrl',
+  ];
   static const String defaultLocale = 'ru';
 
   /// Map of locale -> (string key -> translated value).
@@ -19,9 +25,7 @@ class AppStrings {
   /// Returns the translated string for [key] in [locale].
   /// Falls back to Russian, then to the key itself.
   static String t(String key, {String locale = 'ru'}) {
-    return _strings[locale]?[key] ??
-        _strings['ru']?[key] ??
-        key;
+    return _strings[locale]?[key] ?? _strings['ru']?[key] ?? key;
   }
 
   /// Convenience: get all key-value pairs for a locale.
@@ -71,20 +75,27 @@ class AppStrings {
     'settings_app_version': 'Версия приложения',
     'settings_logout': 'Выйти',
     'settings_logout_confirm': 'Вы уверены, что хотите выйти?',
-    'settings_logout_confirm_desc': 'Для повторного входа потребуется ввести логин и пароль.',
+    'settings_logout_confirm_desc':
+        'Для повторного входа потребуется ввести логин и пароль.',
     'settings_cancel': 'Отмена',
     'settings_confirm': 'Да, выйти',
     'settings_privacy_policy': 'Политика конфиденциальности',
     'settings_contact_support': 'Связаться с поддержкой',
     'settings_delete_account': 'Запросить удаление аккаунта',
-    'settings_delete_account_desc': 'Отправить запрос на удаление вашего аккаунта и всех связанных данных.',
-    'settings_delete_account_confirm': 'Запрос отправлен. С вами свяжутся в ближайшее время.',
+    'settings_delete_account_desc':
+        'Отправить запрос на удаление вашего аккаунта и всех связанных данных.',
+    'settings_delete_account_confirm':
+        'Запрос отправлен. С вами свяжутся в ближайшее время.',
     'settings_theme': 'Тема оформления',
     'settings_theme_light': 'Светлая',
     'settings_theme_dark': 'Тёмная',
     'settings_biometric_login': 'Вход по биометрии',
-    'settings_biometric_login_desc': 'Использовать Touch ID / Face ID для быстрого входа',
+    'settings_biometric_login_desc':
+        'Использовать Touch ID / Face ID для быстрого входа',
     'settings_support_email': 'salievyt@gmail.com',
+    'settings_support_chat': 'WhatsApp, Telegram',
+    'settings_support_title': 'Связаться с поддержкой',
+    'settings_support_description': 'Выберите удобный способ связи',
     'settings_privacy_note': 'Нажимая «Выйти», вы завершаете текущую сессию.',
 
     // Operations
@@ -105,8 +116,24 @@ class AppStrings {
     'operations_filter_period_today': 'Сегодня',
     'operations_filter_period_week': 'Неделя',
     'operations_filter_period_month': 'Месяц',
+    'operations_filter_period_custom': 'Свой период',
     'operations_filter_period_all': 'Всё время',
     'operations_filter_sort': 'Сортировка',
+    'operations_filter_currency': 'Валюта',
+    'operations_filter_currency_all': 'Все валюты',
+    'operations_columns': 'Колонки',
+    'operations_columns_1': '1 колонка',
+    'operations_columns_2': '2 колонки',
+    'operations_filter_date_from': 'От',
+    'operations_filter_date_to': 'До',
+    'operations_filter_date_apply': 'Применить',
+    'operations_edit': 'Редактировать',
+    'operations_save': 'Сохранить',
+    'operations_edit_title': 'Редактирование операции',
+    'operations_edit_success': 'Операция обновлена',
+    'operations_rate': 'Курс обмена',
+    'operations_total': 'Итого к выдаче',
+    'operations_amount': 'Сумма валюты',
     'operations_filter_sort_newest': 'Новые',
     'operations_filter_sort_oldest': 'Старые',
     'operations_filter_sort_amount_asc': 'Сумма ↑',
@@ -154,7 +181,8 @@ class AppStrings {
     // Reports
     'reports_title': 'Отчёты',
     'reports_subtitle': 'Скачать отчёты',
-    'reports_desc': 'Экспорт данных в формате CSV, Excel или PDF по нажатию одной кнопки',
+    'reports_desc':
+        'Экспорт данных в формате CSV, Excel или PDF по нажатию одной кнопки',
     'reports_daily': 'Дневной отчёт',
     'reports_daily_desc': 'Итоги дня: операции, оборот, остатки',
     'reports_monthly': 'Месячный отчёт',
@@ -166,7 +194,8 @@ class AppStrings {
     'reports_download': 'Скачать',
     'reports_generating': 'Формирование отчёта...',
     'reports_saved': 'Файл сохранён',
-    'reports_saved_desc': 'Файл готов к использованию. Нажмите «Поделиться», чтобы отправить или сохранить его.',
+    'reports_saved_desc':
+        'Файл готов к использованию. Нажмите «Поделиться», чтобы отправить или сохранить его.',
     'reports_open_share': 'Поделиться / Сохранить',
 
     // General
@@ -228,21 +257,29 @@ class AppStrings {
     'settings_app_version': 'Колдонмо версиясы',
     'settings_logout': 'Чыгуу',
     'settings_logout_confirm': 'Чыгууга ишенесизби?',
-    'settings_logout_confirm_desc': 'Кайра кирүү үчүн логин жана сырсөз керек болот.',
+    'settings_logout_confirm_desc':
+        'Кайра кирүү үчүн логин жана сырсөз керек болот.',
     'settings_cancel': 'Жокко чыгаруу',
     'settings_confirm': 'Ооба, чыгуу',
     'settings_privacy_policy': 'Купуялык саясаты',
     'settings_contact_support': 'Колдоо кызматы',
     'settings_delete_account': 'Аккаунтту жок кылуу',
-    'settings_delete_account_desc': 'Аккаунтуңузду жана бардык маалыматтарды жок кылуу өтүнүчүн жөнөтүү.',
-    'settings_delete_account_confirm': 'Өтүнүч жөнөтүлдү. Жакында сиз менен байланышабыз.',
+    'settings_delete_account_desc':
+        'Аккаунтуңузду жана бардык маалыматтарды жок кылуу өтүнүчүн жөнөтүү.',
+    'settings_delete_account_confirm':
+        'Өтүнүч жөнөтүлдү. Жакында сиз менен байланышабыз.',
     'settings_theme': 'Тема',
     'settings_theme_light': 'Жарык',
     'settings_theme_dark': 'Караңгы',
     'settings_biometric_login': 'Биометриялык кирүү',
-    'settings_biometric_login_desc': 'Тез кирүү үчүн Touch ID / Face ID колдонуу',
+    'settings_biometric_login_desc':
+        'Тез кирүү үчүн Touch ID / Face ID колдонуу',
     'settings_support_email': 'salievyt@gmail.com',
-    'settings_privacy_note': '«Чыгуу» баскычын басуу менен, сиз учурдагы сессияны аяктайсыз.',
+    'settings_support_chat': 'WhatsApp, Telegram',
+    'settings_support_title': 'Колдоо кызматы менен байланышуу',
+    'settings_support_description': 'Байланышуу үчүн ыңгайлуу ыкманы тандаңыз',
+    'settings_privacy_note':
+        '«Чыгуу» баскычын басуу менен, сиз учурдагы сессияны аяктайсыз.',
 
     // Operations
     'operations_title': 'Операциялар',
@@ -264,6 +301,22 @@ class AppStrings {
     'operations_filter_period_month': 'Ай',
     'operations_filter_period_all': 'Бардык убакыт',
     'operations_filter_sort': 'Иреттөө',
+    'operations_filter_period_custom': 'Өз мөөнөтү',
+    'operations_filter_currency': 'Валюта',
+    'operations_filter_currency_all': 'Бардык валюталар',
+    'operations_columns': 'Колонкалар',
+    'operations_columns_1': '1 колонка',
+    'operations_columns_2': '2 колонка',
+    'operations_filter_date_from': 'Башталган күн',
+    'operations_filter_date_to': 'Чейинки күн',
+    'operations_filter_date_apply': 'Колдонуу',
+    'operations_edit': 'Оңдоо',
+    'operations_save': 'Сактоо',
+    'operations_edit_title': 'Операцияны оңдоо',
+    'operations_edit_success': 'Операция жаңыртылды',
+    'operations_rate': 'Алмашуу курсу',
+    'operations_total': 'Берүүчү жалпы сумма',
+    'operations_amount': 'Валюта суммасы',
     'operations_filter_sort_newest': 'Жаңылары',
     'operations_filter_sort_oldest': 'Эскилери',
     'operations_filter_sort_amount_asc': 'Сумма ↑',
@@ -311,7 +364,8 @@ class AppStrings {
     // Reports
     'reports_title': 'Отчёттор',
     'reports_subtitle': 'Отчётторду жүктөө',
-    'reports_desc': 'Маалыматтарды CSV, Excel же PDF форматында бир баскыч менен экспорттоо',
+    'reports_desc':
+        'Маалыматтарды CSV, Excel же PDF форматында бир баскыч менен экспорттоо',
     'reports_daily': 'Күндүк отчёт',
     'reports_daily_desc': 'Күндүн жыйынтыгы: операциялар, жүгүртүү, калдыктар',
     'reports_monthly': 'Айлык отчёт',
@@ -323,7 +377,8 @@ class AppStrings {
     'reports_download': 'Жүктөө',
     'reports_generating': 'Отчёт түзүлүүдө...',
     'reports_saved': 'Файл сакталды',
-    'reports_saved_desc': 'Файл колдонууга даяр. Жөнөтүү же сактоо үчүн «Бөлүшүү» баскычын басыңыз.',
+    'reports_saved_desc':
+        'Файл колдонууга даяр. Жөнөтүү же сактоо үчүн «Бөлүшүү» баскычын басыңыз.',
     'reports_open_share': 'Бөлүшүү / Сактоо',
 
     // General
@@ -342,7 +397,6 @@ class AppStrings {
     'general_days_ago': 'күн. мурун',
     'general_som': 'сом',
   };
-
 
   // ─── English ─────────────────────────────────────────────────────
   static const Map<String, String> _en = {
@@ -389,21 +443,28 @@ class AppStrings {
     'settings_app_version': 'App Version',
     'settings_logout': 'Log Out',
     'settings_logout_confirm': 'Are you sure you want to log out?',
-    'settings_logout_confirm_desc': 'You will need to enter your username and password to log back in.',
+    'settings_logout_confirm_desc':
+        'You will need to enter your username and password to log back in.',
     'settings_cancel': 'Cancel',
     'settings_confirm': 'Yes, log out',
     'settings_privacy_policy': 'Privacy Policy',
     'settings_contact_support': 'Contact Support',
     'settings_delete_account': 'Request Account Deletion',
-    'settings_delete_account_desc': 'Send a request to delete your account and all related data.',
-    'settings_delete_account_confirm': 'Request sent. We will contact you shortly.',
+    'settings_delete_account_desc':
+        'Send a request to delete your account and all related data.',
+    'settings_delete_account_confirm':
+        'Request sent. We will contact you shortly.',
     'settings_theme': 'Theme',
     'settings_theme_light': 'Light',
     'settings_theme_dark': 'Dark',
     'settings_biometric_login': 'Biometric Login',
     'settings_biometric_login_desc': 'Use Touch ID / Face ID for quick login',
     'settings_support_email': 'salievyt@gmail.com',
-    'settings_privacy_note': 'By pressing "Log Out" you end your current session.',
+    'settings_support_chat': 'WhatsApp, Telegram',
+    'settings_support_title': 'Contact Support',
+    'settings_support_description': 'Choose your preferred contact method',
+    'settings_privacy_note':
+        'By pressing "Log Out" you end your current session.',
 
     // Operations
     'operations_title': 'Operations',
@@ -425,6 +486,22 @@ class AppStrings {
     'operations_filter_period_month': 'Month',
     'operations_filter_period_all': 'All time',
     'operations_filter_sort': 'Sort',
+    'operations_filter_period_custom': 'Custom period',
+    'operations_filter_currency': 'Currency',
+    'operations_filter_currency_all': 'All currencies',
+    'operations_columns': 'View',
+    'operations_columns_1': '1 column',
+    'operations_columns_2': '2 columns',
+    'operations_filter_date_from': 'From',
+    'operations_filter_date_to': 'To',
+    'operations_filter_date_apply': 'Apply',
+    'operations_edit': 'Edit',
+    'operations_save': 'Save',
+    'operations_edit_title': 'Edit Operation',
+    'operations_edit_success': 'Operation updated',
+    'operations_rate': 'Exchange Rate',
+    'operations_total': 'Total to Pay',
+    'operations_amount': 'Currency Amount',
     'operations_filter_sort_newest': 'Newest',
     'operations_filter_sort_oldest': 'Oldest',
     'operations_filter_sort_amount_asc': 'Amount ↑',
@@ -455,7 +532,8 @@ class AppStrings {
     // Analytics
     'analytics_title': 'Analytics',
     'analytics_no_data': 'No data to display',
-    'analytics_no_data_desc': 'Statistics will appear after performing operations',
+    'analytics_no_data_desc':
+        'Statistics will appear after performing operations',
     'analytics_overall': 'Overall Statistics',
     'analytics_operations_today': 'Operations today',
     'analytics_buys_sells': 'Buys / Sells',
@@ -484,7 +562,8 @@ class AppStrings {
     'reports_download': 'Download',
     'reports_generating': 'Generating report...',
     'reports_saved': 'File saved',
-    'reports_saved_desc': 'File is ready to use. Press "Share" to send or save it.',
+    'reports_saved_desc':
+        'File is ready to use. Press "Share" to send or save it.',
     'reports_open_share': 'Share / Save',
 
     // General
@@ -503,7 +582,6 @@ class AppStrings {
     'general_days_ago': 'd. ago',
     'general_som': 'som',
   };
-
 
   // ─── Uzbek (Latin) ───────────────────────────────────────────────
   static const Map<String, String> _uz = {
@@ -550,21 +628,29 @@ class AppStrings {
     'settings_app_version': 'Ilova versiyasi',
     'settings_logout': 'Chiqish',
     'settings_logout_confirm': 'Chiqishni xohlaysizmi?',
-    'settings_logout_confirm_desc': "Qayta kirish uchun login va parol kerak bo'ladi.",
+    'settings_logout_confirm_desc':
+        "Qayta kirish uchun login va parol kerak bo'ladi.",
     'settings_cancel': 'Bekor qilish',
     'settings_confirm': 'Ha, chiqish',
     'settings_privacy_policy': 'Maxfiylik siyosati',
     'settings_contact_support': "Qo'llab-quvvatlash",
     'settings_delete_account': "Akkauntni o'chirish",
-    'settings_delete_account_desc': "Akkauntingizni va barcha ma'lumotlarni o'chirish so'rovini yuborish.",
-    'settings_delete_account_confirm': "So'rov yuborildi. Tez orada siz bilan bog'lanamiz.",
+    'settings_delete_account_desc':
+        "Akkauntingizni va barcha ma'lumotlarni o'chirish so'rovini yuborish.",
+    'settings_delete_account_confirm':
+        "So'rov yuborildi. Tez orada siz bilan bog'lanamiz.",
     'settings_theme': 'Mavzu',
     'settings_theme_light': "Yorug'",
     'settings_theme_dark': "Qorong'i",
     'settings_biometric_login': 'Biometrik kirish',
-    'settings_biometric_login_desc': 'Tez kirish uchun Touch ID / Face ID dan foydalanish',
+    'settings_biometric_login_desc':
+        'Tez kirish uchun Touch ID / Face ID dan foydalanish',
     'settings_support_email': 'salievyt@gmail.com',
-    'settings_privacy_note': '"Chiqish" tugmasini bosish orqali siz joriy seansni yakunlaysiz.',
+    'settings_support_chat': 'WhatsApp, Telegram',
+    'settings_support_title': "Qo'llab-quvvatlash bilan bog'lanish",
+    'settings_support_description': "Qulay aloqa usulini tanlang",
+    'settings_privacy_note':
+        '"Chiqish" tugmasini bosish orqali siz joriy seansni yakunlaysiz.',
 
     // Operations
     'operations_title': 'Operatsiyalar',
@@ -586,6 +672,22 @@ class AppStrings {
     'operations_filter_period_month': 'Oy',
     'operations_filter_period_all': 'Barcha vaqt',
     'operations_filter_sort': 'Saralash',
+    'operations_filter_period_custom': "O'z davri",
+    'operations_filter_currency': 'Valyuta',
+    'operations_filter_currency_all': 'Barcha valyutalar',
+    'operations_columns': 'Ustunlar',
+    'operations_columns_1': '1 ustun',
+    'operations_columns_2': '2 ustun',
+    'operations_filter_date_from': 'Dan',
+    'operations_filter_date_to': 'Gacha',
+    'operations_filter_date_apply': "Qo'llash",
+    'operations_edit': 'Tahrirlash',
+    'operations_save': 'Saqlash',
+    'operations_edit_title': 'Operatsiyani tahrirlash',
+    'operations_edit_success': 'Operatsiya yangilandi',
+    'operations_rate': 'Ayirboshlash kursi',
+    'operations_total': 'Beriladigan umumiy summa',
+    'operations_amount': 'Valyuta summasi',
     'operations_filter_sort_newest': 'Yangi',
     'operations_filter_sort_oldest': 'Eski',
     'operations_filter_sort_amount_asc': 'Summa ↑',
@@ -633,7 +735,8 @@ class AppStrings {
     // Reports
     'reports_title': 'Hisobotlar',
     'reports_subtitle': 'Hisobotlarni yuklab olish',
-    'reports_desc': "Ma'lumotlarni CSV, Excel yoki PDF formatida bir tugma bilan eksport qilish",
+    'reports_desc':
+        "Ma'lumotlarni CSV, Excel yoki PDF formatida bir tugma bilan eksport qilish",
     'reports_daily': 'Kunlik hisobot',
     'reports_daily_desc': 'Kun yakuni: operatsiyalar, aylanma, qoldiqlar',
     'reports_monthly': 'Oylik hisobot',
@@ -645,7 +748,8 @@ class AppStrings {
     'reports_download': 'Yuklab olish',
     'reports_generating': 'Hisobot tayyorlanmoqda...',
     'reports_saved': 'Fayl saqlandi',
-    'reports_saved_desc': 'Fayl foydalanishga tayyor. Yuborish yoki saqlash uchun "Ulashish" tugmasini bosing.',
+    'reports_saved_desc':
+        'Fayl foydalanishga tayyor. Yuborish yoki saqlash uchun "Ulashish" tugmasini bosing.',
     'reports_open_share': 'Ulashish / Saqlash',
 
     // General
@@ -664,7 +768,6 @@ class AppStrings {
     'general_days_ago': 'kun. oldin',
     'general_som': "so'm",
   };
-
 
   // ─── Uzbek (Cyrillic) ────────────────────────────────────────────
   static const Map<String, String> _uzCyrillic = {
@@ -711,21 +814,29 @@ class AppStrings {
     'settings_app_version': 'Илова версияси',
     'settings_logout': 'Чиқиш',
     'settings_logout_confirm': 'Чиқишни хохлайсизми?',
-    'settings_logout_confirm_desc': 'Қайта кириш учун логин ва парол керак бўлади.',
+    'settings_logout_confirm_desc':
+        'Қайта кириш учун логин ва парол керак бўлади.',
     'settings_cancel': 'Бекор қилиш',
     'settings_confirm': 'Ҳа, чиқиш',
     'settings_privacy_policy': 'Махфийлик сиёсати',
     'settings_contact_support': 'Қўллаб-қувватлаш',
     'settings_delete_account': 'Аккаунтни ўчириш',
-    'settings_delete_account_desc': 'Аккаунтингизни ва барча маълумотларни ўчириш сўровини юбориш.',
-    'settings_delete_account_confirm': 'Сўров юборилди. Тез орада сиз билан боғланамиз.',
+    'settings_delete_account_desc':
+        'Аккаунтингизни ва барча маълумотларни ўчириш сўровини юбориш.',
+    'settings_delete_account_confirm':
+        'Сўров юборилди. Тез орада сиз билан боғланамиз.',
     'settings_theme': 'Мавзу',
     'settings_theme_light': 'Ёруғ',
     'settings_theme_dark': 'Қоронғи',
     'settings_biometric_login': 'Биометрик кириш',
-    'settings_biometric_login_desc': 'Тез кириш учун Touch ID / Face ID дан фойдаланиш',
+    'settings_biometric_login_desc':
+        'Тез кириш учун Touch ID / Face ID дан фойдаланиш',
     'settings_support_email': 'salievyt@gmail.com',
-    'settings_privacy_note': '«Чиқиш» тугмасини босиш орқали сиз жорий сеансни якунлайсиз.',
+    'settings_support_chat': 'WhatsApp, Telegram',
+    'settings_support_title': 'Қўллаб-қувватлаш билан боғланиш',
+    'settings_support_description': 'Қулай алоқа усулини танланг',
+    'settings_privacy_note':
+        '«Чиқиш» тугмасини босиш орқали сиз жорий сеансни якунлайсиз.',
 
     // Operations
     'operations_title': 'Операциялар',
@@ -747,6 +858,22 @@ class AppStrings {
     'operations_filter_period_month': 'Ой',
     'operations_filter_period_all': 'Барча вақт',
     'operations_filter_sort': 'Саралаш',
+    'operations_filter_period_custom': 'Ўз даври',
+    'operations_filter_currency': 'Валюта',
+    'operations_filter_currency_all': 'Барча валюталар',
+    'operations_columns': 'Устунлар',
+    'operations_columns_1': '1 устун',
+    'operations_columns_2': '2 устун',
+    'operations_filter_date_from': 'Дан',
+    'operations_filter_date_to': 'Гача',
+    'operations_filter_date_apply': 'Қўллаш',
+    'operations_edit': 'Таҳрирлаш',
+    'operations_save': 'Сақлаш',
+    'operations_edit_title': 'Операцияни таҳрирлаш',
+    'operations_edit_success': 'Операция янгиланди',
+    'operations_rate': 'Айирбошлаш курси',
+    'operations_total': 'Бериладиган умумий сумма',
+    'operations_amount': 'Валюта суммаси',
     'operations_filter_sort_newest': 'Янги',
     'operations_filter_sort_oldest': 'Эски',
     'operations_filter_sort_amount_asc': 'Сумма ↑',
@@ -794,7 +921,8 @@ class AppStrings {
     // Reports
     'reports_title': 'Ҳисоботлар',
     'reports_subtitle': 'Ҳисоботларни юклаб олиш',
-    'reports_desc': 'Маълумотларни CSV, Excel ёки PDF форматида бир тугма билан экспорт қилиш',
+    'reports_desc':
+        'Маълумотларни CSV, Excel ёки PDF форматида бир тугма билан экспорт қилиш',
     'reports_daily': 'Кунлик ҳисобот',
     'reports_daily_desc': 'Кун якуни: операциялар, айланма, қолдиқлар',
     'reports_monthly': 'Ойлик ҳисобот',
@@ -806,7 +934,8 @@ class AppStrings {
     'reports_download': 'Юклаб олиш',
     'reports_generating': 'Ҳисобот тайёрланмоқда...',
     'reports_saved': 'Файл сақланди',
-    'reports_saved_desc': 'Файл фойдаланишга тайёр. Юбориш ёки сақлаш учун «Улашиш» тугмасини босинг.',
+    'reports_saved_desc':
+        'Файл фойдаланишга тайёр. Юбориш ёки сақлаш учун «Улашиш» тугмасини босинг.',
     'reports_open_share': 'Улашиш / Сақлаш',
 
     // General

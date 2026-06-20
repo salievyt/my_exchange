@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/operation.dart';
 import '../../domain/repositories/operation_repository.dart';
 import '../../di/service_locator.dart';
@@ -18,7 +19,11 @@ class OperationProvider extends ChangeNotifier {
   String? _operationTypeFilter;
   String? _dateFrom;
   String? _dateTo;
+  String? _currencyIdFilter;
   String _ordering = '-created_at';
+
+  // Display settings
+  int _columnsCount = 1; // 1 or 2
 
   List<Operation> get operations => _operations;
   bool get isLoading => _isLoading;
@@ -30,12 +35,16 @@ class OperationProvider extends ChangeNotifier {
   String? get operationTypeFilter => _operationTypeFilter;
   String? get dateFrom => _dateFrom;
   String? get dateTo => _dateTo;
+  String? get currencyIdFilter => _currencyIdFilter;
   String get ordering => _ordering;
+  int get columnsCount => _columnsCount;
+
   bool get hasActiveFilters =>
       _searchQuery.isNotEmpty ||
       _operationTypeFilter != null ||
       _dateFrom != null ||
       _dateTo != null ||
+      _currencyIdFilter != null ||
       _ordering != '-created_at';
 
   void setSearchQuery(String query) {
@@ -45,6 +54,11 @@ class OperationProvider extends ChangeNotifier {
 
   void setOperationTypeFilter(String? type) {
     _operationTypeFilter = type;
+    loadOperations();
+  }
+
+  void setCurrencyIdFilter(String? currencyId) {
+    _currencyIdFilter = currencyId;
     loadOperations();
   }
 
@@ -64,8 +78,25 @@ class OperationProvider extends ChangeNotifier {
     _operationTypeFilter = null;
     _dateFrom = null;
     _dateTo = null;
+    _currencyIdFilter = null;
     _ordering = '-created_at';
     loadOperations();
+  }
+
+  /// Load columns count from SharedPreferences
+  Future<void> loadColumnsSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    _columnsCount = prefs.getInt('operations_columns') ?? 1;
+    notifyListeners();
+  }
+
+  /// Set columns count and persist
+  Future<void> setColumnsCount(int count) async {
+    if (count < 1 || count > 2) return;
+    _columnsCount = count;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('operations_columns', count);
   }
 
   Future<void> loadOperations() async {
@@ -77,6 +108,7 @@ class OperationProvider extends ChangeNotifier {
       search: _searchQuery.isNotEmpty ? _searchQuery : null,
       ordering: _ordering,
       operationType: _operationTypeFilter,
+      currencyId: _currencyIdFilter,
       dateFrom: _dateFrom,
       dateTo: _dateTo,
     );
@@ -131,6 +163,47 @@ class OperationProvider extends ChangeNotifier {
         _operations.insert(0, operation);
         notifyListeners();
         return operation;
+      },
+    );
+  }
+
+  Future<bool> updateOperation({
+    required String id,
+    required double amount,
+    required double rate,
+    String? comment,
+    String? clientName,
+    String? clientCompany,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final result = await _repository.updateOperation(
+      id: id,
+      amount: amount,
+      rate: rate,
+      comment: comment,
+      clientName: clientName,
+      clientCompany: clientCompany,
+    );
+
+    _isLoading = false;
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (operation) {
+        // Update the operation in the local list
+        final index = _operations.indexWhere((o) => o.id == operation.id);
+        if (index != -1) {
+          _operations[index] = operation;
+        }
+        notifyListeners();
+        return true;
       },
     );
   }

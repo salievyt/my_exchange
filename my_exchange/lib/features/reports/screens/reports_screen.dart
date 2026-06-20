@@ -111,6 +111,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 12),
 
+                // ── Cashier Shift Report (PDF) ───────────────────
+                _ReportCard(
+                  icon: Icons.receipt_long,
+                  title: 'Отчёт по смене кассира',
+                  subtitle: 'PDF-отчёт: остатки, операции, итоги смены',
+                  color: Colors.deepPurple,
+                  formatOptions: [ReportFormat.pdf],
+                  onDownload: (format) => _downloadReport(
+                    provider,
+                    ReportType.cashierShift,
+                    format,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
                 // ── Export Operations ─────────────────────────────
                 _ReportCard(
                   icon: Icons.swap_horiz,
@@ -142,7 +157,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 const SizedBox(height: 24),
 
                 // Progress indicator
-                if (provider.isLoading) ...[
+                if (provider.isLoading) ...{
                   LinearProgressIndicator(
                     value: provider.progress > 0 ? provider.progress : null,
                     backgroundColor: AppColors.surfaceVariant,
@@ -173,7 +188,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                       ),
                     ),
-                ],
+                },
 
                 // Error message
                 if (provider.errorMessage != null)
@@ -465,4 +480,3 @@ class _DownloadButton extends StatelessWidget {
     );
   }
 }
-

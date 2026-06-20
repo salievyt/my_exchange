@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/operation.dart';
+import '../../operations/screens/create_operation_screen.dart';
 
 class OperationDetailScreen extends StatelessWidget {
   final Operation operation;
+  final VoidCallback? onEdit;
 
-  const OperationDetailScreen({super.key, required this.operation});
+  const OperationDetailScreen({super.key, required this.operation, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +94,15 @@ class OperationDetailScreen extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
+            actions: [
+              // Edit button
+              if (operation.canBeCancelled)
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded, color: Colors.white),
+                  tooltip: 'Редактировать',
+                  onPressed: () => _editOperation(context),
+                ),
+            ],
           ),
 
           // ── Body content ──────────────────────────────────────
@@ -281,6 +292,27 @@ class OperationDetailScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 32),
 
+                // Edit button at bottom
+                if (operation.canBeCancelled)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _editOperation(context),
+                        icon: const Icon(Icons.edit_rounded),
+                        label: const Text('Редактировать операцию'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+
                 // Status timeline
                 _SectionCard(
                   title: 'Статус',
@@ -295,9 +327,27 @@ class OperationDetailScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _editOperation(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateOperationScreen(
+          operation: operation,
+        ),
+      ),
+    ).then((result) {
+      if (result == true) {
+        onEdit?.call();
+        if (context.mounted) {
+          Navigator.pop(context); // Go back to list
+        }
+      }
+    });
+  }
 }
 
-// ─── Sub-widgets ───────────────────────────────────────────────────
+// ─── Sub-widgets (kept from original) ─────────────────────────────
 
 class _Badge extends StatelessWidget {
   final String label;
@@ -344,7 +394,7 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                                      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -356,10 +406,10 @@ class _SectionCard extends StatelessWidget {
             if (title != null) ...[
               Row(
                 children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 18, color: colors.primary),
-                    const SizedBox(width: 8),
-                  ],
+            if (icon != null) ...[
+              Icon(icon, size: 18, color: colors.primary),
+              const SizedBox(width: 8),
+            ],
                   Text(
                     title!,
                     style: TextStyle(
@@ -393,7 +443,7 @@ class _InfoBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                                      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -432,7 +482,7 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                                      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -455,7 +505,7 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
         ),
-        ?trailing,
+        trailing ?? const SizedBox.shrink(),
       ],
     );
   }
@@ -489,7 +539,7 @@ class _StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                                      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final steps = [
       _TimelineStepData(
         label: 'Операция создана',
@@ -519,9 +569,7 @@ class _StatusTimeline extends StatelessWidget {
     ];
 
     return Column(
-      children: steps
-          .map((step) => _TimelineStepWidget(data: step))
-          .toList(),
+      children: steps.map((step) => _TimelineStepWidget(data: step)).toList(),
     );
   }
 }
@@ -549,14 +597,13 @@ class _TimelineStepWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-                                      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final dotColor = data.color ?? colors.tertiary;
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline line and dot
           SizedBox(
             width: 32,
             child: Column(
@@ -584,7 +631,6 @@ class _TimelineStepWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Content
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(bottom: data.isLast ? 0 : 24),

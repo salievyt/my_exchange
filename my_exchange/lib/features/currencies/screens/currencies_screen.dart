@@ -256,13 +256,11 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: saving ? null : () => Navigator.pop(ctx),
+                  onPressed: () => Navigator.pop(ctx),
                   child: const Text('Отмена'),
                 ),
                 FilledButton.icon(
-                  onPressed: saving
-                      ? null
-                      : () async {
+                  onPressed: () async {
                           if (!formKey.currentState!.validate()) return;
 
                           setDialogState(() => saving = true);
@@ -301,13 +299,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                             Navigator.pop(ctx);
                           }
                         },
-                  icon: saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.save),
+                  icon: const Icon(Icons.save),
                   label: Text(isEdit ? 'Сохранить' : 'Создать'),
                 ),
               ],

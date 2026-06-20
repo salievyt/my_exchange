@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/providers/currency_provider.dart';
+import '../../../presentation/providers/operation_provider.dart';
 
 class CloseRegisterDialog extends StatefulWidget {
   const CloseRegisterDialog({super.key});
@@ -14,7 +17,6 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
   final _formKey = GlobalKey<FormState>();
   final Map<int, TextEditingController> _controllers = {};
   String _comment = '';
-
   @override
   void initState() {
     super.initState();
@@ -23,7 +25,6 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
 
     for (var currency in currencies) {
       _controllers[currency.id] = TextEditingController();
-      // Set current balance as placeholder, default to 0 if not loaded
       try {
         final balance = provider.balances.firstWhere(
           (b) => b.currencyId == currency.id,
@@ -33,6 +34,11 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
         _controllers[currency.id]!.text = '0';
       }
     }
+
+    // Load today's stats
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OperationProvider>().loadTodayStats();
+    });
   }
 
   @override
@@ -89,6 +95,8 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SingleChildScrollView(
@@ -104,26 +112,143 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                      color: colors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.close,
-                      color: Theme.of(context).colorScheme.error,
+                      color: colors.error,
                       size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'Закрытие смены',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  const Expanded(
+                    child: Text(
+                      'Закрытие смены',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
+
+              // ── Daily Totals Section ─────────────────────────
+              Consumer<OperationProvider>(
+                builder: (context, opProvider, child) {
+                  final stats = opProvider.todayStats;
+                  if (stats == null || stats.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Итоги дня загружаются...',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final totalOps = stats['total_operations'] ?? 0;
+                  final buyOps = stats['buy_operations'] ?? 0;
+                  final sellOps = stats['sell_operations'] ?? 0;
+                  final totalAmount = (stats['total_amount'] as num?)?.toDouble() ?? 0.0;
+                  final cancelledCount = stats['cancelled_count'] ?? 0;
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.today, color: Colors.white, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Итоги дня',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _StatItem(
+                                label: 'Всего операций',
+                                value: '$totalOps',
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _StatItem(
+                                label: 'Покупок',
+                                value: '$buyOps',
+                                color: AppColors.buyColor,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _StatItem(
+                                label: 'Продаж',
+                                value: '$sellOps',
+                                color: AppColors.sellColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.calculate, color: Colors.white, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Оборот: ${CurrencyFormatter.format(totalAmount, symbol: 'сом')}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const Spacer(),
+                            if (cancelledCount > 0)
+                              Text(
+                                'Отмен: $cancelledCount',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
               Text(
                 'Внесите фактические остатки по валютам',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(color: colors.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               Consumer<CurrencyProvider>(
@@ -185,7 +310,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                     child: ElevatedButton(
                       onPressed: _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
+                        backgroundColor: colors.error,
                       ),
                       child: const Text('Закрыть смену'),
                     ),
@@ -195,6 +320,50 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

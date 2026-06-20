@@ -226,6 +226,8 @@ class ExportView(views.APIView):
             return self.export_cash(request, export_format)
         elif export_type == 'report':
             return self.export_report(request, export_format)
+        elif export_type == 'cashier_shift':
+            return self.export_cashier_shift(request, export_format)
         
         return Response(
             {"error": "Неподдерживаемый тип экспорта"},
@@ -566,6 +568,189 @@ class ExportView(views.APIView):
             output.close()
 
             response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response['Content-Length'] = len(pdf_bytes)
+            return response
+
+        except ImportError:
+            return Response(
+                {"error": "Библиотека reportlab не установлена"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def export_cashier_shift(self, request, export_format):
+        """Export cashier shift report as PDF."""
+        from apps.cash.models import CashRegister
+        from django.utils import timezone as tz
+        from calendar import monthrange
+        from datetime import date, timedelta
+
+        today = timezone.now().date()
+
+        # Get today's operations for the current cashier
+        operations = Operation.objects.filter(
+            created_at__date=today,
+        )
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+
+        # Get cashier's registers for today
+        registers = CashRegister.objects.filter(
+            opened_at__date=today,
+        )
+        if request.user.role == Role.CASHIER:
+            registers = registers.filter(cashier=request.user)
+
+        active_ops = operations.filter(status=OperationStatus.ACTIVE)
+        buy_ops = active_ops.filter(operation_type=OperationType.BUY)
+        sell_ops = active_ops.filter(operation_type=OperationType.SELL)
+
+        buy_amount_total = float(buy_ops.aggregate(total=Sum('total_amount'))['total'] or 0)
+        sell_amount_total = float(sell_ops.aggregate(total=Sum('total_amount'))['total'] or 0)
+        total_turnover = buy_amount_total + sell_amount_total
+
+        if export_format == 'pdf':
+            return self._export_cashier_shift_pdf(
+                request, operations, registers,
+                today, total_turnover, buy_amount_total, sell_amount_total
+            )
+
+        return Response(
+            {"error": "Для отчёта по смене доступен только PDF"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def _export_cashier_shift_pdf(self, request, operations, registers,
+                                    date, total_turnover, buy_amount, sell_amount):
+        """Generate cashier shift PDF report."""
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import (
+                SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+            )
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import mm
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+
+            font_name = 'Helvetica'
+            for candidate_path, candidate_name in [
+                ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'DejaVuSans'),
+                ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 'DejaVu'),
+            ]:
+                try:
+                    pdfmetrics.registerFont(TTFont(candidate_name, candidate_path))
+                    font_name = candidate_name
+                    break
+                except Exception:
+                    continue
+
+            styles = getSampleStyleSheet()
+            normal = ParagraphStyle('NormalFont', parent=styles['Normal'], fontName=font_name, fontSize=9, leading=12)
+            bold_style = ParagraphStyle('BoldFont', parent=styles['Normal'], fontName=font_name, fontSize=9, leading=12)
+            header_style = ParagraphStyle('HeaderFont', parent=styles['Normal'], fontName=font_name, fontSize=14, leading=18, spaceAfter=6, alignment=1)
+            subheader = ParagraphStyle('SubFont', parent=styles['Normal'], fontName=font_name, fontSize=10, leading=14, textColor=colors.grey, alignment=1)
+            small_style = ParagraphStyle('SmallFont', parent=styles['Normal'], fontName=font_name, fontSize=7, leading=9)
+
+            def p(text, style=normal):
+                return Paragraph(str(text) if text is not None else '', style)
+
+            output = io.BytesIO()
+            doc = SimpleDocTemplate(
+                output, pagesize=A4,
+                topMargin=20*mm, bottomMargin=15*mm,
+                leftMargin=20*mm, rightMargin=20*mm,
+            )
+
+            elements = []
+
+            # Title
+            elements.append(Paragraph('Кассовая смена — Отчёт кассира', header_style))
+            elements.append(Paragraph(
+                f'Дата: {date.strftime("%d.%m.%Y")} | Кассир: {request.user.username}',
+                subheader
+            ))
+            elements.append(Spacer(1, 6*mm))
+
+            # Cashier info
+            register_info = [['Параметр', 'Значение']]
+            for reg in registers[:1]:  # Latest register
+                register_info.append(['Кассир', f'{reg.cashier.username}'])
+                register_info.append(['Смена открыта', reg.opened_at.strftime('%d.%m.%Y %H:%M')])
+                if reg.closed_at:
+                    register_info.append(['Смена закрыта', reg.closed_at.strftime('%d.%m.%Y %H:%M')])
+                break
+
+            register_info.append(['Всего операций', str(operations.count())])
+            register_info.append(['Покупок', str(operations.filter(operation_type=OperationType.BUY).count())])
+            register_info.append(['Продаж', str(operations.filter(operation_type=OperationType.SELL).count())])
+            register_info.append(['Оборот (сом)', f'{total_turnover:.2f}'])
+            register_info.append(['Покупок на сумму', f'{buy_amount:.2f} сом'])
+            register_info.append(['Продаж на сумму', f'{sell_amount:.2f} сом'])
+
+            table = Table(register_info, colWidths=[120, 300])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a73e8')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, -1), font_name),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f5f5')]),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 8*mm))
+
+            # Operations table
+            elements.append(Paragraph('Операции за день', ParagraphStyle('OpTitle', parent=normal, fontSize=12, spaceAfter=6, fontName=font_name)))
+
+            if operations.count() == 0:
+                elements.append(Paragraph('Нет операций за сегодня', normal))
+            else:
+                op_headers = ['№', 'Время', 'Тип', 'Валюта', 'Курс', 'Сумма', 'Итого', 'Клиент']
+                op_data = [op_headers]
+                for idx, op in enumerate(operations, 1):
+                    op_data.append([
+                        str(idx),
+                        op.created_at.strftime('%H:%M'),
+                        op.get_operation_type_display(),
+                        op.currency.code,
+                        f'{float(op.rate):.4f}',
+                        f'{float(op.amount):.2f}',
+                        f'{float(op.total_amount):.2f}',
+                        op.client_name or '',
+                    ])
+
+                op_table = Table(op_data, colWidths=[25, 40, 45, 40, 45, 50, 50, 80])
+                op_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a73e8')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, -1), font_name),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f5f5')]),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+                ]))
+                elements.append(op_table)
+
+            # Footer
+            elements.append(Spacer(1, 12*mm))
+            elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#cccccc')))
+            elements.append(Spacer(1, 3*mm))
+            elements.append(Paragraph(
+                f'Сформировано: {timezone.now().strftime("%d.%m.%Y %H:%M")}',
+                small_style
+            ))
+            elements.append(Paragraph('My Exchange — Система управления обменными операциями', small_style))
+
+            doc.build(elements)
+            pdf_bytes = output.getvalue()
+            output.close()
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            filename = f'cashier_shift_{date.strftime("%Y%m%d")}.pdf'
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             response['Content-Length'] = len(pdf_bytes)
             return response

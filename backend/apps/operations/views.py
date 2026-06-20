@@ -265,25 +265,41 @@ class OperationViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def today_stats(self, request):
-        """Get today's operation statistics."""
-        today = timezone.now().date()
-        operations = Operation.objects.filter(created_at__date=today)
-        
-        # Filter by user role
-        if request.user.role == Role.CASHIER:
-            operations = operations.filter(cashier=request.user)
-        
-        stats = {
-            'total_operations': operations.count(),
-            'buy_operations': operations.filter(operation_type=OperationType.BUY).count(),
-            'sell_operations': operations.filter(operation_type=OperationType.SELL).count(),
-            'total_amount': operations.filter(status=OperationStatus.ACTIVE).aggregate(
-                total=Sum('total_amount')
-            )['total'] or 0,
-            'cancelled_count': operations.filter(status=OperationStatus.CANCELLED).count(),
-        }
-        
-        return Response(stats)
+        """Get today's operation statistics."""    today = timezone.now().date()
+    operations = Operation.objects.filter(created_at__date=today)
+
+    # Filter by user role
+    if request.user.role == Role.CASHIER:
+        operations = operations.filter(cashier=request.user)
+
+    active_ops = operations.filter(status=OperationStatus.ACTIVE)
+    buy_ops = active_ops.filter(operation_type=OperationType.BUY)
+    sell_ops = active_ops.filter(operation_type=OperationType.SELL)
+
+    buy_amount = buy_ops.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    sell_amount = sell_ops.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    stats = {
+        'total_operations': operations.count(),
+        'buy_operations': buy_ops.count(),
+        'sell_operations': sell_ops.count(),
+        'buy_count': buy_ops.count(),
+        'sell_count': sell_ops.count(),
+        'buy_amount': float(buy_amount),
+        'sell_amount': float(sell_amount),
+        'total_amount': float(active_ops.aggregate(
+            total=Sum('total_amount')
+        )['total'] or 0),
+        'cancelled_count': operations.filter(
+            status=OperationStatus.CANCELLED
+        ).count(),
+    }
+
+    return Response(stats)
 
 
 class IsSeniorCashierOrAdmin(permissions.BasePermission):

@@ -6,7 +6,9 @@ import '../../core/localization/localization_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/user.dart';
 import '../providers/auth_provider.dart';
+import '../providers/operation_provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/columns_toggle.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -18,9 +20,7 @@ class SettingsScreen extends StatelessWidget {
     final local = context.watch<LocalizationProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(local.t('settings_title')),
-      ),
+      appBar: AppBar(title: Text(local.t('settings_title'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -50,6 +50,21 @@ class SettingsScreen extends StatelessWidget {
                 ? local.t('settings_theme_dark')
                 : local.t('settings_theme_light'),
             trailing: _ThemeSwitcher(),
+          ),
+          const Divider(height: 1, indent: 72),
+
+          // Columns toggle
+          _SettingsTile(
+            icon: Icons.view_column,
+            title: 'Колонки операций',
+            subtitle: context.watch<OperationProvider>().columnsCount == 1
+                ? '1 колонка'
+                : '2 колонки',
+            trailing: ColumnsToggle(
+              columnsCount: context.watch<OperationProvider>().columnsCount,
+              onChanged: (count) =>
+                  context.read<OperationProvider>().setColumnsCount(count),
+            ),
           ),
           const Divider(height: 1, indent: 72),
 
@@ -84,12 +99,12 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          // Contact support — opens email app
+          // Contact support — opens dialog with WhatsApp and Telegram
           _SettingsTile(
-            icon: Icons.mail_outline,
+            icon: Icons.support_agent_outlined,
             title: local.t('settings_contact_support'),
-            subtitle: local.t('settings_support_email'),
-            onTap: () => _sendEmail(),
+            subtitle: local.t('settings_support_chat'),
+            onTap: () => _showSupportDialog(context, local),
           ),
           const Divider(height: 1, indent: 72),
 
@@ -128,10 +143,7 @@ class SettingsScreen extends StatelessWidget {
           Center(
             child: Text(
               '${local.t('login_version')} ${AppConstants.appVersion}',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textHint,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textHint),
             ),
           ),
           const SizedBox(height: 32),
@@ -149,18 +161,162 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  void _sendEmail() async {
-    final uri = Uri(
-      scheme: 'mailto',
-      path: 'salievyt@gmail.com',
-      queryParameters: {
-        'subject': 'My Exchange — поддержка',
-        'body': '',
-      },
+  void _showSupportDialog(BuildContext context, LocalizationProvider local) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        title: _FadeSlideIn(
+          delayMs: 0,
+          child: Column(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.support_agent_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                local.t('settings_support_title'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _FadeSlideIn(
+              delayMs: 100,
+              child: Text(
+                local.t('settings_support_description'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            _FadeSlideIn(
+              delayMs: 250,
+              slideOffset: 40,
+              child: _SupportButton(
+                icon: _buildBrandIcon(
+                  color: const Color(0xFF25D366),
+                  child: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 22),
+                ),
+                label: 'WhatsApp',
+                color: const Color(0xFF25D366),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openWhatsApp(context);
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            _FadeSlideIn(
+              delayMs: 400,
+              slideOffset: 40,
+              child: _SupportButton(
+                icon: _buildBrandIcon(
+                  color: const Color(0xFF0088CC),
+                  child: Transform.rotate(
+                    angle: -0.3,
+                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+                label: 'Telegram',
+                color: const Color(0xFF0088CC),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openTelegram(context);
+                },
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.only(bottom: 8),
+        actions: [
+          _FadeSlideIn(
+            delayMs: 550,
+            slideOffset: 0,
+            child: SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  local.t('settings_cancel'),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  }
+
+  Widget _buildBrandIcon({required Color color, required Widget child}) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  void _openWhatsApp(BuildContext context) async {
+    const phoneNumber = '996990055445';
+    final message = Uri.encodeComponent(
+      'Здравствуйте! Мне нужна помощь с приложением My Exchange.',
+    );
+    final uri = Uri.parse('https://wa.me/$phoneNumber?text=$message');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  void _openTelegram(BuildContext context) async {
+    const username = 'bc_sm1le';
+    final message = Uri.encodeComponent(
+      'Здравствуйте! Мне нужна помощь с приложением My Exchange.',
+    );
+    final uri = Uri.parse('https://t.me/$username?text=$message');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _confirmLogout(BuildContext context, LocalizationProvider local) {
@@ -179,9 +335,7 @@ class SettingsScreen extends StatelessWidget {
               Navigator.pop(ctx);
               context.read<AuthProvider>().logout();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: Text(
               local.t('settings_confirm'),
               style: const TextStyle(color: Colors.white),
@@ -210,7 +364,11 @@ class SettingsScreen extends StatelessWidget {
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(local.t('settings_delete_account_confirm')),
@@ -232,6 +390,105 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Animation Widget ──────────────────────────────────────────────
+
+/// A widget that fades in and slides up with a staggered delay.
+class _FadeSlideIn extends StatelessWidget {
+  final Widget child;
+  final int delayMs;
+  final double slideOffset;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delayMs = 0,
+    this.slideOffset = 20,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      // Total duration = full animation window; the delay is faked by
+      // keeping the value clamped at 0 for [delayMs] milliseconds.
+      duration: Duration(milliseconds: 500 + delayMs),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        // Map the [0, 1] range over the full duration, offset by delay
+        final progress = delayMs > 0
+            ? ((value * (500 + delayMs) - delayMs) / 500).clamp(0.0, 1.0)
+            : value;
+        final opacity = progress;
+        final translateY = slideOffset * (1 - progress);
+        return Opacity(
+          opacity: opacity,
+          child: Transform.translate(
+            offset: Offset(0, translateY),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+// ─── Support Button Widget ─────────────────────────────────────────
+
+class _SupportButton extends StatelessWidget {
+  final Widget icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SupportButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: color.withValues(alpha: 0.08),
+        highlightColor: color.withValues(alpha: 0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              icon,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withValues(alpha: 0.5),
+                size: 22,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -311,11 +568,7 @@ class _ProfileCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.verified,
-              color: AppColors.success,
-              size: 20,
-            ),
+            Icon(Icons.verified, color: AppColors.success, size: 20),
           ],
         ),
       ),
@@ -371,11 +624,7 @@ class _SettingsTile extends StatelessWidget {
           color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          icon,
-          color: iconColor ?? AppColors.primary,
-          size: 24,
-        ),
+        child: Icon(icon, color: iconColor ?? AppColors.primary, size: 24),
       ),
       title: Text(
         title,
@@ -385,9 +634,11 @@ class _SettingsTile extends StatelessWidget {
         subtitle,
         style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
       ),
-      trailing: trailing ?? (onTap != null
-          ? const Icon(Icons.chevron_right, color: AppColors.textHint)
-          : null),
+      trailing:
+          trailing ??
+          (onTap != null
+              ? const Icon(Icons.chevron_right, color: AppColors.textHint)
+              : null),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
     );
@@ -408,19 +659,14 @@ class _ThemeSwitcherState extends State<_ThemeSwitcher> {
       child: ToggleButtons(
         isSelected: [theme.isLight, theme.isDark],
         onPressed: (index) {
-          theme.setThemeMode(
-            index == 0 ? ThemeMode.light : ThemeMode.dark,
-          );
+          theme.setThemeMode(index == 0 ? ThemeMode.light : ThemeMode.dark);
         },
         borderRadius: BorderRadius.circular(8),
         constraints: const BoxConstraints(minWidth: 36, minHeight: 32),
         selectedColor: Colors.white,
         fillColor: AppColors.primary,
         color: AppColors.textSecondary,
-        textStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -429,7 +675,11 @@ class _ThemeSwitcherState extends State<_ThemeSwitcher> {
               children: [
                 const Icon(Icons.light_mode, size: 14),
                 const SizedBox(width: 2),
-                Text(context.watch<LocalizationProvider>().t('settings_theme_light')),
+                Text(
+                  context.watch<LocalizationProvider>().t(
+                    'settings_theme_light',
+                  ),
+                ),
               ],
             ),
           ),
@@ -440,7 +690,11 @@ class _ThemeSwitcherState extends State<_ThemeSwitcher> {
               children: [
                 const Icon(Icons.dark_mode, size: 14),
                 const SizedBox(width: 2),
-                Text(context.watch<LocalizationProvider>().t('settings_theme_dark')),
+                Text(
+                  context.watch<LocalizationProvider>().t(
+                    'settings_theme_dark',
+                  ),
+                ),
               ],
             ),
           ),
@@ -482,17 +736,13 @@ class _LanguageSwitcher extends StatelessWidget {
     ];
 
     // Find current locale index
-    int currentIndex = languages.indexWhere(
-      (lang) => lang.$1 == local.locale,
-    );
+    int currentIndex = languages.indexWhere((lang) => lang.$1 == local.locale);
     if (currentIndex < 0) currentIndex = 0;
 
     return PopupMenuButton<String>(
       onSelected: (locale) => local.setLocale(locale),
       offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (context) => languages.map((lang) {
         final code = lang.$1;
         final label = lang.$2;
@@ -507,7 +757,9 @@ class _LanguageSwitcher extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
                 ),
               ),
               if (isSelected) ...[
@@ -522,9 +774,7 @@ class _LanguageSwitcher extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -538,11 +788,7 @@ class _LanguageSwitcher extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 18,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.arrow_drop_down, size: 18, color: AppColors.primary),
           ],
         ),
       ),

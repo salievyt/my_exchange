@@ -12,7 +12,8 @@ enum ReportType {
   daily('daily', 'Дневной отчёт'),
   monthly('monthly', 'Месячный отчёт'),
   operations('operations', 'Экспорт операций'),
-  cash('cash', 'Экспорт кассы');
+  cash('cash', 'Экспорт кассы'),
+  cashierShift('cashier_shift', 'Отчёт по смене');
 
   final String value;
   final String displayName;
@@ -90,6 +91,13 @@ class ReportsProvider extends ChangeNotifier {
           queryParams.addAll({
             'type': 'cash',
             'date_from': dateStr,
+          });
+          break;
+        case ReportType.cashierShift:
+          endpoint = ApiEndpoints.reportsExport;
+          queryParams.addAll({
+            'type': 'cashier_shift',
+            'format': format.value,
           });
           break;
       }

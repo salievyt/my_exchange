@@ -18,6 +18,7 @@ class OperationRepositoryImpl implements OperationRepository {
     String? search,
     String? ordering,
     String? operationType,
+    String? currencyId,
     String? dateFrom,
     String? dateTo,
   }) async {
