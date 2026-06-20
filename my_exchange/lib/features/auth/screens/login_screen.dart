@@ -16,17 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _saveForBiometric = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = context.read<AuthProvider>();
-      auth.checkBiometricAvailability();
-      auth.loadBiometricSetting();
-    });
-  }
 
   @override
   void dispose() {
@@ -42,12 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
     await authProvider.login(
       username: _usernameController.text.trim(),
       password: _passwordController.text,
-      saveForBiometric: _saveForBiometric,
     );
 
-    if (mounted && authProvider.isAuthenticated) {
-      setState(() => _saveForBiometric = false);
-    } else if (mounted) {
+    if (mounted && !authProvider.isAuthenticated) {
       final loc = context.read<LocalizationProvider>();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -56,31 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
-  }
-
-  Future<void> _loginWithBiometric() async {
-    final authProvider = context.read<AuthProvider>();
-    final local = context.read<LocalizationProvider>();
-    final success = await authProvider.loginWithBiometric(
-      localizedReason: local.t('login_biometric_reason'),
-    );
-
-    if (mounted && !success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            authProvider.errorMessage ?? local.t('login_biometric_failed'),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  IconData _getBiometricIcon(AuthProvider authProvider) {
-    // Use fingerprint icon by default; iOS Face ID could use a different icon
-    // but Icons.fingerprint works well for both on all platforms
-    return Icons.fingerprint;
   }
 
   @override
@@ -201,42 +162,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Save for biometric checkbox
-                  if (context.watch<AuthProvider>().biometricAvailable)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Checkbox(
-                              value: _saveForBiometric,
-                              onChanged: (v) => setState(
-                                () => _saveForBiometric = v ?? false,
-                              ),
-                              activeColor: colors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(
-                                () => _saveForBiometric = !_saveForBiometric,
-                              ),
-                              child: Text(
-                                local.t('login_biometric_save'),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                   // Login button
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
@@ -256,36 +181,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 )
                               : Text(local.t('login_button')),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Biometric login button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      if (!authProvider.biometricAvailable ||
-                          !authProvider.hasSavedCredentials) {
-                        return const SizedBox.shrink();
-                      }
-                      return OutlinedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : _loginWithBiometric,
-                        icon: Icon(
-                          _getBiometricIcon(authProvider),
-                          color: colors.primary,
-                        ),
-                        label: Text(
-                          local.t('login_biometric'),
-                          style: TextStyle(color: colors.primary),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                       );
                     },
