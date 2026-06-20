@@ -179,11 +179,58 @@ class _CashScreenState extends State<CashScreen> {
   }
 
   Widget _buildRegisterCard() {
-      final colors = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     return Consumer<CashProvider>(
       builder: (context, provider, child) {
         final loc = context.watch<LocalizationProvider>();
         final register = provider.currentRegister;
+
+        // Show loading shimmer while checking register status
+        if (provider.isRegisterLoading && register == null) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colors.outline.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 140,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: colors.outline.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 200,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: colors.outline.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         if (register == null) {
           return Card(
             color: Colors.orange.withValues(alpha: 0.1),

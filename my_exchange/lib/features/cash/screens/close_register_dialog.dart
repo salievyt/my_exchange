@@ -21,7 +21,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
   void initState() {
     super.initState();
     final provider = context.read<CashProvider>();
-    final currencies = context.read<CurrencyProvider>().currencies;
+    final currencies = context.read<CurrencyProvider>().foreignCurrencies;
 
     for (var currency in currencies) {
       _controllers[currency.id] = TextEditingController();
@@ -256,8 +256,9 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
+                  final displayCurrencies = provider.foreignCurrencies;
                   return Column(
-                    children: provider.currencies.map((currency) {
+                    children: displayCurrencies.map((currency) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextFormField(

@@ -14,12 +14,14 @@ class CashProvider extends ChangeNotifier {
   CashRegister? _currentRegister;
   final List<CashTransaction> _transactions = [];
   bool _isLoading = false;
+  bool _isRegisterLoading = false;
   String? _errorMessage;
 
   List<CashBalance> get balances => _balances;
   CashRegister? get currentRegister => _currentRegister;
   List<CashTransaction> get transactions => _transactions;
   bool get isLoading => _isLoading;
+  bool get isRegisterLoading => _isRegisterLoading;
   String? get errorMessage => _errorMessage;
   bool get isRegisterOpen => _currentRegister?.isOpen ?? false;
 
@@ -46,14 +48,20 @@ class CashProvider extends ChangeNotifier {
   }
 
   Future<void> checkCurrentRegister() async {
+    _isRegisterLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     final result = await _repository.getCurrentRegister();
 
     result.fold(
       (failure) {
         _currentRegister = null;
+        _isRegisterLoading = false;
       },
       (register) {
         _currentRegister = register;
+        _isRegisterLoading = false;
       },
     );
     notifyListeners();

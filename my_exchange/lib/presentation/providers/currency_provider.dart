@@ -13,6 +13,11 @@ class CurrencyProvider extends ChangeNotifier {
   String? _errorMessage;
 
   List<Currency> get currencies => _currencies;
+
+  /// Currencies excluding the base currency (KGS).
+  List<Currency> get foreignCurrencies =>
+      _currencies.where((c) => !c.isBaseCurrency).toList();
+
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 

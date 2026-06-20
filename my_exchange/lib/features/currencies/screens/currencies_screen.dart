@@ -58,6 +58,8 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
         child: Consumer<CurrencyProvider>(
           builder: (context, provider, child) {
             final local = context.watch<LocalizationProvider>();
+            final displayCurrencies = provider.foreignCurrencies;
+
             if (provider.isLoading && provider.currencies.isEmpty) {
               return _buildSkeletonList();
             }
@@ -71,7 +73,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
               );
             }
 
-            if (provider.currencies.isEmpty) {
+            if (displayCurrencies.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -111,11 +113,11 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    itemCount: provider.currencies.length,
+                    itemCount: displayCurrencies.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 16),
                     itemBuilder: (context, index) {
-                      final currency = provider.currencies[index];
+                      final currency = displayCurrencies[index];
                       return _CurrencyCard(
                         currency: currency,
                         onTap: () => _showEditRateDialog(context, currency),

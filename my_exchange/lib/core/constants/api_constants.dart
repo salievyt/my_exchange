@@ -69,7 +69,7 @@ class StorageKeys {
 /// App Constants
 class AppConstants {
   static const String appName = 'My Exchange';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.2.0';
 
   // Pagination
   static const int defaultPageSize = 20;
