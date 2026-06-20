@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
+import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user.dart';
 import '../../di/service_locator.dart';
@@ -76,10 +78,22 @@ class AuthProvider extends ChangeNotifier {
       if (!_biometricAvailable) return false;
 
       final authenticated = await _localAuth.authenticate(
-        localizedReason: localizedReason ?? 'Authenticate to unlock the app',
+        localizedReason:
+            localizedReason ?? 'Authenticate to unlock the app',
         biometricOnly: true,
         sensitiveTransaction: true,
         persistAcrossBackgrounding: true,
+        authMessages: <AuthMessages>[
+          const AndroidAuthMessages(
+            signInTitle: 'Вход по отпечатку',
+            signInHint: 'Приложите палец к сканеру',
+            cancelButton: 'Отмена',
+          ),
+          const IOSAuthMessages(
+            cancelButton: 'Отмена',
+            localizedFallbackTitle: 'Ввести пароль устройства',
+          ),
+        ],
       );
       return authenticated;
     } on LocalAuthException catch (e) {
@@ -134,7 +148,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> hasAnyLockMethod() async {
     final hasPin = await hasPinCode();
-    return hasPin || _biometricEnabled;
+    return hasPin || (_biometricEnabled && _biometricAvailable);
   }
 
   // ─── Authentication ───────────────────────────────────────────
@@ -219,7 +233,7 @@ class AuthProvider extends ChangeNotifier {
             if (pin != null) {
               _isLocked = true;
             }
-          } else if (_biometricEnabled) {
+          } else if (_biometricEnabled && _biometricAvailable) {
             _isLocked = true;
           }
         }

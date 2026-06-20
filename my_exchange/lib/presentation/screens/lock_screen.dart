@@ -16,6 +16,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   String _enteredPin = '';
   String? _errorMessage;
   bool _biometricAttempted = false;
+  bool _biometricFailed = false;
 
   @override
   void initState() {
@@ -46,6 +47,11 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   Future<void> _tryBiometric() async {
     if (_biometricAttempted) return; // Prevent double-trigger
 
+    // Clear previous error before retrying
+    if (_biometricFailed) {
+      setState(() => _biometricFailed = false);
+    }
+
     final auth = context.read<AuthProvider>();
     if (!auth.biometricAvailable || !auth.biometricEnabled) return;
 
@@ -59,7 +65,10 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       auth.unlockApp();
     } else if (mounted) {
       // Allow manual retry via fingerprint icon
-      setState(() => _biometricAttempted = false);
+      setState(() {
+        _biometricAttempted = false;
+        _biometricFailed = true;
+      });
     }
   }
 
@@ -68,6 +77,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
     setState(() {
       _enteredPin += digit;
       _errorMessage = null;
+      _biometricFailed = false;
     });
 
     if (_enteredPin.length == 6) {
@@ -195,6 +205,19 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
               ],
 
               const Spacer(flex: 1),
+
+              // Biometric failed message
+              if (_biometricFailed) ...[
+                const SizedBox(height: 16),
+                Text(
+                  local.t('lock_biometric_failed'),
+                  style: TextStyle(
+                    color: colors.error,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
 
               // Biometric button
               Consumer<AuthProvider>(
