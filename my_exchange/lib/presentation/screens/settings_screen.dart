@@ -35,9 +35,7 @@ class SettingsScreen extends StatelessWidget {
           _SettingsTile(
             icon: Icons.language,
             title: local.t('settings_language'),
-            subtitle: local.isRussian
-                ? local.t('settings_language_ru')
-                : local.t('settings_language_kg'),
+            subtitle: _currentLanguageName(local),
             trailing: _LanguageSwitcher(),
           ),
           const Divider(height: 1, indent: 72),
@@ -65,6 +63,15 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (count) =>
                   context.read<OperationProvider>().setColumnsCount(count),
             ),
+          ),
+          const Divider(height: 1, indent: 72),
+
+          // PIN code setup
+          _SettingsTile(
+            icon: Icons.pin_outlined,
+            title: local.t('settings_pin_code'),
+            subtitle: local.t('settings_pin_code_desc'),
+            onTap: () => _showPinSetupDialog(context, local),
           ),
           const Divider(height: 1, indent: 72),
 
@@ -150,6 +157,32 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showPinSetupDialog(BuildContext context, LocalizationProvider local) {
+    final auth = context.read<AuthProvider>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => _PinSetupDialog(auth: auth, local: local),
+    );
+  }
+
+  String _currentLanguageName(LocalizationProvider local) {
+    switch (local.locale) {
+      case 'ru':
+        return local.t('settings_language_ru');
+      case 'ky':
+        return local.t('settings_language_kg');
+      case 'en':
+        return local.t('settings_language_en');
+      case 'uz':
+        return local.t('settings_language_uz');
+      case 'uz_Cyrl':
+        return local.t('settings_language_uzCyrillic');
+      default:
+        return local.t('settings_language_ru');
+    }
   }
 
   void _openPrivacyPolicy() async {
@@ -717,6 +750,188 @@ class _BiometricSwitchState extends State<_BiometricSwitch> {
       value: auth.biometricEnabled,
       onChanged: (v) => auth.setBiometricEnabled(v),
       activeThumbColor: AppColors.primary,
+    );
+  }
+}
+
+// ─── PIN Setup Dialog ────────────────────────────────────────────
+
+class _PinSetupDialog extends StatefulWidget {
+  final AuthProvider auth;
+  final LocalizationProvider local;
+
+  const _PinSetupDialog({required this.auth, required this.local});
+
+  @override
+  State<_PinSetupDialog> createState() => _PinSetupDialogState();
+}
+
+class _PinSetupDialogState extends State<_PinSetupDialog> {
+  final _pinController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _obscurePin = true;
+  bool _obscureConfirm = true;
+  bool _saving = false;
+  bool _showRemoveOption = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingPin();
+  }
+
+  Future<void> _checkExistingPin() async {
+    final hasPin = await widget.auth.hasPinCode();
+    if (mounted) {
+      setState(() => _showRemoveOption = hasPin);
+    }
+  }
+
+  Future<void> _savePin() async {
+    final pin = _pinController.text.trim();
+    final confirm = _confirmController.text.trim();
+
+    if (pin.length != 6) {
+      _showError('PIN-код должен быть 6 цифр');
+      return;
+    }
+    if (pin != confirm) {
+      _showError('PIN-коды не совпадают');
+      return;
+    }
+
+    setState(() => _saving = true);
+    await widget.auth.setPinCode(pin);
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('PIN-код установлен'),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
+    }
+  }
+
+  Future<void> _removePin() async {
+    await widget.auth.removePinCode();
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('PIN-код удалён'),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.pin_outlined, color: colors.primary, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            widget.local.t('settings_pin_code'),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _pinController,
+              obscureText: _obscurePin,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              decoration: InputDecoration(
+                labelText: 'Новый PIN-код',
+                counterText: '',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePin ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _confirmController,
+              obscureText: _obscureConfirm,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              decoration: InputDecoration(
+                labelText: 'Подтвердите PIN-код',
+                counterText: '',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        if (_showRemoveOption)
+          TextButton(
+            onPressed: _saving ? null : _removePin,
+            style: TextButton.styleFrom(foregroundColor: colors.error),
+            child: const Text('Удалить PIN'),
+          ),
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Отмена'),
+        ),
+        ElevatedButton(
+          onPressed: _saving ? null : _savePin,
+          child: _saving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Сохранить'),
+        ),
+      ],
     );
   }
 }
