@@ -235,52 +235,52 @@ class ExportView(views.APIView):
         )
     
     def export_operations(self, request, export_format):
-          """Export operations data."""
-          operations = Operation.objects.select_related(
-              'currency', 'cashier'
-          ).all()
-          
-          # Apply filters
-          date_from = request.query_params.get('date_from')
-          date_to = request.query_params.get('date_to')
-          if date_from:
-              operations = operations.filter(created_at__date__gte=date_from)
-          if date_to:
-              operations = operations.filter(created_at__date__lte=date_to)
-          
-          # Role-based filtering
-          if request.user.role == Role.CASHIER:
-              operations = operations.filter(cashier=request.user)
-          
-          if export_format == 'csv':
-              return self.export_to_csv(operations, 'operations')
-          elif export_format == 'xlsx':
-              return self.export_to_xlsx(operations, 'operations')
-          elif export_format == 'pdf':
-              return self.export_to_pdf(operations, 'operations')
-          
-          return Response(
-              {"error": "Неподдерживаемый формат экспорта"},
-              status=status.HTTP_400_BAD_REQUEST
-          )
+        """Export operations data."""
+        operations = Operation.objects.select_related(
+            'currency', 'cashier'
+        ).all()
+
+        # Apply filters
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        if date_from:
+            operations = operations.filter(created_at__date__gte=date_from)
+        if date_to:
+            operations = operations.filter(created_at__date__lte=date_to)
+
+        # Role-based filtering
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+
+        if export_format == 'csv':
+            return self.export_to_csv(operations, 'operations')
+        elif export_format == 'xlsx':
+            return self.export_to_xlsx(operations, 'operations')
+        elif export_format == 'pdf':
+            return self.export_to_pdf(operations, 'operations')
+
+        return Response(
+            {"error": "Неподдерживаемый формат экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     def export_cash(self, request, export_format):
-          """Export cash transactions."""
-          transactions = CashTransaction.objects.select_related(
-              'currency', 'cashier'
-          ).all()
-          
-          if export_format == 'csv':
-              return self.export_to_csv(transactions, 'cash')
-          elif export_format == 'xlsx':
-              return self.export_to_xlsx(transactions, 'cash')
-          elif export_format == 'pdf':
-              return self.export_to_pdf(transactions, 'cash')
-          
-          return Response(
-              {"error": "Неподдерживаемый формат экспорта"},
-              status=status.HTTP_400_BAD_REQUEST
-          )
+        """Export cash transactions."""
+        transactions = CashTransaction.objects.select_related(
+            'currency', 'cashier'
+        ).all()
+
+        if export_format == 'csv':
+            return self.export_to_csv(transactions, 'cash')
+        elif export_format == 'xlsx':
+            return self.export_to_xlsx(transactions, 'cash')
+        elif export_format == 'pdf':
+            return self.export_to_pdf(transactions, 'cash')
+
+        return Response(
+            {"error": "Неподдерживаемый формат экспорта"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     def export_to_csv(self, queryset, export_type):
         """Export data to CSV format."""
@@ -385,10 +385,10 @@ class ExportView(views.APIView):
             response['Content-Disposition'] = f'attachment; filename="export_{export_type}_{timezone.now().strftime("%Y%m%d")}.xlsx"'
             return response
         except ImportError:
-              return Response(
-                  {"error": "Библиотека openpyxl не установлена"},
-                  status=status.HTTP_500_INTERNAL_SERVER_ERROR
-              )
+            return Response(
+                {"error": "Библиотека openpyxl не установлена"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     def export_to_pdf(self, queryset, export_type):
         """Export data to PDF format using reportlab."""
