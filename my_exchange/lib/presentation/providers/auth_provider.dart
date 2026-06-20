@@ -16,9 +16,8 @@ class AuthProvider extends ChangeNotifier {
   final FlutterSecureStorage _secureStorage;
   final LocalAuthentication _localAuth;
 
-  static const String _bioUsernameKey = 'biometric_username';
-  static const String _bioPasswordKey = 'biometric_password';
-  static const String _bioEnabledKey = 'biometric_enabled';
+  static const String _pinCodeKey = 'app_pin_code';
+  static const String _pinEnabledKey = 'app_pin_enabled';
 
   AuthProvider()
     : _loginUseCase = sl<LoginUseCase>(),
@@ -33,7 +32,7 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
-  bool _hasSavedCredentials = false;
+  bool _isLocked = false;
 
   AuthStatus get status => _status;
   User? get user => _user;
@@ -42,130 +41,107 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _status == AuthStatus.loading;
   bool get biometricAvailable => _biometricAvailable;
   bool get biometricEnabled => _biometricEnabled;
-  bool get hasSavedCredentials => _hasSavedCredentials;
+  bool get isLocked => _isLocked;
 
-  /// Check if biometric auth is available on this device
+  // ─── Biometric ────────────────────────────────────────────────
+
   Future<void> checkBiometricAvailability() async {
     try {
-      _biometricAvailable = await _localAuth.canCheckBiometrics ||
+      _biometricAvailable =
+          await _localAuth.canCheckBiometrics ||
           await _localAuth.isDeviceSupported();
-      _hasSavedCredentials =
-          await _secureStorage.read(key: _bioUsernameKey) != null;
       notifyListeners();
     } catch (e) {
       _biometricAvailable = false;
     }
   }
 
-  /// Load biometric setting from SharedPreferences
   Future<void> loadBiometricSetting() async {
     final prefs = await SharedPreferences.getInstance();
-    _biometricEnabled = prefs.getBool(_bioEnabledKey) ?? false;
+    _biometricEnabled = prefs.getBool('app_biometric_enabled') ?? false;
     notifyListeners();
   }
 
-  /// Enable or disable biometric login
   Future<void> setBiometricEnabled(bool enabled) async {
     _biometricEnabled = enabled;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_bioEnabledKey, enabled);
-
-    if (!enabled) {
-      // Clear saved credentials when disabling biometric
-      await _secureStorage.delete(key: _bioUsernameKey);
-      await _secureStorage.delete(key: _bioPasswordKey);
-      _hasSavedCredentials = false;
-    }
+    await prefs.setBool('app_biometric_enabled', enabled);
     notifyListeners();
   }
 
-  /// Save credentials for biometric login
-  Future<void> _saveBiometricCredentials({
-    required String username,
-    required String password,
-  }) async {
-    await _secureStorage.write(key: _bioUsernameKey, value: username);
-    await _secureStorage.write(key: _bioPasswordKey, value: password);
-    _hasSavedCredentials = true;
-  }
-
-  /// Clear saved biometric credentials (used on logout/settings toggle)
-  @visibleForTesting
-  Future<void> clearBiometricCredentials() async {
-    await _secureStorage.delete(key: _bioUsernameKey);
-    await _secureStorage.delete(key: _bioPasswordKey);
-    _hasSavedCredentials = false;
-  }
-
-  /// Authenticate with biometric (Face ID / Touch ID) and login
-  Future<bool> loginWithBiometric({String? localizedReason}) async {
+  /// Authenticate with biometric (Face ID / Touch ID) for app unlock.
+  /// Shows the native OS fingerprint / Face ID system dialog.
+  Future<bool> authenticateWithBiometric({String? localizedReason}) async {
     try {
-      // Check if biometric is available
-      if (!_biometricAvailable) {
-        _errorMessage = null;
-        notifyListeners();
-        return false;
-      }
+      if (!_biometricAvailable) return false;
 
-      // Check if we have saved credentials
-      final savedUsername = await _secureStorage.read(key: _bioUsernameKey);
-      final savedPassword = await _secureStorage.read(key: _bioPasswordKey);
-
-      if (savedUsername == null || savedPassword == null) {
-        _errorMessage = null;
-        notifyListeners();
-        return false;
-      }
-
-      // Authenticate with biometric
       final authenticated = await _localAuth.authenticate(
-        localizedReason: localizedReason ?? 'Authenticate to sign in',
+        localizedReason: localizedReason ?? 'Authenticate to unlock the app',
         biometricOnly: true,
         sensitiveTransaction: true,
         persistAcrossBackgrounding: true,
       );
-
-      if (!authenticated) {
-        _errorMessage = null; // user cancelled or failed - show localized string on screen
-        notifyListeners();
-        return false;
-      }
-
-      // Login with saved credentials
-      _status = AuthStatus.loading;
-      _errorMessage = null;
-      notifyListeners();
-
-      final result = await _loginUseCase(
-        username: savedUsername,
-        password: savedPassword,
-      );
-
-      return result.fold(
-        (failure) {
-          _status = AuthStatus.unauthenticated;
-          _errorMessage = failure.message;
-          notifyListeners();
-          return false;
-        },
-        (user) {
-          _user = user;
-          _status = AuthStatus.authenticated;
-          notifyListeners();
-          return true;
-        },
-      );
+      return authenticated;
+    } on LocalAuthException catch (e) {
+      debugPrint('Biometric auth error (LocalAuthException): $e');
+      return false;
     } catch (e) {
-      _errorMessage = null;
-      notifyListeners();
+      debugPrint('Biometric auth error: $e');
       return false;
     }
   }
 
+  // ─── PIN Code ─────────────────────────────────────────────────
+
+  Future<bool> hasPinCode() async {
+    final pin = await _secureStorage.read(key: _pinCodeKey);
+    return pin != null;
+  }
+
+  Future<void> setPinCode(String pin) async {
+    await _secureStorage.write(key: _pinCodeKey, value: pin);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pinEnabledKey, true);
+    notifyListeners();
+  }
+
+  Future<bool> verifyPinCode(String pin) async {
+    final savedPin = await _secureStorage.read(key: _pinCodeKey);
+    return savedPin == pin;
+  }
+
+  Future<void> removePinCode() async {
+    await _secureStorage.delete(key: _pinCodeKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pinEnabledKey, false);
+    _isLocked = false;
+    notifyListeners();
+  }
+
+  // ─── App Lock / Unlock ────────────────────────────────────────
+
+  Future<void> lockApp() async {
+    if (await hasAnyLockMethod()) {
+      _isLocked = true;
+      notifyListeners();
+    }
+  }
+
+  void unlockApp() {
+    _isLocked = false;
+    notifyListeners();
+  }
+
+  Future<bool> hasAnyLockMethod() async {
+    final hasPin = await hasPinCode();
+    return hasPin || _biometricEnabled;
+  }
+
+  // ─── Authentication ───────────────────────────────────────────
+
   Future<void> login({
     required String username,
     required String password,
-    bool saveForBiometric = false,
   }) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
@@ -183,20 +159,10 @@ class AuthProvider extends ChangeNotifier {
         _user = user;
         _status = AuthStatus.authenticated;
 
-        // Save credentials for biometric login if enabled
-        if (saveForBiometric && _biometricAvailable) {
-          try {
-            await _saveBiometricCredentials(
-              username: username,
-              password: password,
-            );
-            if (!_biometricEnabled) {
-              await setBiometricEnabled(true);
-            }
-          } catch (e) {
-            debugPrint('Failed to save biometric credentials: $e');
-          }
-        }
+        // Check if PIN or biometric is set up
+        _isLocked = false; // Don't lock immediately after login
+        await checkBiometricAvailability();
+        await loadBiometricSetting();
 
         notifyListeners();
       },
@@ -209,13 +175,9 @@ class AuthProvider extends ChangeNotifier {
 
     await _logoutUseCase();
 
-    // Clear biometric credentials on logout
-    try {
-      await clearBiometricCredentials();
-    } catch (_) {}
-
     _user = null;
     _status = AuthStatus.unauthenticated;
+    _isLocked = false;
     notifyListeners();
   }
 
@@ -245,6 +207,23 @@ class AuthProvider extends ChangeNotifier {
         } else {
           _status = AuthStatus.unauthenticated;
         }
+
+        // After successful auth check, load PIN setting to determine if app should be locked
+        if (_status == AuthStatus.authenticated) {
+          final prefs = await SharedPreferences.getInstance();
+          final hasPin = prefs.getBool(_pinEnabledKey) ?? false;
+          await checkBiometricAvailability();
+          await loadBiometricSetting();
+          if (hasPin) {
+            final pin = await _secureStorage.read(key: _pinCodeKey);
+            if (pin != null) {
+              _isLocked = true;
+            }
+          } else if (_biometricEnabled) {
+            _isLocked = true;
+          }
+        }
+
         notifyListeners();
       },
     );

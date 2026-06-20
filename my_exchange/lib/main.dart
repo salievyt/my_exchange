@@ -15,6 +15,7 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/reports_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'presentation/screens/main_screen.dart';
+import 'presentation/screens/lock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,7 +111,12 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Show main screen if authenticated (update check happens inside)
+        // Show lock screen if app is locked (PIN/biometric required)
+        if (authProvider.isLocked) {
+          return const LockScreen();
+        }
+
+        // Show main screen if authenticated and unlocked
         return const MainScreen();
       },
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_exchange/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/localization_provider.dart';
 import '../../features/operations/screens/operations_screen.dart';
@@ -16,7 +17,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -30,10 +31,25 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Delay update check to avoid calling notifyListeners during build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForUpdate();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App went to background — lock it
+      context.read<AuthProvider>().lockApp();
+    }
   }
 
   void _checkForUpdate() {
