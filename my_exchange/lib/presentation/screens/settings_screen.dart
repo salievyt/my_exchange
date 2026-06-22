@@ -6,9 +6,8 @@ import '../../core/localization/localization_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/user.dart';
 import '../providers/auth_provider.dart';
-import '../providers/operation_provider.dart';
 import '../providers/theme_provider.dart';
-import '../widgets/columns_toggle.dart';
+import '../widgets/made_by_footer.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -51,6 +50,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
+          /* 
           // Columns toggle
           _SettingsTile(
             icon: Icons.view_column,
@@ -65,6 +65,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, indent: 72),
+          */
 
           // PIN code setup
           _SettingsTile(
@@ -144,16 +145,10 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // Version info at bottom
-          Center(
-            child: Text(
-              '${local.t('login_version')} ${AppConstants.appVersion}',
-              style: TextStyle(fontSize: 12, color: AppColors.textHint),
-            ),
-          ),
-          const SizedBox(height: 32),
+          // ── Version + Made by Deo Studio ─────────────────────────────
+          MadeByFooter(version: AppConstants.appVersion, appName: AppConstants.appName,),
         ],
       ),
     );

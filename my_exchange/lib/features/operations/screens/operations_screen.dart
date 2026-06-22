@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../../../presentation/widgets/operation_card.dart';
 import '../../../presentation/widgets/error_widgets.dart';
 import '../../../presentation/widgets/columns_toggle.dart';
 import '../../../presentation/widgets/skeleton_widgets.dart';
+import '../../../presentation/widgets/staggered_fade_in.dart';
 import 'create_operation_screen.dart';
 import 'operation_detail_screen.dart';
 
@@ -99,9 +101,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
     }
     if (context.read<OperationProvider>().dateTo != null) {
       try {
-        initialTo = DateTime.parse(
-          context.read<OperationProvider>().dateTo!,
-        );
+        initialTo = DateTime.parse(context.read<OperationProvider>().dateTo!);
       } catch (_) {}
     }
 
@@ -114,9 +114,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.primary,
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: AppColors.primary),
           ),
           child: child!,
         );
@@ -268,39 +268,195 @@ class _OperationsScreenState extends State<OperationsScreen> {
     );
   }
 
-  Widget _buildSingleColumnList(OperationProvider provider, LocalizationProvider local) {
+  Widget _buildSingleColumnList(
+    OperationProvider provider,
+    LocalizationProvider local,
+  ) {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: provider.operations.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final operation = provider.operations[index];
-        return OperationCard(
-          operation: operation,
-          onTap: () => _openOperationDetail(operation),
+        return StaggeredFadeIn(
+          index: index,
+          child: OperationCard(
+            operation: operation,
+            onTap: () => _openOperationDetail(operation),
+            onEdit: () => _editOperation(operation),
+            onCancel: () => _cancelOperation(context, operation),
+          ),
         );
       },
     );
   }
 
-  Widget _buildTwoColumnList(OperationProvider provider, LocalizationProvider local) {
+  Widget _buildTwoColumnList(
+    OperationProvider provider,
+    LocalizationProvider local,
+  ) {
     final ops = provider.operations;
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.9,
+    final buys = ops.where((o) => o.operationType == OperationType.buy).toList();
+    final sells = ops.where((o) => o.operationType == OperationType.sell).toList();
+
+    return Scrollbar(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Left column: Sells ─────────────────────────────
+              Expanded(
+                child: _OperationColumn(
+                  title: local.t('operations_sell'),
+                  icon: Icons.trending_down_rounded,
+                  color: AppColors.sellColor,
+                  operations: sells,
+                  onTap: _openOperationDetail,
+                  onEdit: _editOperation,
+                  onCancel: (op) => _cancelOperation(context, op),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // ── Right column: Buys ────────────────────────────
+              Expanded(
+                child: _OperationColumn(
+                  title: local.t('operations_buy'),
+                  icon: Icons.trending_up_rounded,
+                  color: AppColors.buyColor,
+                  operations: buys,
+                  onTap: _openOperationDetail,
+                  onEdit: _editOperation,
+                  onCancel: (op) => _cancelOperation(context, op),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      itemCount: ops.length,
-      itemBuilder: (context, index) {
-        final operation = ops[index];
-        return _CompactOperationCard(
-          operation: operation,
-          onTap: () => _openOperationDetail(operation),
-        );
-      },
+    );
+  }
+
+  void _editOperation(Operation operation) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateOperationScreen(operation: operation),
+      ),
+    ).then((result) {
+      if (result == true && context.mounted) {
+        context.read<OperationProvider>().loadOperations();
+        context.read<OperationProvider>().loadTodayStats();
+      }
+    });
+  }
+
+  void _cancelOperation(BuildContext context, Operation operation) {
+    context.read<LocalizationProvider>();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.cancel_outlined,
+                color: AppColors.error,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Отмена операции',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'Отменить операцию №${operation.operationNumber}?\n\n'
+          '${operation.operationType.displayName} '
+          '${CurrencyFormatter.formatWithSymbol(operation.amount, operation.currencyCode)} '
+          'по курсу ${CurrencyFormatter.formatRate(operation.rate)}.',
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.4,
+            color: Theme.of(ctx).colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          Consumer<OperationProvider>(
+            builder: (context, provider, child) {
+              return ElevatedButton(
+                onPressed: provider.isLoading
+                    ? null
+                    : () async {
+                        final success = await provider.cancelOperation(
+                          operation.id.toString(),
+                        );
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx);
+                        }
+                        if (success && context.mounted) {
+                          context.read<OperationProvider>().loadOperations();
+                          context.read<OperationProvider>().loadTodayStats();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Операция отменена'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        } else if (!success && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                provider.errorMessage ??
+                                    'Ошибка отмены операции',
+                              ),
+                              backgroundColor: AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                ),
+                child: provider.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text('Подтвердить отмену'),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -384,8 +540,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           const SizedBox(width: 8),
                           _FilterChip(
                             label: local.t('operations_buy'),
-                            isSelected:
-                                provider.operationTypeFilter == 'buy',
+                            isSelected: provider.operationTypeFilter == 'buy',
                             onSelected: () {
                               provider.setOperationTypeFilter('buy');
                             },
@@ -394,8 +549,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           const SizedBox(width: 8),
                           _FilterChip(
                             label: local.t('operations_sell'),
-                            isSelected:
-                                provider.operationTypeFilter == 'sell',
+                            isSelected: provider.operationTypeFilter == 'sell',
                             onSelected: () {
                               provider.setOperationTypeFilter('sell');
                             },
@@ -444,7 +598,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     const SizedBox(width: 8),
                     _FilterChip(
                       label: local.t('operations_filter_period_custom'),
-                      isSelected: provider.dateFrom != null &&
+                      isSelected:
+                          provider.dateFrom != null &&
                           !_isPeriodSelected(provider, 'today') &&
                           !_isPeriodSelected(provider, 'week') &&
                           !_isPeriodSelected(provider, 'month'),
@@ -548,6 +703,150 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 }
 
+// ─── Operation Column for 2-column layout ─────────────────────────
+
+/// A vertical column displaying filtered operations with a colored header.
+class _OperationColumn extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final List<Operation> operations;
+  final void Function(Operation) onTap;
+  final void Function(Operation) onEdit;
+  final void Function(Operation) onCancel;
+
+  const _OperationColumn({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.operations,
+    required this.onTap,
+    required this.onEdit,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // ── Column header ────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${operations.length}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // ── Operations list ─────────────────────────────────────
+        if (operations.isEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'Нет операций',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          )
+        else
+          ...List.generate(operations.length, (index) {
+            final operation = operations[index];
+            final canSwipe = operation.canBeCancelled;
+            return Padding(
+              padding: EdgeInsets.only(bottom: index < operations.length - 1 ? 8 : 0),
+              child: StaggeredFadeIn(
+                index: index,
+                itemDuration: const Duration(milliseconds: 300),
+                child: Slidable(
+                  key: ValueKey('col_${operation.id}'),
+                  enabled: canSwipe,
+                  endActionPane: ActionPane(
+                    motion: const BehindMotion(),
+                    extentRatio: 0.25,
+                    children: [
+                      SlidableAction(
+                        onPressed: (_) => onCancel(operation),
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        icon: Icons.cancel_outlined,
+                        label: 'Отменить',
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(12),
+                          bottomRight: Radius.circular(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  startActionPane: ActionPane(
+                    motion: const BehindMotion(),
+                    extentRatio: 0.25,
+                    children: [
+                      SlidableAction(
+                        onPressed: (_) => onEdit(operation),
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        icon: Icons.edit_rounded,
+                        label: 'Править',
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  child: _CompactOperationCard(
+                    operation: operation,
+                    onTap: () => onTap(operation),
+                  ),
+                ),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+}
+
 // ─── Compact Operation Card for 2-column layout ───────────────────
 
 class _CompactOperationCard extends StatelessWidget {
@@ -570,6 +869,7 @@ class _CompactOperationCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -616,14 +916,11 @@ class _CompactOperationCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '№ ${operation.operationNumber}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textHint,
-                ),
+                style: TextStyle(fontSize: 10, color: AppColors.textHint),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const Spacer(),
+              const SizedBox(height: 6),
               Text(
                 CurrencyFormatter.formatWithSymbol(
                   operation.amount,
@@ -639,10 +936,7 @@ class _CompactOperationCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Курс: ${CurrencyFormatter.formatRate(operation.rate)}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
               ),
               const Divider(height: 12),
               Row(
@@ -660,10 +954,7 @@ class _CompactOperationCard extends StatelessWidget {
                   const Spacer(),
                   Text(
                     DateFormatter.formatTime(operation.createdAt),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.textHint,
-                    ),
+                    style: TextStyle(fontSize: 10, color: AppColors.textHint),
                   ),
                 ],
               ),
@@ -777,7 +1068,8 @@ class _CurrencyFilterChipState extends State<_CurrencyFilterChip> {
                 },
               ),
               ...widget.currencies.map((currency) {
-                final isSelected = currency.id.toString() == widget.selectedCurrencyId;
+                final isSelected =
+                    currency.id.toString() == widget.selectedCurrencyId;
                 return ListTile(
                   leading: Container(
                     width: 36,
@@ -883,8 +1175,7 @@ class _SortButton extends StatelessWidget {
             children: [
               if (provider.ordering == '-created_at')
                 const Icon(Icons.check, size: 18, color: AppColors.primary),
-              if (provider.ordering == '-created_at')
-                const SizedBox(width: 8),
+              if (provider.ordering == '-created_at') const SizedBox(width: 8),
               Text(local.t('operations_filter_sort_newest')),
             ],
           ),
@@ -895,8 +1186,7 @@ class _SortButton extends StatelessWidget {
             children: [
               if (provider.ordering == 'created_at')
                 const Icon(Icons.check, size: 18, color: AppColors.primary),
-              if (provider.ordering == 'created_at')
-                const SizedBox(width: 8),
+              if (provider.ordering == 'created_at') const SizedBox(width: 8),
               Text(local.t('operations_filter_sort_oldest')),
             ],
           ),
@@ -908,8 +1198,7 @@ class _SortButton extends StatelessWidget {
             children: [
               if (provider.ordering == '-amount')
                 const Icon(Icons.check, size: 18, color: AppColors.primary),
-              if (provider.ordering == '-amount')
-                const SizedBox(width: 8),
+              if (provider.ordering == '-amount') const SizedBox(width: 8),
               Text(local.t('operations_filter_sort_amount_desc')),
             ],
           ),
@@ -920,8 +1209,7 @@ class _SortButton extends StatelessWidget {
             children: [
               if (provider.ordering == 'amount')
                 const Icon(Icons.check, size: 18, color: AppColors.primary),
-              if (provider.ordering == 'amount')
-                const SizedBox(width: 8),
+              if (provider.ordering == 'amount') const SizedBox(width: 8),
               Text(local.t('operations_filter_sort_amount_asc')),
             ],
           ),

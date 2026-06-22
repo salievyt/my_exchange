@@ -230,6 +230,36 @@ class OperationProvider extends ChangeNotifier {
     );
   }
 
+  Future<bool> cancelOperation(String id, {double? cancelAmount}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final result = await _repository.cancelOperation(
+      id: id,
+      cancelAmount: cancelAmount,
+    );
+
+    _isLoading = false;
+
+    return result.fold(
+      (failure) {
+        _errorMessage = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (operation) {
+        // Update the operation in the local list
+        final index = _operations.indexWhere((o) => o.id == operation.id);
+        if (index != -1) {
+          _operations[index] = operation;
+        }
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
   void clearError() {
     _errorMessage = null;
   }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/localization_provider.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../presentation/providers/auth_provider.dart';
+import '../../../presentation/widgets/made_by_footer.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -185,14 +186,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-                  // Version
-                  Text(
-                    '${local.t('login_version')} ${AppConstants.appVersion}',
-                    style: TextStyle(fontSize: 12, color: colors.outline),
-                    textAlign: TextAlign.center,
-                  ),
+                  // ── Version + Made by Deo Studio ───────────────────────
+                  MadeByFooter(version: AppConstants.appVersion, appName: AppConstants.appName,),
                 ],
               ),
             ),

@@ -52,6 +52,7 @@ dependencies:
   local_auth_darwin: ^2.0.3
   share_plus: ^12.0.2
   path_provider: ^2.1.6
+  flutter_slidable: ^4.0.3
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets: 
+    - assets/images/made_by_deo.png
+    - assets/images/
+    - assets/
 
 
 config_name:

@@ -42,6 +42,7 @@ class CashBalance(models.Model):
     class Meta:
         verbose_name = _('Кассовый остаток')
         verbose_name_plural = _('Кассовые остатки')
+        ordering = ['currency__code']
     
     def __str__(self):
         return f"{self.currency.code} - {self.balance}"
