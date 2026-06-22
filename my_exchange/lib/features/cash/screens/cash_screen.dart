@@ -385,75 +385,145 @@ class _BalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
       final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
+    final availableRatio = balance.balance > 0
+        ? balance.availableBalance / balance.balance
+        : 0.0;
+    final reservedRatio = balance.balance > 0
+        ? balance.reserved / balance.balance
+        : 0.0;
+    final utilizationPercent = (availableRatio * 100).clamp(0, 100);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  balance.currencyCode,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: colors.primary,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    balance.currencyName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${local.t('cash_available')}: ${CurrencyFormatter.format(balance.availableBalance, symbol: balance.currencySymbol)}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            Row(
               children: [
-                Text(
-                  CurrencyFormatter.format(
-                    balance.balance,
-                    symbol: balance.currencySymbol,
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  child: Center(
+                    child: Text(
+                      balance.currencyCode,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: colors.primary,
+                      ),
+                    ),
                   ),
                 ),
-                if (balance.reserved > 0)
-                  Text(
-                    '${local.t('cash_reserved')}: ${CurrencyFormatter.format(balance.reserved, symbol: balance.currencySymbol)}',
-                    style: TextStyle(fontSize: 12, color: Colors.orange),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        balance.currencyName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${local.t('cash_available')}: ${CurrencyFormatter.format(balance.availableBalance, symbol: balance.currencySymbol)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      CurrencyFormatter.format(
+                        balance.balance,
+                        symbol: balance.currencySymbol,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (balance.reserved > 0)
+                      Text(
+                        '${local.t('cash_reserved')}: ${CurrencyFormatter.format(balance.reserved, symbol: balance.currencySymbol)}',
+                        style: TextStyle(fontSize: 12, color: Colors.orange),
+                      ),
+                  ],
+                ),
               ],
+            ),
+            const SizedBox(height: 12),
+            // ── Mini progress bar ────────────────────────────────
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: SizedBox(
+                height: 6,
+                child: Stack(
+                  children: [
+                    // Background
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colors.outline.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    // Reserved segment (orange, behind available)
+                    if (reservedRatio > 0)
+                      FractionallySizedBox(
+                        widthFactor: (reservedRatio + availableRatio).clamp(0, 1),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                    // Available segment (green)
+                    if (availableRatio > 0)
+                      FractionallySizedBox(
+                        widthFactor: availableRatio.clamp(0, 1),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: _progressColor(utilizationPercent),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Utilization label
+            Text(
+              '${utilizationPercent.toStringAsFixed(0)}% ${local.t('cash_available').toLowerCase()}',
+              style: TextStyle(
+                fontSize: 10,
+                color: colors.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Color _progressColor(double percent) {
+    if (percent > 80) return Colors.green;
+    if (percent > 50) return Colors.lightGreen;
+    if (percent > 20) return Colors.amber;
+    return Colors.orange;
   }
 }
