@@ -95,29 +95,33 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      body: Stack(
+      body: RepaintBoundary(
+        child: Stack(
         children: List.generate(_screens.length, (index) {
           final isSelected = _currentIndex == index;
           final isSlidingRight = index > _previousIndex;
           final slideX = isSelected
               ? 0.0
-              : (isSlidingRight ? -0.15 : 0.15);
+              : (isSlidingRight ? 0.15 : -0.15);
 
-          return AnimatedSlide(
-            offset: Offset(slideX, 0),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            child: AnimatedOpacity(
-              opacity: isSelected ? 1.0 : 0.0,
+          return RepaintBoundary(
+            child: AnimatedSlide(
+              offset: Offset(slideX, 0),
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
-              child: IgnorePointer(
-                ignoring: !isSelected,
-                child: _screens[index],
+              child: AnimatedOpacity(
+                opacity: isSelected ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                child: IgnorePointer(
+                  ignoring: !isSelected,
+                  child: _screens[index],
+                ),
               ),
             ),
           );
         }),
+      ),
       ),
       bottomNavigationBar: Consumer<LocalizationProvider>(
         builder: (context, local, child) {

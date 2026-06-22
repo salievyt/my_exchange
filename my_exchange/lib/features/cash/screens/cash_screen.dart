@@ -47,8 +47,8 @@ class _CashScreenState extends State<CashScreen> {
         actions: [
           Consumer<CashProvider>(
             builder: (context, provider, child) {
-              final loc = context.watch<LocalizationProvider>();
               if (provider.isRegisterOpen) {
+                final loc = context.read<LocalizationProvider>();
                 return IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => _showCloseRegisterDialog(),
@@ -106,9 +106,8 @@ class _CashScreenState extends State<CashScreen> {
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              Consumer<CashProvider>(
-                builder: (context, provider, child) {
-                  final loc = context.watch<LocalizationProvider>();
+              Consumer2<CashProvider, LocalizationProvider>(
+                builder: (context, provider, loc, child) {
                   if (provider.isLoading && provider.balances.isEmpty) {
                     return _buildSkeletonBalanceList();
                   }
@@ -152,9 +151,8 @@ class _CashScreenState extends State<CashScreen> {
           ),
         ),
       ),
-      floatingActionButton: Consumer<CashProvider>(
-        builder: (context, provider, child) {
-          final loc = context.watch<LocalizationProvider>();
+      floatingActionButton: Consumer2<CashProvider, LocalizationProvider>(
+        builder: (context, provider, loc, child) {
           if (!provider.isRegisterOpen) {
             return FloatingActionButton.extended(
               onPressed: () => _showOpenRegisterDialog(),
@@ -174,9 +172,8 @@ class _CashScreenState extends State<CashScreen> {
 
   Widget _buildRegisterCard() {
     final colors = Theme.of(context).colorScheme;
-    return Consumer<CashProvider>(
-      builder: (context, provider, child) {
-        final loc = context.watch<LocalizationProvider>();
+    return Consumer2<CashProvider, LocalizationProvider>(
+      builder: (context, provider, loc, child) {
         final register = provider.currentRegister;
 
         // Show loading shimmer while checking register status
@@ -377,8 +374,8 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final colors = Theme.of(context).colorScheme;
-    final local = context.watch<LocalizationProvider>();
+    final colors = Theme.of(context).colorScheme;
+    final local = context.read<LocalizationProvider>();
     final availableRatio = balance.balance > 0
         ? balance.availableBalance / balance.balance
         : 0.0;
