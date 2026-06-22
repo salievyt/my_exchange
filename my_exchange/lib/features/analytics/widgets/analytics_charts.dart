@@ -3,24 +3,23 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 
-/// Bar chart showing daily buy/sell operations
+/// Interactive operations bar chart with animated touch tooltips
 class OperationsBarChart extends StatelessWidget {
   final List<Map<String, dynamic>> dailyData;
+  final bool compact;
 
-  const OperationsBarChart({super.key, required this.dailyData});
+  const OperationsBarChart({
+    super.key,
+    required this.dailyData,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (dailyData.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: Center(
-          child: Text(
-            'Нет данных за период',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-        ),
-      );
+      return const _EmptyChartPlaceholder(text: 'Нет данных за период');
     }
 
     final maxOps = dailyData.fold<int>(
@@ -31,10 +30,17 @@ class OperationsBarChart extends StatelessWidget {
               : prev,
     );
 
+    final height = compact ? 160.0 : 220.0;
+
     return SizedBox(
-      height: 220,
+      height: height,
       child: Padding(
-        padding: const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 8),
+        padding: EdgeInsets.only(
+          left: compact ? 4 : 8,
+          right: compact ? 8 : 16,
+          top: 16,
+          bottom: compact ? 4 : 8,
+        ),
         child: BarChart(
           BarChartData(
             alignment: BarChartAlignment.spaceAround,
@@ -42,17 +48,31 @@ class OperationsBarChart extends StatelessWidget {
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                tooltipPadding: const EdgeInsets.all(10),
+                getTooltipColor: (_) => isDark
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFF1E1E1E),
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final dayData = dailyData[groupIndex];
                   final date = dayData['date'] as String? ?? '';
                   final buy = dayData['buy_count'] as int? ?? 0;
                   final sell = dayData['sell_count'] as int? ?? 0;
+                  final parts = date.split('-');
+                  final label = parts.length >= 3
+                      ? '${parts[2]}.${parts[1]}.${parts[0]}'
+                      : date;
                   return BarTooltipItem(
-                    '$date\n',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    '$label\n',
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                     children: [
                       TextSpan(
-                        text: 'Покупка: $buy\nПродажа: $sell',
+                        text: 'Покупка: $buy  •  Продажа: $sell',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -68,37 +88,47 @@ class OperationsBarChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
+                  reservedSize: compact ? 22 : 28,
                   getTitlesWidget: (value, meta) {
                     final idx = value.toInt();
                     if (idx < 0 || idx >= dailyData.length) {
                       return const SizedBox.shrink();
                     }
                     final date = dailyData[idx]['date'] as String? ?? '';
-                    // Show only day.month
                     final parts = date.split('-');
                     final label = parts.length >= 3
                         ? '${parts[2]}.${parts[1]}'
                         : date;
                     return Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                      padding: EdgeInsets.only(top: compact ? 4 : 8),
                       child: Text(
                         label,
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        style: TextStyle(
+                          fontSize: compact ? 9 : 10,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.4)
+                              : AppColors.textSecondary,
+                        ),
                       ),
                     );
                   },
-                  reservedSize: 28,
+                  interval: dailyData.length > 14 ? 2 : 1,
                 ),
               ),
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 32,
+                  reservedSize: compact ? 24 : 32,
                   getTitlesWidget: (value, meta) {
                     if (value == 0) return const SizedBox.shrink();
                     return Text(
                       '${value.toInt()}',
-                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: compact ? 9 : 10,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : AppColors.textSecondary,
+                      ),
                     );
                   },
                 ),
@@ -114,21 +144,26 @@ class OperationsBarChart extends StatelessWidget {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
-              horizontalInterval: (maxOps * 1.3 / 4).ceilToDouble().clamp(1, double.infinity),
+              horizontalInterval:
+                  (maxOps * 1.3 / 4).ceilToDouble().clamp(1, double.infinity),
               getDrawingHorizontalLine: (value) => FlLine(
-                color: AppColors.textHint.withValues(alpha: 0.2),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : AppColors.textHint.withValues(alpha: 0.2),
                 strokeWidth: 1,
               ),
             ),
             barGroups: _buildBarGroups(),
           ),
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
         ),
       ),
     );
   }
 
   List<BarChartGroupData> _buildBarGroups() {
+    final barWidth = compact ? 6.0 : 10.0;
     return dailyData.asMap().entries.map((entry) {
       final idx = entry.key;
       final day = entry.value;
@@ -141,7 +176,7 @@ class OperationsBarChart extends StatelessWidget {
           BarChartRodData(
             toY: buy,
             color: AppColors.buyColor,
-            width: 10,
+            width: barWidth,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
               topRight: Radius.circular(4),
@@ -150,7 +185,7 @@ class OperationsBarChart extends StatelessWidget {
           BarChartRodData(
             toY: sell,
             color: AppColors.sellColor,
-            width: 10,
+            width: barWidth,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
               topRight: Radius.circular(4),
@@ -162,7 +197,7 @@ class OperationsBarChart extends StatelessWidget {
   }
 }
 
-/// Bar chart showing operations per currency
+/// Interactive currency popularity chart
 class CurrencyBarChart extends StatelessWidget {
   final List<Map<String, dynamic>> currencyStats;
 
@@ -170,17 +205,11 @@ class CurrencyBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final topCurrencies = currencyStats.take(6).toList();
+
     if (topCurrencies.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: Center(
-          child: Text(
-            'Нет данных',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-        ),
-      );
+      return const _EmptyChartPlaceholder(text: 'Нет данных');
     }
 
     final maxOps = topCurrencies.fold<int>(
@@ -202,6 +231,12 @@ class CurrencyBarChart extends StatelessWidget {
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                tooltipPadding: const EdgeInsets.all(10),
+                getTooltipColor: (_) => isDark
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFF1E1E1E),
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final curr = topCurrencies[groupIndex];
                   final code = curr['currency'] as String? ?? '';
@@ -210,7 +245,11 @@ class CurrencyBarChart extends StatelessWidget {
                       (curr['turnover'] as num?)?.toDouble() ?? 0.0;
                   return BarTooltipItem(
                     '$code\n',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                     children: [
                       TextSpan(
                         text:
@@ -227,6 +266,7 @@ class CurrencyBarChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
+                  reservedSize: 28,
                   getTitlesWidget: (value, meta) {
                     final idx = value.toInt();
                     if (idx < 0 || idx >= topCurrencies.length) {
@@ -237,15 +277,16 @@ class CurrencyBarChart extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         code,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : AppColors.primary,
                         ),
                       ),
                     );
                   },
-                  reservedSize: 28,
                 ),
               ),
               leftTitles: AxisTitles(
@@ -256,7 +297,12 @@ class CurrencyBarChart extends StatelessWidget {
                     if (value == 0) return const SizedBox.shrink();
                     return Text(
                       '${value.toInt()}',
-                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : AppColors.textSecondary,
+                      ),
                     );
                   },
                 ),
@@ -272,22 +318,25 @@ class CurrencyBarChart extends StatelessWidget {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
-              horizontalInterval: (maxOps * 1.3 / 4).ceilToDouble().clamp(1, double.infinity),
+              horizontalInterval:
+                  (maxOps * 1.3 / 4).ceilToDouble().clamp(1, double.infinity),
               getDrawingHorizontalLine: (value) => FlLine(
-                color: AppColors.textHint.withValues(alpha: 0.2),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : AppColors.textHint.withValues(alpha: 0.2),
                 strokeWidth: 1,
               ),
             ),
             barGroups: _buildBarGroups(topCurrencies),
           ),
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
         ),
       ),
     );
   }
 
   List<BarChartGroupData> _buildBarGroups(List<Map<String, dynamic>> currencies) {
-    // Colors for different currencies
     final colors = [
       AppColors.primary,
       AppColors.secondary,
@@ -308,8 +357,8 @@ class CurrencyBarChart extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: ops,
-            color: color,
-            width: 18,
+            color: color.withValues(alpha: 0.85),
+            width: 20,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
               topRight: Radius.circular(4),
@@ -321,7 +370,7 @@ class CurrencyBarChart extends StatelessWidget {
   }
 }
 
-/// Horizontal bar chart showing profitability (spread) per currency
+/// Profitability horizontal bar chart with color-coded bars
 class ProfitabilityChart extends StatelessWidget {
   final List<Map<String, dynamic>> profitability;
 
@@ -329,17 +378,11 @@ class ProfitabilityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final data = profitability.take(6).toList();
+
     if (data.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: Center(
-          child: Text(
-            'Нет данных о рентабельности',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-        ),
-      );
+      return const _EmptyChartPlaceholder(text: 'Нет данных о рентабельности');
     }
 
     return SizedBox(
@@ -353,14 +396,25 @@ class ProfitabilityChart extends StatelessWidget {
             barTouchData: BarTouchData(
               enabled: true,
               touchTooltipData: BarTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                tooltipPadding: const EdgeInsets.all(10),
+                getTooltipColor: (_) => isDark
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFF1E1E1E),
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final d = data[groupIndex];
                   final code = d['currency'] as String? ?? '';
                   final spread = (d['spread'] as num?)?.toDouble() ?? 0.0;
-                  final percent = (d['spread_percent'] as num?)?.toDouble() ?? 0.0;
+                  final percent =
+                      (d['spread_percent'] as num?)?.toDouble() ?? 0.0;
                   return BarTooltipItem(
                     '$code\n',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                     children: [
                       TextSpan(
                         text:
@@ -377,6 +431,7 @@ class ProfitabilityChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
+                  reservedSize: 28,
                   getTitlesWidget: (value, meta) {
                     final idx = value.toInt();
                     if (idx < 0 || idx >= data.length) {
@@ -387,15 +442,16 @@ class ProfitabilityChart extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         code,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : AppColors.primary,
                         ),
                       ),
                     );
                   },
-                  reservedSize: 28,
                 ),
               ),
               leftTitles: AxisTitles(
@@ -406,7 +462,12 @@ class ProfitabilityChart extends StatelessWidget {
                     if (value == 0) return const SizedBox.shrink();
                     return Text(
                       '${value.toInt()}%',
-                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : AppColors.textSecondary,
+                      ),
                     );
                   },
                 ),
@@ -424,13 +485,16 @@ class ProfitabilityChart extends StatelessWidget {
               drawVerticalLine: false,
               horizontalInterval: 25,
               getDrawingHorizontalLine: (value) => FlLine(
-                color: AppColors.textHint.withValues(alpha: 0.2),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : AppColors.textHint.withValues(alpha: 0.2),
                 strokeWidth: 1,
               ),
             ),
             barGroups: _buildBarGroups(data),
           ),
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
         ),
       ),
     );
@@ -464,7 +528,7 @@ class ProfitabilityChart extends StatelessWidget {
   }
 }
 
-/// Legend widget for charts
+/// Chart legend widget
 class ChartLegend extends StatelessWidget {
   final List<LegendItem> items;
 
@@ -472,6 +536,7 @@ class ChartLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Wrap(
       spacing: 16,
       runSpacing: 8,
@@ -490,9 +555,11 @@ class ChartLegend extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               item.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : AppColors.textSecondary,
               ),
             ),
           ],
@@ -507,4 +574,43 @@ class LegendItem {
   final String label;
 
   const LegendItem({required this.color, required this.label});
+}
+
+/// Empty state placeholder for charts
+class _EmptyChartPlaceholder extends StatelessWidget {
+  final String text;
+
+  const _EmptyChartPlaceholder({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      height: 200,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.bar_chart_outlined,
+              size: 40,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.15)
+                  : AppColors.textHint,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

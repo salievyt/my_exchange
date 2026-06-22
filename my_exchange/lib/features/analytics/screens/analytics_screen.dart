@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/analytics_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
+import '../../../presentation/widgets/staggered_fade_in.dart';
 import '../../reports/screens/reports_screen.dart';
 import '../widgets/analytics_charts.dart';
 
@@ -16,6 +17,8 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  int _chartPeriodDays = 7;
+
   @override
   void initState() {
     super.initState();
@@ -24,24 +27,32 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
   }
 
+  void _setPeriod(int days) {
+    setState(() => _chartPeriodDays = days);
+    context.read<AnalyticsProvider>().loadOperationsAnalytics(periodDays: days);
+    context.read<AnalyticsProvider>().loadCashierLoad(periodDays: days);
+    if (days >= 30) {
+      context.read<AnalyticsProvider>().loadProfitability(periodDays: days);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final local = context.watch<LocalizationProvider>();
+    final isWide = MediaQuery.of(context).size.width >= 600;
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : AppColors.background,
       appBar: AppBar(
         title: Text(local.t('analytics_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.description_outlined),
             tooltip: local.t('analytics_reports'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ReportsScreen(),
-                ),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const ReportsScreen()),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -52,12 +63,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       body: RefreshIndicator(
         onRefresh: () => context.read<AnalyticsProvider>().loadAll(),
         child: Consumer<AnalyticsProvider>(
-          builder: (context, provider, child) {
+          builder: (context, provider, _) {
             if (provider.isLoading && provider.data == null) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildSkeletonLoading(isDark);
             }
-
-            // Error state with retry (no data)
             if (provider.errorMessage != null && provider.data == null) {
               return ErrorStateWidget(
                 message: provider.errorMessage!,
@@ -65,130 +74,40 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 onRetry: () => provider.loadAll(),
               );
             }
-
-            // No data yet
-            if (provider.data == null) {
-              return Center(
-                child: Text(
-                  local.t('cash_no_data'),
-                  style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
-                ),
-              );
-            }
+            if (provider.data == null) return _buildEmptyState(isDark, local);
 
             final data = provider.data!;
-
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Error banner when refresh fails but we have data
                   if (provider.errorMessage != null)
-                    ErrorBanner(
-                      message: provider.errorMessage!,
-                      onRetry: () => provider.loadAll(),
-                      onDismiss: () => provider.clearError(),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ErrorBanner(
+                        message: provider.errorMessage!,
+                        onRetry: () => provider.loadAll(),
+                        onDismiss: () => provider.clearError(),
+                      ),
                     ),
 
-                  // Today stats card
-                  _DashboardCard(
-                    title: local.t('analytics_overall'),
-                    icon: Icons.dashboard,
-                    children: [
-                      _StatRow(
-                        label: local.t('analytics_operations_today'),
-                        value: '${data.operationsToday}',
-                      ),
-                      const Divider(),
-                      _StatRow(
-                        label: local.t('analytics_buys_sells'),
-                        value:
-                            '${data.buyOperations} / ${data.sellOperations}',
-                      ),
-                      const Divider(),
-                      _StatRow(
-                        label: local.t('analytics_turnover'),
-                        value: CurrencyFormatter.format(data.turnoverToday),
-                      ),
-                      const Divider(),
-                      _StatRow(
-                        label: local.t('analytics_clients'),
-                        value: '${data.clientsToday}',
-                      ),
-                    ],
-                  ),
+                  // ── Summary ──
+                  if (isWide) _buildWideSummary(data, isDark)
+                  else _buildNarrowSummary(data, isDark),
+
                   const SizedBox(height: 16),
 
-                  // Exchange rates card
-                  if (data.exchangeRates.isNotEmpty)
-                    _DashboardCard(
-                      title: local.t('analytics_rates'),
-                      icon: Icons.currency_exchange,
-                      children: data.exchangeRates.take(5).map((rate) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    rate['currency'] as String? ?? '',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      rate['currency_name'] as String? ?? '',
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                'П: ${rate['buy'] != null ? CurrencyFormatter.formatRate((rate['buy'] as num).toDouble()) : '—'}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.buyColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'ПР: ${rate['sell'] != null ? CurrencyFormatter.formatRate((rate['sell'] as num).toDouble()) : '—'}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.sellColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  const SizedBox(height: 16),
+                  // ── Period selector ──
+                  _buildPeriodSelector(isDark),
+                  const SizedBox(height: 12),
 
-                  // Daily operations chart
+                  // ── Daily chart ──
                   if (provider.dailyData.isNotEmpty)
-                    _DashboardCard(
+                    _buildCard(
                       title: local.t('analytics_daily_chart'),
-                      icon: Icons.bar_chart,
+                      icon: Icons.bar_chart_rounded,
+                      color: AppColors.primary, isDark: isDark, index: 0,
                       children: [
                         ChartLegend(items: [
                           LegendItem(color: AppColors.buyColor, label: local.t('operations_buy')),
@@ -196,203 +115,114 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         ]),
                         const SizedBox(height: 12),
                         SizedBox(
-                          height: 220,
-                          child: OperationsBarChart(
-                            dailyData: provider.dailyData,
-                          ),
+                          height: isWide ? 260 : 220,
+                          child: OperationsBarChart(dailyData: provider.dailyData),
                         ),
                       ],
                     ),
-                  const SizedBox(height: 16),
 
-                  // Currency popularity chart
-                  if (provider.currencyStats.isNotEmpty)
-                    _DashboardCard(
-                      title: local.t('analytics_popular_currencies'),
-                      icon: Icons.trending_up,
+                  if (provider.dailyData.isNotEmpty) const SizedBox(height: 14),
+
+                  // ── Currency + Profit charts (responsive) ──
+                  if (isWide)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          height: 200,
-                          child: CurrencyBarChart(
-                            currencyStats: provider.currencyStats,
-                          ),
-                        ),
+                        if (provider.currencyStats.isNotEmpty)
+                          Expanded(child: _buildCard(
+                            title: local.t('analytics_popular_currencies'),
+                            icon: Icons.trending_up_rounded, color: AppColors.secondary,
+                            isDark: isDark, index: 1,
+                            children: [SizedBox(height: 200, child: CurrencyBarChart(currencyStats: provider.currencyStats))],
+                          )),
+                        if (provider.currencyStats.isNotEmpty) const SizedBox(width: 14),
+                        if (provider.profitability.isNotEmpty)
+                          Expanded(child: _buildCard(
+                            title: local.t('analytics_profitability'),
+                            icon: Icons.monetization_on_rounded, color: AppColors.warning,
+                            isDark: isDark, index: 2,
+                            children: [SizedBox(height: 200, child: ProfitabilityChart(profitability: provider.profitability))],
+                          )),
                       ],
-                    ),
-                  const SizedBox(height: 16),
+                    )
+                  else ...[
+                    if (provider.currencyStats.isNotEmpty)
+                      _buildCard(title: local.t('analytics_popular_currencies'), icon: Icons.trending_up_rounded,
+                        color: AppColors.secondary, isDark: isDark, index: 1,
+                        children: [SizedBox(height: 200, child: CurrencyBarChart(currencyStats: provider.currencyStats))]),
+                    if (provider.currencyStats.isNotEmpty) const SizedBox(height: 14),
+                    if (provider.profitability.isNotEmpty)
+                      _buildCard(title: local.t('analytics_profitability'), icon: Icons.monetization_on_rounded,
+                        color: AppColors.warning, isDark: isDark, index: 2,
+                        children: [SizedBox(height: 200, child: ProfitabilityChart(profitability: provider.profitability))]),
+                  ],
 
-                  // Profitability chart
-                  if (provider.profitability.isNotEmpty)
-                    _DashboardCard(
-                      title: local.t('analytics_profitability'),
-                      icon: Icons.trending_up,
-                      children: [
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          height: 200,
-                          child: ProfitabilityChart(
-                            profitability: provider.profitability,
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 16),
+                  if (provider.currencyStats.isNotEmpty || provider.profitability.isNotEmpty)
+                    const SizedBox(height: 14),
 
-                  // Cashier stats card
-                  if (provider.cashierStats.isNotEmpty)
-                    _DashboardCard(
-                      title: local.t('analytics_cashiers'),
-                      icon: Icons.people,
-                      children: provider.cashierStats.map((stat) {
-                        final name = stat['name'] as String? ?? '—';
-                        final opsCount = stat['operations'] as int? ?? 0;
-                        final turnover =
-                            (stat['turnover'] as num?)?.toDouble() ?? 0.0;
+                  // ── Exchange rates ──
+                  if (data.exchangeRates.isNotEmpty)
+                    _buildCard(title: local.t('analytics_rates'), icon: Icons.currency_exchange,
+                      color: AppColors.primary, isDark: isDark, index: 3,
+                      children: data.exchangeRates.take(5).map((rate) {
+                        final code = rate['currency'] as String? ?? '';
+                        final buy = (rate['buy'] as num?)?.toDouble();
+                        final sell = (rate['sell'] as num?)?.toDouble();
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             children: [
-                              CircleAvatar(
-                                backgroundColor:
-                                    AppColors.primary.withValues(alpha: 0.1),
-                                child: Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : '—',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
+                              _CurrencyCodeChip(code: code, color: _currencyColor(code)),
                               const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  name,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '$opsCount оп.',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  Text(
-                                    CurrencyFormatter.format(
-                                      turnover,
-                                      symbol: 'сом',
-                                    ),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              Expanded(child: Text(rate['currency_name'] as String? ?? '',
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black87),
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                              _RateTag(label: 'П', value: buy != null ? CurrencyFormatter.formatRate(buy) : '—',
+                                color: AppColors.buyColor, isDark: isDark),
+                              const SizedBox(width: 8),
+                              _RateTag(label: 'ПР', value: sell != null ? CurrencyFormatter.formatRate(sell) : '—',
+                                color: AppColors.sellColor, isDark: isDark),
                             ],
                           ),
                         );
                       }).toList(),
                     ),
-                  const SizedBox(height: 16),
 
-                  // Cash balances card
-                  if (data.cashBalances.isNotEmpty)
-                    _DashboardCard(
-                      title: local.t('analytics_cash_balances'),
-                      icon: Icons.account_balance,
-                      children: data.cashBalances.map((bal) {
-                        final code = bal['currency'] as String? ?? '';
-                        final balance =
-                            (bal['balance'] as num?)?.toDouble() ?? 0.0;
-                        final available =
-                            (bal['available'] as num?)?.toDouble() ?? 0.0;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    code,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Всего: ${CurrencyFormatter.format(balance)}',
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                              Text(
-                                'Доступно: ${CurrencyFormatter.format(available)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: available > 0
-                                      ? AppColors.success
-                                      : AppColors.warning,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  const SizedBox(height: 16),
+                  if (data.exchangeRates.isNotEmpty) const SizedBox(height: 14),
 
-                  // Empty state when no overall data
-                  if (data.operationsToday == 0 &&
-                      data.exchangeRates.isEmpty &&
-                      data.cashBalances.isEmpty &&
-                      provider.currencyStats.isEmpty &&
+                  // ── Cashiers + Cash balances (responsive) ──
+                  if (isWide)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (provider.cashierStats.isNotEmpty)
+                          Expanded(child: _buildCard(title: local.t('analytics_cashiers'),
+                            icon: Icons.people_rounded, color: AppColors.info, isDark: isDark, index: 4,
+                            children: provider.cashierStats.map((s) => _CashierRow(stat: s, isDark: isDark)).toList())),
+                        if (provider.cashierStats.isNotEmpty) const SizedBox(width: 14),
+                        if (data.cashBalances.isNotEmpty)
+                          Expanded(child: _buildCard(title: local.t('analytics_cash_balances'),
+                            icon: Icons.account_balance_rounded, color: AppColors.success, isDark: isDark, index: 5,
+                            children: data.cashBalances.map((b) => _CashBalanceRow(balance: b, isDark: isDark)).toList())),
+                      ],
+                    )
+                  else ...[
+                    if (provider.cashierStats.isNotEmpty)
+                      _buildCard(title: local.t('analytics_cashiers'), icon: Icons.people_rounded,
+                        color: AppColors.info, isDark: isDark, index: 4,
+                        children: provider.cashierStats.map((s) => _CashierRow(stat: s, isDark: isDark)).toList()),
+                    if (provider.cashierStats.isNotEmpty) const SizedBox(height: 14),
+                    if (data.cashBalances.isNotEmpty)
+                      _buildCard(title: local.t('analytics_cash_balances'), icon: Icons.account_balance_rounded,
+                        color: AppColors.success, isDark: isDark, index: 5,
+                        children: data.cashBalances.map((b) => _CashBalanceRow(balance: b, isDark: isDark)).toList()),
+                  ],
+
+                  if (data.operationsToday == 0 && data.exchangeRates.isEmpty &&
+                      data.cashBalances.isEmpty && provider.currencyStats.isEmpty &&
                       provider.cashierStats.isEmpty)
-                    Card(
-                      color: AppColors.info.withValues(alpha: 0.1),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 48,
-                              color: AppColors.info,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              local.t('analytics_no_data'),
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              local.t('analytics_no_data_desc'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildNoDataCard(isDark, local),
                 ],
               ),
             );
@@ -401,79 +231,311 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
     );
   }
-}
 
-class _DashboardCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final List<Widget> children;
+  // ── Summary ──
 
-  const _DashboardCard({
-    required this.title,
-    required this.icon,
-    required this.children,
-  });
+  Widget _buildNarrowSummary(AnalyticsData data, bool isDark) => Column(children: [
+    Row(children: [
+      Expanded(child: _SummaryTile(label: 'Операций', value: '${data.operationsToday}',
+        icon: Icons.swap_horiz_rounded, color: AppColors.primary, isDark: isDark)),
+      const SizedBox(width: 12),
+      Expanded(child: _SummaryTile(label: 'Оборот', value: CurrencyFormatter.format(data.turnoverToday),
+        icon: Icons.trending_up_rounded, color: AppColors.success, isDark: isDark)),
+    ]),
+    const SizedBox(height: 12),
+    Row(children: [
+      Expanded(child: _SummaryTile(label: 'Покупок/Продаж', value: '${data.buyOperations} / ${data.sellOperations}',
+        icon: Icons.compare_arrows_rounded, color: AppColors.secondary, isDark: isDark)),
+      const SizedBox(width: 12),
+      Expanded(child: _SummaryTile(label: 'Клиентов', value: '${data.clientsToday}',
+        icon: Icons.people_rounded, color: AppColors.info, isDark: isDark)),
+    ]),
+  ]);
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: AppColors.primary, size: 24),
+  Widget _buildWideSummary(AnalyticsData data, bool isDark) => Row(children: [
+    Expanded(child: _SummaryTile(label: 'Операций сегодня', value: '${data.operationsToday}',
+      icon: Icons.swap_horiz_rounded, color: AppColors.primary, isDark: isDark)),
+    const SizedBox(width: 12),
+    Expanded(child: _SummaryTile(label: 'Оборот сегодня', value: CurrencyFormatter.format(data.turnoverToday),
+      icon: Icons.trending_up_rounded, color: AppColors.success, isDark: isDark)),
+    const SizedBox(width: 12),
+    Expanded(child: _SummaryTile(label: 'Покупок / Продаж', value: '${data.buyOperations} / ${data.sellOperations}',
+      icon: Icons.compare_arrows_rounded, color: AppColors.secondary, isDark: isDark)),
+    const SizedBox(width: 12),
+    Expanded(child: _SummaryTile(label: 'Клиентов', value: '${data.clientsToday}',
+      icon: Icons.people_rounded, color: AppColors.info, isDark: isDark)),
+  ]);
+
+  // ── Period Selector ──
+
+  Widget _buildPeriodSelector(bool isDark) {
+    const periods = [(7, '7 дней'), (14, '14 дней'), (30, '30 дней')];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: periods.map((p) {
+          final isSelected = _chartPeriodDays == p.$1;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _setPeriod(p.$1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? (isDark ? AppColors.primary.withValues(alpha: 0.3) : Colors.white)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isSelected
+                      ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+                      : null,
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Center(
+                  child: Text(p.$2, style: TextStyle(
+                    fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? AppColors.primary
+                        : (isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.textSecondary),
+                  )),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+          );
+        }).toList(),
       ),
     );
   }
+
+  // ── Card builder ──
+
+  Widget _buildCard({
+    required String title, required IconData icon, required Color color,
+    required bool isDark, required int index, required List<Widget> children,
+  }) {
+    return StaggeredFadeIn(index: index, itemDuration: const Duration(milliseconds: 400),
+      child: _ModernCard(isDark: isDark, color: color, title: title, icon: icon, children: children),
+    );
+  }
+
+  // ── Loading / Empty ──
+
+  Widget _buildSkeletonLoading(bool isDark) => SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Column(children: List.generate(4, (i) => Padding(
+      padding: EdgeInsets.only(bottom: i < 3 ? 14 : 0),
+      child: Container(height: 160,
+        decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(16)),
+      ),
+    ))),
+  );
+
+  Widget _buildEmptyState(bool isDark, LocalizationProvider local) => Center(
+    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(Icons.analytics_outlined, size: 72,
+        color: isDark ? Colors.white.withValues(alpha: 0.15) : AppColors.textHint),
+      const SizedBox(height: 16),
+      Text(local.t('cash_no_data'),
+        style: TextStyle(fontSize: 18, color: isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.textSecondary)),
+      const SizedBox(height: 24),
+      ElevatedButton.icon(onPressed: () => context.read<AnalyticsProvider>().loadAll(),
+        icon: const Icon(Icons.refresh), label: Text(local.t('operations_load'))),
+    ]),
+  );
+
+  Widget _buildNoDataCard(bool isDark, LocalizationProvider local) => StaggeredFadeIn(index: 6,
+    itemDuration: const Duration(milliseconds: 400),
+    child: Container(
+      margin: const EdgeInsets.only(top: 14), padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.info.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.info.withValues(alpha: 0.15)),
+      ),
+      child: Column(children: [
+        Icon(Icons.info_outline_rounded, size: 44,
+          color: isDark ? Colors.white.withValues(alpha: 0.3) : AppColors.info),
+        const SizedBox(height: 12),
+        Text(local.t('analytics_no_data'),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 6),
+        Text(local.t('analytics_no_data_desc'), textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13,
+            color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary)),
+      ]),
+    ),
+  );
 }
 
-class _StatRow extends StatelessWidget {
-  final String label;
-  final String value;
+// ═══════════════════════════════════════════════════════════════════
+//  Top-level helpers
+// ═══════════════════════════════════════════════════════════════════
 
-  const _StatRow({required this.label, required this.value});
+Color _currencyColor(String code) {
+  switch (code) {
+    case 'USD': return AppColors.buyColor;
+    case 'EUR': return const Color(0xFF2196F3);
+    case 'RUB': return AppColors.sellColor;
+    case 'GBP': return const Color(0xFF9C27B0);
+    case 'CNY': return const Color(0xFFFF5722);
+    case 'KZT': return const Color(0xFFFFC107);
+    default: return AppColors.primary;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Supporting Widgets
+// ═══════════════════════════════════════════════════════════════════
+
+class _ModernCard extends StatelessWidget {
+  final bool isDark; final Color color; final String title;
+  final IconData icon; final List<Widget> children;
+
+  const _ModernCard({
+    required this.isDark, required this.color, required this.title,
+    required this.icon, required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 3))],
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Container(height: 3, decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.3)]),
+      )),
+      Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Row(children: [
+        Container(padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: color, size: 20)),
+        const SizedBox(width: 12),
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+          color: isDark ? Colors.white : Colors.black87)),
+      ])),
+      Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children)),
+    ]),
+  );
+}
+
+class _SummaryTile extends StatelessWidget {
+  final String label; final String value; final IconData icon;
+  final Color color; final bool isDark;
+
+  const _SummaryTile({
+    required this.label, required this.value, required this.icon,
+    required this.color, required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+    ),
+    child: Row(children: [
+      Container(padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+        child: Icon(icon, color: color, size: 22)),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
+          color: isDark ? Colors.white : Colors.black87, height: 1.1),
+          maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 11,
+          color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary,
+          fontWeight: FontWeight.w500)),
+      ])),
+    ]),
+  );
+}
+
+class _RateTag extends StatelessWidget {
+  final String label; final String value; final Color color; final bool isDark;
+
+  const _RateTag({required this.label, required this.value, required this.color, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+    child: Text('$label $value', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+  );
+}
+
+class _CurrencyCodeChip extends StatelessWidget {
+  final String code; final Color color;
+  const _CurrencyCodeChip({required this.code, required this.color});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 36, height: 36,
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+    child: Center(child: Text(code, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: color))),
+  );
+}
+
+class _CashierRow extends StatelessWidget {
+  final Map<String, dynamic> stat; final bool isDark;
+  const _CashierRow({required this.stat, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
+    final name = stat['name'] as String? ?? '—';
+    final opsCount = stat['operations'] as int? ?? 0;
+    final turnover = (stat['turnover'] as num?)?.toDouble() ?? 0.0;
+
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(children: [
+      CircleAvatar(radius: 18, backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+        child: Text(name.isNotEmpty ? name[0].toUpperCase() : '—',
+          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14))),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 2),
+        Text('$opsCount оп. • ${CurrencyFormatter.format(turnover, symbol: 'сом')}',
+          style: TextStyle(fontSize: 11, color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary)),
+      ])),
+    ]));
+  }
+}
+
+class _CashBalanceRow extends StatelessWidget {
+  final Map<String, dynamic> balance; final bool isDark;
+  const _CashBalanceRow({required this.balance, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = balance['currency'] as String? ?? '';
+    final total = (balance['balance'] as num?)?.toDouble() ?? 0.0;
+    final available = (balance['available'] as num?)?.toDouble() ?? 0.0;
+
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(children: [
+      _CurrencyCodeChip(code: code, color: _currencyColor(code)),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('$code • ${CurrencyFormatter.format(total)}',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 2),
+        Text('Доступно: ${CurrencyFormatter.format(available)}',
+          style: TextStyle(fontSize: 11,
+            color: available > 0
+                ? (isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.textSecondary)
+                : AppColors.warning,
+            fontWeight: FontWeight.w500)),
+      ])),
+    ]));
   }
 }
