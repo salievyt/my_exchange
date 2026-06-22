@@ -19,13 +19,14 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  int _previousIndex = 0;
 
-  final List<Widget> _screens = [
-    const OperationsScreen(),
-    const CashScreen(),
-    const CurrenciesScreen(),
-    const AnalyticsScreen(),
-    const SettingsScreen(),
+  static const List<Widget> _screens = [
+    OperationsScreen(),
+    CashScreen(),
+    CurrenciesScreen(),
+    AnalyticsScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -50,6 +51,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       // App went to background — lock it
       context.read<AuthProvider>().lockApp();
     }
+  }
+
+  void _onTabChanged(int index) {
+    if (index == _currentIndex) return;
+    setState(() {
+      _previousIndex = _currentIndex;
+      _currentIndex = index;
+    });
   }
 
   void _checkForUpdate() {
@@ -86,17 +95,36 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: Stack(
+        children: List.generate(_screens.length, (index) {
+          final isSelected = _currentIndex == index;
+          final isSlidingRight = index > _previousIndex;
+          final slideX = isSelected
+              ? 0.0
+              : (isSlidingRight ? -0.15 : 0.15);
+
+          return AnimatedSlide(
+            offset: Offset(slideX, 0),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            child: AnimatedOpacity(
+              opacity: isSelected ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              child: IgnorePointer(
+                ignoring: !isSelected,
+                child: _screens[index],
+              ),
+            ),
+          );
+        }),
+      ),
       bottomNavigationBar: Consumer<LocalizationProvider>(
         builder: (context, local, child) {
           return NavigationBar(
             selectedIndex: _currentIndex,
             indicatorColor: Colors.blue,
-            onDestinationSelected: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+            onDestinationSelected: _onTabChanged,
             destinations: [
               NavigationDestination(
                 icon: const Icon(Icons.swap_horiz_outlined),
