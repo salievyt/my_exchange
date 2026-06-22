@@ -13,6 +13,7 @@ import '../../../presentation/widgets/error_widgets.dart';
 import '../../../presentation/widgets/columns_toggle.dart';
 import '../../../presentation/widgets/skeleton_widgets.dart';
 import '../../../presentation/widgets/staggered_fade_in.dart';
+import '../../../presentation/widgets/empty_state_illustration.dart';
 import 'create_operation_screen.dart';
 import 'operation_detail_screen.dart';
 
@@ -177,32 +178,19 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 }
 
                 if (provider.operations.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long_outlined,
-                          size: 80,
-                          color: AppColors.textHint,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          local.t('operations_empty'),
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        if (provider.hasActiveFilters)
-                          OutlinedButton.icon(
+                  return EmptyStateIllustration(
+                    type: EmptyStateType.operations,
+                    title: local.t('operations_empty'),
+                    subtitle: provider.hasActiveFilters
+                        ? 'Попробуйте изменить параметры фильтрации'
+                        : 'Нажмите кнопку ниже, чтобы создать первую операцию',
+                    action: provider.hasActiveFilters
+                        ? OutlinedButton.icon(
                             onPressed: () => provider.clearFilters(),
                             icon: const Icon(Icons.clear_all),
                             label: Text(local.t('operations_clear_filters')),
                           )
-                        else
-                          ElevatedButton.icon(
+                        : ElevatedButton.icon(
                             onPressed: () {
                               provider.loadOperations();
                               provider.loadTodayStats();
@@ -210,8 +198,6 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             icon: const Icon(Icons.refresh),
                             label: Text(local.t('operations_load')),
                           ),
-                      ],
-                    ),
                   );
                 }
 

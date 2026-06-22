@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
 import '../../../presentation/widgets/skeleton_widgets.dart';
+import '../../../presentation/widgets/empty_state_illustration.dart';
 import 'open_register_dialog.dart';
 import 'close_register_dialog.dart';
 import 'transaction_dialog.dart';
@@ -39,7 +40,6 @@ class _CashScreenState extends State<CashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final local = context.watch<LocalizationProvider>();
     return Scaffold(
       appBar: AppBar(
@@ -127,16 +127,10 @@ class _CashScreenState extends State<CashScreen> {
                   }
 
                   if (provider.balances.isEmpty) {
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Center(
-                          child: Text(
-                            loc.t('cash_no_data'),
-                            style: TextStyle(color: colors.onSurfaceVariant),
-                          ),
-                        ),
-                      ),
+                    return const EmptyStateIllustration(
+                      type: EmptyStateType.cash,
+                      title: 'Нет балансов',
+                      subtitle: 'Балансы появятся после открытия смены и совершения первых операций',
                     );
                   }
 
