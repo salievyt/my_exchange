@@ -96,7 +96,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return const Left(AuthFailure(message: 'Нет токена'));
       }
 
-      // Try to get current user
+      
       final result = await getCurrentUser();
       return result.fold(
         (failure) => Left(AuthFailure(message: 'Не авторизован')),

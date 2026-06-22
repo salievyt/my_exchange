@@ -43,7 +43,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       }
       return null;
     } on DioException catch (e) {
-      // Silently fail - version check is not critical
+      
       throw ServerException(
         message: 'Ошибка проверки обновлений',
         statusCode: e.response?.statusCode,

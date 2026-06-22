@@ -108,7 +108,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       await dioClient.dio.post(ApiEndpoints.logout);
     } catch (e) {
-      // Ignore errors during logout
+      
     } finally {
       await clearTokens();
     }

@@ -9,7 +9,7 @@ import '../../../presentation/providers/operation_provider.dart';
 import '../../../presentation/providers/cash_provider.dart';
 
 class CreateOperationScreen extends StatefulWidget {
-  final Operation? operation; // if provided, we're editing
+  final Operation? operation; 
 
   const CreateOperationScreen({super.key, this.operation});
 
@@ -34,7 +34,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
   double _amount = 0.0;
   double _totalAmount = 0.0;
 
-  // Track which field was last changed manually to avoid infinite loops
+  
   String _lastChangedField = '';
   bool _isUpdating = false;
 
@@ -111,21 +111,21 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
       _isUpdating = true;
 
       if (_lastChangedField == 'amount' && rate > 0) {
-        // If amount changed, recalculate total
+        
         _totalAmount = amount * rate;
         _totalController.text = _totalAmount.toStringAsFixed(2);
       } else if (_lastChangedField == 'rate' && amount > 0) {
-        // If rate changed, recalculate total
+        
         _totalAmount = amount * rate;
         _totalController.text = _totalAmount.toStringAsFixed(2);
       } else if (_lastChangedField == 'total' && amount > 0) {
-        // If total changed, recalculate rate
+        
         if (amount > 0) {
           _rate = total / amount;
           _rateController.text = _rate.toStringAsFixed(4);
         }
       } else if (_lastChangedField == 'total' && rate > 0) {
-        // If total changed and amount is 0, recalculate amount
+        
         if (rate > 0) {
           _amount = total / rate;
           _amountController.text = _amount.toStringAsFixed(2);
@@ -170,7 +170,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
     final amount = CurrencyFormatter.parse(_amountController.text);
     final rate = CurrencyFormatter.parse(_rateController.text);
 
-    // Check cash balance before submitting (only for new operations)
+    
     if (!_isEditing) {
       if (_operationType == OperationType.buy) {
         final kgsBalance = _getBalanceByCurrencyCode('KGS');
@@ -216,7 +216,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
     }
 
     if (_isEditing && widget.operation != null) {
-      // Update existing operation
+      
       final success = await provider.updateOperation(
         id: widget.operation!.id.toString(),
         amount: amount,
@@ -251,7 +251,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
         }
       }
     } else {
-      // Create new operation
+      
       final operation = await provider.createOperation(
         operationType: _operationType.value,
         currencyId: _selectedCurrencyId!,
@@ -301,7 +301,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Operation type selector (disable in edit mode)
+              
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -355,7 +355,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Currency selector (disable in edit mode)
+              
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -411,7 +411,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Interconnected fields: Amount, Rate, Total
+              
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -435,7 +435,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Amount field
+                      
                       TextFormField(
                         controller: _amountController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -459,7 +459,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Rate field (now editable!)
+                      
                       TextFormField(
                         controller: _rateController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -482,7 +482,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Total amount field (editable!)
+                      
                       TextFormField(
                         controller: _totalController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -509,7 +509,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Summary card showing the calculation visually
+              
               Card(
                 color: AppColors.primary.withValues(alpha: 0.08),
                 child: Padding(
@@ -553,7 +553,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Client info
+              
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -589,7 +589,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Comment
+              
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -618,7 +618,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Submit button
+              
               Consumer<OperationProvider>(
                 builder: (context, provider, child) {
                   return ElevatedButton(

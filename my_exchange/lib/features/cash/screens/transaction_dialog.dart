@@ -104,7 +104,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               ),
               const SizedBox(height: 24),
 
-              // Transaction type
+              
               Row(
                 children: [
                   Expanded(
@@ -131,7 +131,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               ),
               const SizedBox(height: 20),
 
-              // Currency selector
+              
               Consumer<CurrencyProvider>(
                 builder: (context, provider, child) {
                   return DropdownButtonFormField<int>(
@@ -154,7 +154,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Amount
+              
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -175,7 +175,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Comment
+              
               TextFormField(
                 controller: _commentController,
                 maxLines: 2,
@@ -186,7 +186,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
               ),
               const SizedBox(height: 24),
 
-              // Buttons
+              
               Row(
                 children: [
                   Expanded(

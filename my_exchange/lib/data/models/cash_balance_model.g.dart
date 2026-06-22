@@ -1,10 +1,10 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'cash_balance_model.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
+
+
+
 
 CashBalanceModel _$CashBalanceModelFromJson(Map<String, dynamic> json) =>
     CashBalanceModel(

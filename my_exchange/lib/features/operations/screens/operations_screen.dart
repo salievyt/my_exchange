@@ -150,13 +150,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
       ),
       body: Column(
         children: [
-          // Search bar
+          
           _buildSearchBar(local),
 
-          // Filter chips and columns toggle
+          
           _buildFilters(local),
 
-          // Operations list
+          
           Expanded(
             child: Consumer<OperationProvider>(
               builder: (context, provider, child) {
@@ -292,7 +292,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Left column: Sells ─────────────────────────────
+              
               Expanded(
                 child: _OperationColumn(
                   title: local.t('operations_sell'),
@@ -305,7 +305,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              // ── Right column: Buys ────────────────────────────
+              
               Expanded(
                 child: _OperationColumn(
                   title: local.t('operations_buy'),
@@ -453,7 +453,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         builder: (context) => OperationDetailScreen(
           operation: operation,
           onEdit: () {
-            // When returning from edit, refresh
+            
             context.read<OperationProvider>().loadOperations();
           },
         ),
@@ -506,7 +506,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
       builder: (context, provider, child) {
         return Column(
           children: [
-            // Type and sort row
+            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -546,7 +546,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Columns toggle
+                  
                   ColumnsToggle(
                     columnsCount: provider.columnsCount,
                     onChanged: (count) => provider.setColumnsCount(count),
@@ -557,7 +557,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Period and currency chips
+            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SingleChildScrollView(
@@ -602,7 +602,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    // Currency filter
+                    
                     Consumer<CurrencyProvider>(
                       builder: (context, currencyProv, child) {
                         return _CurrencyFilterChip(
@@ -619,7 +619,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                 ),
               ),
             ),
-            // Clear filters button
+            
             if (provider.hasActiveFilters)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -689,7 +689,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 }
 
-// ─── Operation Column for 2-column layout ─────────────────────────
+
 
 /// A vertical column displaying filtered operations with a colored header.
 class _OperationColumn extends StatelessWidget {
@@ -717,7 +717,7 @@ class _OperationColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ── Column header ────────────────────────────────────────
+        
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
@@ -760,7 +760,7 @@ class _OperationColumn extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // ── Operations list ─────────────────────────────────────
+        
         if (operations.isEmpty)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 24),
@@ -833,7 +833,7 @@ class _OperationColumn extends StatelessWidget {
   }
 }
 
-// ─── Compact Operation Card for 2-column layout ───────────────────
+
 
 class _CompactOperationCard extends StatelessWidget {
   final Operation operation;
@@ -952,7 +952,7 @@ class _CompactOperationCard extends StatelessWidget {
   }
 }
 
-// ─── Currency Filter Chip ─────────────────────────────────────────
+
 
 class _CurrencyFilterChip extends StatefulWidget {
   final String? selectedCurrencyId;
@@ -1095,7 +1095,7 @@ class _CurrencyFilterChipState extends State<_CurrencyFilterChip> {
   }
 }
 
-// ─── Existing widgets (kept from original) ────────────────────────
+
 
 class _FilterChip extends StatelessWidget {
   final String label;

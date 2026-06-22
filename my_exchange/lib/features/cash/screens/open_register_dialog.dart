@@ -18,7 +18,7 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers for each currency
+    
     final currencies = context.read<CurrencyProvider>().currencies;
     for (var currency in currencies) {
       _controllers[currency.id] = TextEditingController();

@@ -25,10 +25,10 @@ class UpdateNotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Determine platform
+      
       String platform;
       try {
-        // Default to android, flutter can detect platform
+        
         platform = defaultTargetPlatform == TargetPlatform.iOS
             ? 'ios'
             : 'android';
@@ -37,7 +37,7 @@ class UpdateNotificationProvider extends ChangeNotifier {
       }
 
       final currentVersion = AppConstants.appVersion;
-      final buildNumber = 1; // Use build number from pubspec if available
+      final buildNumber = 1; 
 
       final result = await _dataSource.checkAppVersion(
         platform: platform,
@@ -47,7 +47,7 @@ class UpdateNotificationProvider extends ChangeNotifier {
 
       _pendingUpdate = result;
     } catch (_) {
-      // Silently fail - update check is non-critical
+      
       _pendingUpdate = null;
     } finally {
       _isChecking = false;

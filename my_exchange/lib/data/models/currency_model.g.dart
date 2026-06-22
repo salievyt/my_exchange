@@ -1,10 +1,10 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'currency_model.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
+
+
+
 
 CurrencyModel _$CurrencyModelFromJson(Map<String, dynamic> json) =>
     CurrencyModel(

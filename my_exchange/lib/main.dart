@@ -20,10 +20,10 @@ import 'presentation/screens/lock_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize dependencies
+  
   await initDependencies();
 
-  // Set preferred orientations
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -100,23 +100,23 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        // Show loading while checking auth status
+        
         if (authProvider.status == AuthStatus.initial ||
             authProvider.status == AuthStatus.loading) {
           return const SplashScreen();
         }
 
-        // Show login screen if not authenticated
+        
         if (authProvider.status == AuthStatus.unauthenticated) {
           return const LoginScreen();
         }
 
-        // Show lock screen if app is locked (PIN/biometric required)
+        
         if (authProvider.isLocked) {
           return const LockScreen();
         }
 
-        // Show main screen if authenticated and unlocked
+        
         return const MainScreen();
       },
     );

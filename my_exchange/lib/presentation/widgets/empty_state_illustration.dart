@@ -31,7 +31,7 @@ class EmptyStateIllustration extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ── Illustration ────────────────────────────────────
+            
             SizedBox(
               width: illustrationSize,
               height: illustrationSize,
@@ -41,7 +41,7 @@ class EmptyStateIllustration extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // ── Title ───────────────────────────────────────────
+            
             Text(
               title,
               textAlign: TextAlign.center,
@@ -53,7 +53,7 @@ class EmptyStateIllustration extends StatelessWidget {
               ),
             ),
 
-            // ── Subtitle ────────────────────────────────────────
+            
             if (subtitle != null) ...[
               const SizedBox(height: 10),
               Text(
@@ -70,7 +70,7 @@ class EmptyStateIllustration extends StatelessWidget {
               ),
             ],
 
-            // ── Action button ───────────────────────────────────
+            
             if (action != null) ...[
               const SizedBox(height: 28),
               action!,
@@ -85,9 +85,9 @@ class EmptyStateIllustration extends StatelessWidget {
 /// Available illustration types
 enum EmptyStateType { operations, cash }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Operations Illustration — A stylized receipt with decorative curves
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 class _OperationsIllustration extends StatelessWidget {
   final bool isDark;
@@ -112,7 +112,7 @@ class _OperationsPainter extends CustomPainter {
     final centerX = size.width / 2;
     final centerY = size.height / 2;
 
-    // Colors
+    
     final primaryColor = isDark
         ? AppColors.primary.withValues(alpha: 0.6)
         : AppColors.primary;
@@ -126,13 +126,13 @@ class _OperationsPainter extends CustomPainter {
         ? Colors.white.withValues(alpha: 0.05)
         : AppColors.primary.withValues(alpha: 0.06);
 
-    // Draw background circle
+    
     final bgPaint = Paint()
       ..color = bgColor
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(centerX, centerY), size.width * 0.45, bgPaint);
 
-    // Draw decorative dots around the circle
+    
     final dotPaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
@@ -143,7 +143,7 @@ class _OperationsPainter extends CustomPainter {
       canvas.drawCircle(Offset(dotX, dotY), 3, dotPaint);
     }
 
-    // Draw receipt body
+    
     final receiptRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
         center: Offset(centerX, centerY - 4),
@@ -166,7 +166,7 @@ class _OperationsPainter extends CustomPainter {
       ..strokeWidth = 1.5;
     canvas.drawRRect(receiptRect, receiptBorderPaint);
 
-    // Draw receipt top decorative line
+    
     final topLinePaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.5)
       ..strokeWidth = 2
@@ -178,7 +178,7 @@ class _OperationsPainter extends CustomPainter {
       topLinePaint,
     );
 
-    // Draw receipt lines (simulated text)
+    
     final linePaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.2)
       ..strokeWidth = 2.5
@@ -201,7 +201,7 @@ class _OperationsPainter extends CustomPainter {
       linePaint,
     );
 
-    // Draw divider
+    
     final dividerPaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.15)
       ..strokeWidth = 1
@@ -212,7 +212,7 @@ class _OperationsPainter extends CustomPainter {
       dividerPaint,
     );
 
-    // Bottom line
+    
     canvas.drawLine(
       Offset(centerX - 14, centerY + 10),
       Offset(centerX + 12, centerY + 10),
@@ -224,7 +224,7 @@ class _OperationsPainter extends CustomPainter {
       linePaint,
     );
 
-    // Draw the receipt zigzag bottom cut
+    
     final zigzagPaint = Paint()
       ..color = bgColor
       ..style = PaintingStyle.fill;
@@ -243,7 +243,7 @@ class _OperationsPainter extends CustomPainter {
     path.close();
     canvas.drawPath(path, zigzagPaint);
 
-    // Draw small checkmark circle
+    
     final checkBgPaint = Paint()
       ..color = accentColor.withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
@@ -263,7 +263,7 @@ class _OperationsPainter extends CustomPainter {
       ..lineTo(centerX + 29, centerY - 30);
     canvas.drawPath(checkPath, checkPaint);
 
-    // Draw small decorative arrow
+    
     final arrowPaint = Paint()
       ..color = highlightColor.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
@@ -285,9 +285,9 @@ class _OperationsPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Cash Illustration — A stylized coin stack with decorative elements
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 class _CashIllustration extends StatelessWidget {
   final bool isDark;
@@ -312,7 +312,7 @@ class _CashPainter extends CustomPainter {
     final centerX = size.width / 2;
     final centerY = size.height / 2;
 
-    // Colors
+    
     final primaryColor = isDark
         ? AppColors.primary.withValues(alpha: 0.6)
         : AppColors.primary;
@@ -326,13 +326,13 @@ class _CashPainter extends CustomPainter {
         ? Colors.white.withValues(alpha: 0.05)
         : AppColors.primary.withValues(alpha: 0.06);
 
-    // Draw background circle
+    
     final bgPaint = Paint()
       ..color = bgColor
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(centerX, centerY), size.width * 0.45, bgPaint);
 
-    // Draw decorative dots
+    
     final dotPaint = Paint()
       ..color = accentColor.withValues(alpha: 0.2)
       ..style = PaintingStyle.fill;
@@ -343,7 +343,7 @@ class _CashPainter extends CustomPainter {
       canvas.drawCircle(Offset(dotX, dotY), 3.5, dotPaint);
     }
 
-    // Draw coin stack
+    
     final coinColors = [
       accentColor.withValues(alpha: 0.9),
       accentColor.withValues(alpha: 0.7),
@@ -351,7 +351,7 @@ class _CashPainter extends CustomPainter {
       accentColor.withValues(alpha: 0.35),
     ];
 
-    // Stack offset for 3D effect
+    
     const stackOffset = 3.5;
 
     for (int i = coinColors.length - 1; i >= 0; i--) {
@@ -365,20 +365,20 @@ class _CashPainter extends CustomPainter {
         const Radius.circular(9),
       );
 
-      // Coin body
+      
       final coinPaint = Paint()
         ..color = coinColors[i]
         ..style = PaintingStyle.fill;
       canvas.drawRRect(coinRect, coinPaint);
 
-      // Coin border
+      
       final coinBorderPaint = Paint()
         ..color = accentColor.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1;
       canvas.drawRRect(coinRect, coinBorderPaint);
 
-      // Coin inner circle (emboss effect)
+      
       if (i == 0) {
         final innerPaint = Paint()
           ..color = accentColor.withValues(alpha: 0.2)
@@ -391,7 +391,7 @@ class _CashPainter extends CustomPainter {
       }
     }
 
-    // Draw a small plus badge on the right
+    
     final plusBgPaint = Paint()
       ..color = highlightColor.withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
@@ -416,7 +416,7 @@ class _CashPainter extends CustomPainter {
       plusPaint,
     );
 
-    // Draw decorative curved lines
+    
     final curvePaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.12)
       ..style = PaintingStyle.stroke

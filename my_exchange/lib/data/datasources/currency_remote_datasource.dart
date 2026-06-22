@@ -91,7 +91,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
   Future<List<CurrencyModel>> getActiveCurrencies() async {
     try {
       final response = await dioClient.dio.get(ApiEndpoints.currenciesActive);
-      // Active currencies endpoint returns a flat JSON array (not paginated)
+      
       final data = response.data;
       final List<dynamic> results;
       if (data is List) {

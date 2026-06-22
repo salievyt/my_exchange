@@ -14,7 +14,7 @@ class OperationProvider extends ChangeNotifier {
   String? _errorMessage;
   Map<String, dynamic>? _todayStats;
 
-  // Filter state
+  
   String _searchQuery = '';
   String? _operationTypeFilter;
   String? _dateFrom;
@@ -22,15 +22,15 @@ class OperationProvider extends ChangeNotifier {
   String? _currencyIdFilter;
   String _ordering = '-created_at';
 
-  // Display settings
-  int _columnsCount = 1; // 1 or 2
+  
+  int _columnsCount = 1; 
 
   List<Operation> get operations => _operations;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get todayStats => _todayStats;
 
-  // Filter getters
+  
   String get searchQuery => _searchQuery;
   String? get operationTypeFilter => _operationTypeFilter;
   String? get dateFrom => _dateFrom;
@@ -197,7 +197,7 @@ class OperationProvider extends ChangeNotifier {
         return false;
       },
       (operation) {
-        // Update the operation in the local list
+        
         final index = _operations.indexWhere((o) => o.id == operation.id);
         if (index != -1) {
           _operations[index] = operation;
@@ -249,7 +249,7 @@ class OperationProvider extends ChangeNotifier {
         return false;
       },
       (operation) {
-        // Update the operation in the local list
+        
         final index = _operations.indexWhere((o) => o.id == operation.id);
         if (index != -1) {
           _operations[index] = operation;

@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
+                  
                   Container(
                     width: 120,
                     height: 120,
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Title
+                  
                   Text(
                     'My Exchange',
                     style: TextStyle(
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
 
-                  // Username field
+                  
                   TextFormField(
                     controller: _usernameController,
                     keyboardType: TextInputType.emailAddress,
@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Password field
+                  
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Login button
+                  
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
                       return ElevatedButton(
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // ── Version + Made by Deo Studio ───────────────────────
+                  
                   MadeByFooter(version: AppConstants.appVersion, appName: AppConstants.appName,),
                 ],
               ),

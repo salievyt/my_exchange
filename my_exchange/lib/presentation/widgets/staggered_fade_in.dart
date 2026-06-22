@@ -29,8 +29,8 @@ class _StaggeredFadeInState extends State<StaggeredFadeIn> {
   @override
   void initState() {
     super.initState();
-    // Stagger: each item appears after the previous one with a delay.
-    // Using a single delayed call per item — NOT during every rebuild.
+    
+    
     Future.delayed(widget.itemDuration * widget.index * 0.2, () {
       if (mounted) setState(() => _visible = true);
     });

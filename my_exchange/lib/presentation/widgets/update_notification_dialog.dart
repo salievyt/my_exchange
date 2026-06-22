@@ -25,7 +25,7 @@ class UpdateNotificationDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
+            
             Container(
               width: 80,
               height: 80,
@@ -41,7 +41,7 @@ class UpdateNotificationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Title
+            
             const Text(
               'Доступно обновление',
               style: TextStyle(
@@ -52,7 +52,7 @@ class UpdateNotificationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Version
+            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
@@ -70,7 +70,7 @@ class UpdateNotificationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Required badge
+            
             if (isRequired)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -103,7 +103,7 @@ class UpdateNotificationDialog extends StatelessWidget {
               ),
             if (isRequired) const SizedBox(height: 16),
 
-            // Changelog
+            
             if (changelog != null && changelog!.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +137,7 @@ class UpdateNotificationDialog extends StatelessWidget {
                 ],
               ),
 
-            // Buttons
+            
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

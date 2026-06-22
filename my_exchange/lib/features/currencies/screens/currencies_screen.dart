@@ -90,16 +90,16 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
 
             return Column(
               children: [
-                // ── Summary bar ───────────────────────────────────
+                
                 _buildSummaryBar(displayCurrencies, isDark),
-                // Error banner
+                
                 if (provider.errorMessage != null)
                   ErrorBanner(
                     message: provider.errorMessage!,
                     onRetry: () => provider.loadCurrencies(),
                     onDismiss: () => provider.clearError(),
                   ),
-                // ── Currency list / grid ─────────────────────────
+                
                 Expanded(
                   child: isWide
                       ? _buildGrid(displayCurrencies, isDark)
@@ -113,7 +113,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     );
   }
 
-  // ── Summary bar ────────────────────────────────────────────────────
+  
 
   Widget _buildSummaryBar(List<Currency> currencies, bool isDark) {
     final activeCount = currencies.where((c) => c.isActive).length;
@@ -164,7 +164,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     );
   }
 
-  // ── List layout (phones) ──────────────────────────────────────────
+  
 
   Widget _buildList(List<Currency> currencies, bool isDark) {
     return ListView.builder(
@@ -188,7 +188,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     );
   }
 
-  // ── Grid layout (tablets) ─────────────────────────────────────────
+  
 
   Widget _buildGrid(List<Currency> currencies, bool isDark) {
     return GridView.builder(
@@ -217,7 +217,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
     );
   }
 
-  // ── Edit Rate Dialog ──────────────────────────────────────────────
+  
 
   void _showEditRateDialog(BuildContext context, Currency currency) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -261,7 +261,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Handle bar
+                      
                       Center(
                         child: Container(
                           width: 36,
@@ -275,7 +275,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                           ),
                         ),
                       ),
-                      // Header
+                      
                       Row(
                         children: [
                           Container(
@@ -324,7 +324,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      // Buy rate
+                      
                       _RateField(
                         label: 'Покупка',
                         icon: Icons.trending_up_rounded,
@@ -334,7 +334,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
-                      // Sell rate
+                      
                       _RateField(
                         label: 'Продажа',
                         icon: Icons.trending_down_rounded,
@@ -344,7 +344,7 @@ class _CurrenciesScreenState extends State<CurrenciesScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 24),
-                      // Actions
+                      
                       Row(
                         children: [
                           Expanded(
@@ -429,9 +429,9 @@ Color _currencyColor(String code) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Modern Currency Card
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 class _ModernCurrencyCard extends StatefulWidget {
   final Currency currency;
@@ -489,7 +489,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
     );
   }
 
-  // ── Full card (list layout) ───────────────────────────────────────
+  
 
   Widget _buildFull(Color textColor, Color currencyColor) {
     final currency = widget.currency;
@@ -499,7 +499,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ── Gradient accent strip ────────────────────────────────
+        
         Container(
           height: 4,
           decoration: BoxDecoration(
@@ -512,22 +512,22 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
         ),
-        // ── Body ─────────────────────────────────────────────────
+        
         Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row
+              
               Row(
                 children: [
-                  // Code badge
+                  
                   _CodeBadge(
                     code: currency.code,
                     color: currencyColor,
                   ),
                   const SizedBox(width: 14),
-                  // Name + status
+                  
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,12 +569,12 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
                       ],
                     ),
                   ),
-                  // Edit icon
+                  
                   _EditButton(color: currencyColor),
                 ],
               ),
               const SizedBox(height: 20),
-              // ── Rates section ──────────────────────────────────
+              
               if (hasBuy || hasSell)
                 _buildFullRates(currency, currencyColor, hasBuy, hasSell)
               else
@@ -625,7 +625,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
       ),
       child: Row(
         children: [
-          // Buy
+          
           if (hasBuy) ...[
             Expanded(
               child: _RateDisplay(
@@ -637,7 +637,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
             ),
             ),
           ],
-          // Divider
+          
           if (hasBuy && hasSell)
             Container(
               width: 1,
@@ -647,7 +647,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
                   ? Colors.white.withValues(alpha: 0.08)
                   : Colors.black.withValues(alpha: 0.06),
             ),
-          // Sell
+          
           if (hasSell)
             Expanded(
               child: _RateDisplay(
@@ -663,7 +663,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
     );
   }
 
-  // ── Compact card (grid layout) ────────────────────────────────────
+  
 
   Widget _buildCompact(Color textColor, Color currencyColor) {
     final currency = widget.currency;
@@ -675,7 +675,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top: code badge + edit
+          
           Row(
             children: [
               _CompactCodeBadge(
@@ -687,7 +687,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
             ],
           ),
           const SizedBox(height: 8),
-          // Currency name
+          
           Text(
             currency.name,
             style: TextStyle(
@@ -699,7 +699,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          // Status
+          
           Row(
             children: [
               Container(
@@ -726,7 +726,7 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
             ],
           ),
           const Spacer(),
-          // Rates
+          
           if (hasBuy || hasSell) ...[
             _CompactRateLine(
               label: 'Покупка',
@@ -757,9 +757,9 @@ class _ModernCurrencyCardState extends State<_ModernCurrencyCard> {
   Color _getCurrencyColor(String code) => _currencyColor(code);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Sub-widgets
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 class _CodeBadge extends StatelessWidget {
   final String code;

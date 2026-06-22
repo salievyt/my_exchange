@@ -22,7 +22,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Delay to ensure providers are fully initialized
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tryBiometric();
     });
@@ -38,16 +38,16 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Reset biometric flag on resume so the icon is clickable
+    
     if (state == AppLifecycleState.resumed) {
       setState(() => _biometricAttempted = false);
     }
   }
 
   Future<void> _tryBiometric() async {
-    if (_biometricAttempted) return; // Prevent double-trigger
+    if (_biometricAttempted) return; 
 
-    // Clear previous error before retrying
+    
     if (_biometricFailed) {
       setState(() => _biometricFailed = false);
     }
@@ -64,7 +64,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
     if (success && mounted) {
       auth.unlockApp();
     } else if (mounted) {
-      // Allow manual retry via fingerprint icon
+      
       setState(() {
         _biometricAttempted = false;
         _biometricFailed = true;
@@ -131,7 +131,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
             children: [
               const Spacer(flex: 2),
 
-              // Lock icon
+              
               Container(
                 width: 80,
                 height: 80,
@@ -147,7 +147,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 24),
 
-              // Title
+              
               Text(
                 local.t('lock_title'),
                 style: TextStyle(
@@ -167,7 +167,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
               const Spacer(flex: 1),
 
-              // PIN dots
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(6, (index) {
@@ -191,7 +191,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                 }),
               ),
 
-              // Error message
+              
               if (_errorMessage != null) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -206,7 +206,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
               const Spacer(flex: 1),
 
-              // Biometric failed message
+              
               if (_biometricFailed) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -219,7 +219,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                 ),
               ],
 
-              // Biometric button
+              
               Consumer<AuthProvider>(
                 builder: (context, auth, child) {
                   if (!auth.biometricAvailable || !auth.biometricEnabled) {
@@ -261,7 +261,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
               const Spacer(flex: 2),
 
-              // Numpad
+              
               _buildNumpad(colors, local),
 
               const SizedBox(height: 24),
@@ -307,7 +307,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const SizedBox(width: 80), // Empty space
+              const SizedBox(width: 80), 
               _NumpadButton(digit: '0', onTap: () => _onPinDigit('0')),
               SizedBox(
                 width: 80,

@@ -18,7 +18,7 @@ class SkeletonOperationCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row: type badge, status badge, date
+              
               Row(
                 children: [
                   _chip(70, 24),
@@ -29,7 +29,7 @@ class SkeletonOperationCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Middle row: operation number, currency, amount
+              
               Row(
                 children: [
                   Expanded(
@@ -53,7 +53,7 @@ class SkeletonOperationCard extends StatelessWidget {
                 ],
               ),
               const Divider(height: 24),
-              // Footer row: total amount, client name
+              
               Row(
                 children: [
                   _chip(120, 16),
@@ -166,7 +166,7 @@ class SkeletonCurrencyCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Currency code box
+              
               Container(
                 width: 60,
                 height: 60,
@@ -227,7 +227,7 @@ class SkeletonBalanceCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Currency code icon placeholder
+              
               Container(
                 width: 50,
                 height: 50,

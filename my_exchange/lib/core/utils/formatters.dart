@@ -100,7 +100,7 @@ class NumberFormatter {
   }
 
   static String formatPhone(String phone) {
-    // Format: +996 (XXX) XX-XX-XX
+    
     final cleaned = phone.replaceAll(RegExp(r'\D'), '');
     if (cleaned.length == 12 && cleaned.startsWith('996')) {
       return '+${cleaned.substring(0, 3)} (${cleaned.substring(3, 6)}) ${cleaned.substring(6, 8)}-${cleaned.substring(8, 10)}-${cleaned.substring(10, 12)}';

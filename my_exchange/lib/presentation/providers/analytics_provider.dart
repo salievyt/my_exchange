@@ -53,13 +53,13 @@ class AnalyticsProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Cashier load data
+  
   List<Map<String, dynamic>> _cashierStats = [];
-  // Currency popularity data
+  
   List<Map<String, dynamic>> _currencyStats = [];
-  // Daily operations data for charts
+  
   List<Map<String, dynamic>> _dailyData = [];
-  // Profitability data
+  
   List<Map<String, dynamic>> _profitability = [];
 
   AnalyticsData? get data => _data;

@@ -23,14 +23,14 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ── Profile Card ────────────────────────────────────────
+          
           _ProfileCard(user: user),
           const SizedBox(height: 24),
 
-          // ── Settings sections ───────────────────────────────────
+          
           _SectionTitle(text: local.t('settings_profile')),
 
-          // Language selector
+          
           _SettingsTile(
             icon: Icons.language,
             title: local.t('settings_language'),
@@ -39,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          // Theme selector
+          
           _SettingsTile(
             icon: Icons.dark_mode,
             title: local.t('settings_theme'),
@@ -50,24 +50,9 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          /* 
-          // Columns toggle
-          _SettingsTile(
-            icon: Icons.view_column,
-            title: 'Колонки операций',
-            subtitle: context.watch<OperationProvider>().columnsCount == 1
-                ? '1 колонка'
-                : '2 колонки',
-            trailing: ColumnsToggle(
-              columnsCount: context.watch<OperationProvider>().columnsCount,
-              onChanged: (count) =>
-                  context.read<OperationProvider>().setColumnsCount(count),
-            ),
-          ),
-          const Divider(height: 1, indent: 72),
-          */
+          
 
-          // PIN code setup
+          
           _SettingsTile(
             icon: Icons.pin_outlined,
             title: local.t('settings_pin_code'),
@@ -76,7 +61,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          // Biometric login toggle
+          
           if (context.watch<AuthProvider>().biometricAvailable)
             _SettingsTile(
               icon: Icons.fingerprint,
@@ -87,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
           if (context.watch<AuthProvider>().biometricAvailable)
             const Divider(height: 1, indent: 72),
 
-          // App version
+          
           _SettingsTile(
             icon: Icons.info_outline,
             title: local.t('settings_app_version'),
@@ -95,10 +80,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // ── Information section ─────────────────────────────────
+          
           _SectionTitle(text: local.t('settings_privacy_policy')),
 
-          // Privacy policy link — opens Google Docs
+          
           _SettingsTile(
             icon: Icons.privacy_tip_outlined,
             title: local.t('settings_privacy_policy'),
@@ -107,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          // Contact support — opens dialog with WhatsApp and Telegram
+          
           _SettingsTile(
             icon: Icons.support_agent_outlined,
             title: local.t('settings_contact_support'),
@@ -116,7 +101,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 1, indent: 72),
 
-          // Delete account
+          
           _SettingsTile(
             icon: Icons.delete_forever_outlined,
             title: local.t('settings_delete_account'),
@@ -126,7 +111,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // ── Logout Button ───────────────────────────────────────
+          
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -147,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // ── Version + Made by Deo Studio ─────────────────────────────
+          
           MadeByFooter(version: AppConstants.appVersion, appName: AppConstants.appName,),
         ],
       ),
@@ -423,7 +408,7 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ─── Animation Widget ──────────────────────────────────────────────
+
 
 /// A widget that fades in and slides up with a staggered delay.
 class _FadeSlideIn extends StatelessWidget {
@@ -441,12 +426,12 @@ class _FadeSlideIn extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      // Total duration = full animation window; the delay is faked by
-      // keeping the value clamped at 0 for [delayMs] milliseconds.
+      
+      
       duration: Duration(milliseconds: 500 + delayMs),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
-        // Map the [0, 1] range over the full duration, offset by delay
+        
         final progress = delayMs > 0
             ? ((value * (500 + delayMs) - delayMs) / 500).clamp(0.0, 1.0)
             : value;
@@ -465,7 +450,7 @@ class _FadeSlideIn extends StatelessWidget {
   }
 }
 
-// ─── Support Button Widget ─────────────────────────────────────────
+
 
 class _SupportButton extends StatelessWidget {
   final Widget icon;
@@ -522,7 +507,7 @@ class _SupportButton extends StatelessWidget {
   }
 }
 
-// ─── Widgets ───────────────────────────────────────────────────────
+
 
 class _ProfileCard extends StatelessWidget {
   final User? user;
@@ -749,7 +734,7 @@ class _BiometricSwitchState extends State<_BiometricSwitch> {
   }
 }
 
-// ─── PIN Setup Dialog ────────────────────────────────────────────
+
 
 class _PinSetupDialog extends StatefulWidget {
   final AuthProvider auth;
@@ -936,7 +921,7 @@ class _LanguageSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final local = context.watch<LocalizationProvider>();
 
-    // Build the list of languages
+    
     final languages = [
       ('ru', 'RU'),
       ('ky', 'KG'),
@@ -945,7 +930,7 @@ class _LanguageSwitcher extends StatelessWidget {
       ('uz_Cyrl', 'ЎЗ'),
     ];
 
-    // Find current locale index
+    
     int currentIndex = languages.indexWhere((lang) => lang.$1 == local.locale);
     if (currentIndex < 0) currentIndex = 0;
 

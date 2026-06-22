@@ -8,7 +8,7 @@ import '../models/cash_transaction_model.dart';
 
 /// Cash remote data source
 abstract class CashRemoteDataSource {
-  // Balances
+  
   Future<List<CashBalanceModel>> getBalances({
     int? page,
     int? pageSize,
@@ -22,7 +22,7 @@ abstract class CashRemoteDataSource {
 
   Future<List<CashBalanceModel>> getLowBalances();
 
-  // Registers
+  
   Future<List<CashRegisterModel>> getRegisters({
     int? page,
     int? pageSize,
@@ -50,7 +50,7 @@ abstract class CashRemoteDataSource {
     String? comment,
   });
 
-  // Transactions
+  
   Future<List<CashTransactionModel>> getTransactions({
     int? page,
     int? pageSize,

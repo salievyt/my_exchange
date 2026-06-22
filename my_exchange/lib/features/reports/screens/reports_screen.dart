@@ -33,7 +33,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header
+                
                 Card(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   child: Padding(
@@ -81,7 +81,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // ── Daily Report ──────────────────────────────────
+                
                 _ReportCard(
                   icon: Icons.today,
                   title: local.t('reports_daily'),
@@ -96,7 +96,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Monthly Report ────────────────────────────────
+                
                 _ReportCard(
                   icon: Icons.calendar_month,
                   title: local.t('reports_monthly'),
@@ -111,7 +111,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Cashier Shift Report (PDF) ───────────────────
+                
                 _ReportCard(
                   icon: Icons.receipt_long,
                   title: 'Отчёт по смене кассира',
@@ -126,7 +126,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Export Operations ─────────────────────────────
+                
                 _ReportCard(
                   icon: Icons.swap_horiz,
                   title: local.t('reports_operations'),
@@ -141,7 +141,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Export Cash ───────────────────────────────────
+                
                 _ReportCard(
                   icon: Icons.account_balance,
                   title: local.t('reports_cash'),
@@ -156,7 +156,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Progress indicator
+                
                 if (provider.isLoading) ...{
                   LinearProgressIndicator(
                     value: provider.progress > 0 ? provider.progress : null,
@@ -190,7 +190,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                 },
 
-                // Error message
+                
                 if (provider.errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -201,7 +201,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                   ),
 
-                // Success message
+                
                 if (provider.successMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -309,7 +309,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 }
 
-// ─── Report Card Widget ───────────────────────────────────────────
+
 
 class _ReportCard extends StatelessWidget {
   final IconData icon;

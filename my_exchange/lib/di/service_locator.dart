@@ -23,12 +23,12 @@ import '../../core/network/dio_client.dart' as core;
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
-  // External
+  
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
 
-  // Dio
+  
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -44,14 +44,14 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<Dio>(() => dio);
 
-  // Network
+  
   sl.registerLazySingleton<DioClient>(
     () => DioClient(sl<Dio>(), sl<FlutterSecureStorage>()),
   );
 
   sl.registerLazySingleton<core.NetworkInfo>(() => core.NetworkInfoImpl());
 
-  // Data Sources
+  
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(
       dioClient: sl<DioClient>(),
@@ -75,7 +75,7 @@ Future<void> initDependencies() async {
     () => NotificationRemoteDataSourceImpl(dioClient: sl<DioClient>()),
   );
 
-  // Repositories
+  
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl<AuthRemoteDataSource>(),
@@ -99,7 +99,7 @@ Future<void> initDependencies() async {
     () => CashRepositoryImpl(remoteDataSource: sl<CashRemoteDataSource>()),
   );
 
-  // Use Cases
+  
   sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl<AuthRepository>()));

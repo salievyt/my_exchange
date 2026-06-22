@@ -33,20 +33,20 @@ class AppStrings {
     return _strings[locale] ?? _strings['ru']!;
   }
 
-  // ─── Russian ────────────────────────────────────────────────────
+  
   static const Map<String, String> _ru = {
-    // App
+    
     'app_name': 'My Exchange',
     'app_title': 'Моя волюта',
 
-    // Navigation
+    
     'nav_operations': 'Операции',
     'nav_cash': 'Касса',
     'nav_currencies': 'Валюты',
     'nav_analytics': 'Аналитика',
     'nav_settings': 'Профиль',
 
-    // Login
+    
     'login_title': 'Вход в систему',
     'login_username': 'Имя пользователя',
     'login_password': 'Пароль',
@@ -62,7 +62,7 @@ class AppStrings {
     'login_biometric_save': 'Запомнить для быстрого входа',
     'login_biometric_reason': 'Подтвердите личность для входа в приложение',
 
-    // Settings / Profile
+    
     'settings_title': 'Профиль и настройки',
     'settings_profile': 'Профиль',
     'settings_user_info': 'Информация о пользователе',
@@ -98,7 +98,7 @@ class AppStrings {
     'settings_biometric_login_desc':
         'Использовать Touch ID / Face ID для быстрого входа',
 
-    // Lock screen
+    
     'lock_title': 'Введите PIN-код',
     'lock_subtitle': 'Введите PIN-код для разблокировки приложения',
     'lock_biometric': 'Touch ID / Face ID',
@@ -112,7 +112,7 @@ class AppStrings {
     'settings_support_description': 'Выберите удобный способ связи',
     'settings_privacy_note': 'Нажимая «Выйти», вы завершаете текущую сессию.',
 
-    // Operations
+    
     'operations_title': 'Операции',
     'operations_create': 'Операция',
     'operations_empty': 'Нет операций',
@@ -155,7 +155,7 @@ class AppStrings {
     'operations_clear_filters': 'Сбросить фильтры',
     'operations_found': 'Найдено:',
 
-    // Cash
+    
     'cash_title': 'Касса',
     'cash_balances': 'Остатки',
     'cash_register_open': 'Смена открыта',
@@ -170,12 +170,12 @@ class AppStrings {
     'cash_opened_at': 'Открыта',
     'cash_no_data': 'Нет данных',
 
-    // Currencies
+    
     'currencies_title': 'Валюты',
     'currencies_buy': 'Покупка',
     'currencies_sell': 'Продажа',
 
-    // Analytics
+    
     'analytics_title': 'Аналитика',
     'analytics_no_data': 'Нет данных для отображения',
     'analytics_no_data_desc': 'Статистика появится после совершения операций',
@@ -192,7 +192,7 @@ class AppStrings {
     'analytics_cash_balances': 'Остатки в кассе',
     'analytics_reports': 'Отчёты',
 
-    // Reports
+    
     'reports_title': 'Отчёты',
     'reports_subtitle': 'Скачать отчёты',
     'reports_desc':
@@ -212,7 +212,7 @@ class AppStrings {
         'Файл готов к использованию. Нажмите «Поделиться», чтобы отправить или сохранить его.',
     'reports_open_share': 'Поделиться / Сохранить',
 
-    // General
+    
     'general_retry': 'Повторить',
     'general_refresh': 'Обновить',
     'general_loading': 'Загрузка...',
@@ -229,20 +229,20 @@ class AppStrings {
     'general_som': 'сом',
   };
 
-  // ─── Kyrgyz ─────────────────────────────────────────────────────
+  
   static const Map<String, String> _kg = {
-    // App
+    
     'app_name': 'My Exchange',
     'app_title': 'Моя волюта',
 
-    // Navigation
+    
     'nav_operations': 'Операциялар',
     'nav_cash': 'Касса',
     'nav_currencies': 'Валюталар',
     'nav_analytics': 'Аналитика',
     'nav_settings': 'Профиль',
 
-    // Login
+    
     'login_title': 'Системага кирүү',
     'login_username': 'Колдонуучу аты',
     'login_password': 'Сырсөз',
@@ -258,7 +258,7 @@ class AppStrings {
     'login_biometric_save': 'Тез кирүү үчүн сактоо',
     'login_biometric_reason': 'Кирүү үчүн инсандыгыңызды тастыктаңыз',
 
-    // Settings / Profile
+    
     'settings_title': 'Профиль жана орнотуулар',
     'settings_profile': 'Профиль',
     'settings_user_info': 'Колдонуучу маалыматы',
@@ -306,7 +306,7 @@ class AppStrings {
     'settings_privacy_note':
         '«Чыгуу» баскычын басуу менен, сиз учурдагы сессияны аяктайсыз.',
 
-    // Operations
+    
     'operations_title': 'Операциялар',
     'operations_create': 'Операция',
     'operations_empty': 'Операциялар жок',
@@ -349,7 +349,7 @@ class AppStrings {
     'operations_clear_filters': 'Чыпкаларды тазалоо',
     'operations_found': 'Табылды:',
 
-    // Cash
+    
     'cash_title': 'Касса',
     'cash_balances': 'Калдыктар',
     'cash_register_open': 'Смена ачык',
@@ -364,12 +364,12 @@ class AppStrings {
     'cash_opened_at': 'Ачылган',
     'cash_no_data': 'Маалымат жок',
 
-    // Currencies
+    
     'currencies_title': 'Валюталар',
     'currencies_buy': 'Сатып алуу',
     'currencies_sell': 'Сатуу',
 
-    // Analytics
+    
     'analytics_title': 'Аналитика',
     'analytics_no_data': 'Көрсөтүү үчүн маалымат жок',
     'analytics_no_data_desc': 'Операциялардан кийин статистика пайда болот',
@@ -386,7 +386,7 @@ class AppStrings {
     'analytics_cash_balances': 'Кассадагы калдыктар',
     'analytics_reports': 'Отчёты',
 
-    // Reports
+    
     'reports_title': 'Отчёттор',
     'reports_subtitle': 'Отчётторду жүктөө',
     'reports_desc':
@@ -406,7 +406,7 @@ class AppStrings {
         'Файл колдонууга даяр. Жөнөтүү же сактоо үчүн «Бөлүшүү» баскычын басыңыз.',
     'reports_open_share': 'Бөлүшүү / Сактоо',
 
-    // General
+    
     'general_retry': 'Кайталоо',
     'general_refresh': 'Жаңыртуу',
     'general_loading': 'Жүктөлүүдө...',
@@ -423,20 +423,20 @@ class AppStrings {
     'general_som': 'сом',
   };
 
-  // ─── English ─────────────────────────────────────────────────────
+  
   static const Map<String, String> _en = {
-    // App
+    
     'app_name': 'My Exchange',
     'app_title': 'My Exchange',
 
-    // Navigation
+    
     'nav_operations': 'Operations',
     'nav_cash': 'Cash',
     'nav_currencies': 'Currencies',
     'nav_analytics': 'Analytics',
     'nav_settings': 'Profile',
 
-    // Login
+    
     'login_title': 'Sign In',
     'login_username': 'Username',
     'login_password': 'Password',
@@ -452,7 +452,7 @@ class AppStrings {
     'login_biometric_save': 'Remember for quick login',
     'login_biometric_reason': 'Authenticate to sign in to the app',
 
-    // Settings / Profile
+    
     'settings_title': 'Profile & Settings',
     'settings_profile': 'Profile',
     'settings_user_info': 'User Information',
@@ -499,7 +499,7 @@ class AppStrings {
     'settings_privacy_note':
         'By pressing "Log Out" you end your current session.',
 
-    // Operations
+    
     'operations_title': 'Operations',
     'operations_create': 'Operation',
     'operations_empty': 'No operations',
@@ -542,7 +542,7 @@ class AppStrings {
     'operations_clear_filters': 'Clear filters',
     'operations_found': 'Found:',
 
-    // Cash
+    
     'cash_title': 'Cash Register',
     'cash_balances': 'Balances',
     'cash_register_open': 'Shift Open',
@@ -557,12 +557,12 @@ class AppStrings {
     'cash_opened_at': 'Opened at',
     'cash_no_data': 'No data',
 
-    // Currencies
+    
     'currencies_title': 'Currencies',
     'currencies_buy': 'Buy',
     'currencies_sell': 'Sell',
 
-    // Analytics
+    
     'analytics_title': 'Analytics',
     'analytics_no_data': 'No data to display',
     'analytics_no_data_desc':
@@ -580,7 +580,7 @@ class AppStrings {
     'analytics_cash_balances': 'Cash Balances',
     'analytics_reports': 'Reports',
 
-    // Reports
+    
     'reports_title': 'Reports',
     'reports_subtitle': 'Download Reports',
     'reports_desc': 'Export data in CSV, Excel or PDF format with one click',
@@ -599,7 +599,7 @@ class AppStrings {
         'File is ready to use. Press "Share" to send or save it.',
     'reports_open_share': 'Share / Save',
 
-    // General
+    
     'general_retry': 'Retry',
     'general_refresh': 'Refresh',
     'general_loading': 'Loading...',
@@ -616,20 +616,20 @@ class AppStrings {
     'general_som': 'som',
   };
 
-  // ─── Uzbek (Latin) ───────────────────────────────────────────────
+  
   static const Map<String, String> _uz = {
-    // App
+    
     'app_name': 'My Exchange',
     'app_title': "Mening Ayirboshlash",
 
-    // Navigation
+    
     'nav_operations': 'Operatsiyalar',
     'nav_cash': 'Kassa',
     'nav_currencies': 'Valyutalar',
     'nav_analytics': 'Analitika',
     'nav_settings': 'Profil',
 
-    // Login
+    
     'login_title': 'Tizimga kirish',
     'login_username': 'Foydalanuvchi nomi',
     'login_password': 'Parol',
@@ -645,7 +645,7 @@ class AppStrings {
     'login_biometric_save': 'Tez kirish uchun eslab qolish',
     'login_biometric_reason': 'Ilovaga kirish uchun shaxsingizni tasdiqlang',
 
-    // Settings / Profile
+    
     'settings_title': "Profil va sozlamalar",
     'settings_profile': 'Profil',
     'settings_user_info': "Foydalanuvchi ma'lumotlari",
@@ -693,7 +693,7 @@ class AppStrings {
     'settings_privacy_note':
         '"Chiqish" tugmasini bosish orqali siz joriy seansni yakunlaysiz.',
 
-    // Operations
+    
     'operations_title': 'Operatsiyalar',
     'operations_create': 'Operatsiya',
     'operations_empty': "Operatsiyalar yo'q",
@@ -736,7 +736,7 @@ class AppStrings {
     'operations_clear_filters': 'Filtrlarni tozalash',
     'operations_found': 'Topildi:',
 
-    // Cash
+    
     'cash_title': 'Kassa',
     'cash_balances': 'Qoldiqlar',
     'cash_register_open': 'Smena ochiq',
@@ -751,12 +751,12 @@ class AppStrings {
     'cash_opened_at': 'Ochilgan',
     'cash_no_data': "Ma'lumot yo'q",
 
-    // Currencies
+    
     'currencies_title': 'Valyutalar',
     'currencies_buy': 'Xarid',
     'currencies_sell': 'Sotuv',
 
-    // Analytics
+    
     'analytics_title': 'Analitika',
     'analytics_no_data': "Ko'rsatish uchun ma'lumot yo'q",
     'analytics_no_data_desc': "Operatsiyalardan so'ng statistika paydo bo'ladi",
@@ -773,7 +773,7 @@ class AppStrings {
     'analytics_cash_balances': 'Kassadagi qoldiqlar',
     'analytics_reports': 'Hisobotlar',
 
-    // Reports
+    
     'reports_title': 'Hisobotlar',
     'reports_subtitle': 'Hisobotlarni yuklab olish',
     'reports_desc':
@@ -793,7 +793,7 @@ class AppStrings {
         'Fayl foydalanishga tayyor. Yuborish yoki saqlash uchun "Ulashish" tugmasini bosing.',
     'reports_open_share': 'Ulashish / Saqlash',
 
-    // General
+    
     'general_retry': 'Qayta urinish',
     'general_refresh': 'Yangilash',
     'general_loading': 'Yuklanmoqda...',
@@ -810,20 +810,20 @@ class AppStrings {
     'general_som': "so'm",
   };
 
-  // ─── Uzbek (Cyrillic) ────────────────────────────────────────────
+  
   static const Map<String, String> _uzCyrillic = {
-    // App
+    
     'app_name': 'My Exchange',
     'app_title': 'Менинг Айирбошлаш',
 
-    // Navigation
+    
     'nav_operations': 'Операциялар',
     'nav_cash': 'Касса',
     'nav_currencies': 'Валюталар',
     'nav_analytics': 'Аналитика',
     'nav_settings': 'Профиль',
 
-    // Login
+    
     'login_title': 'Тизимга кириш',
     'login_username': 'Фойдаланувчи номи',
     'login_password': 'Парол',
@@ -839,7 +839,7 @@ class AppStrings {
     'login_biometric_save': 'Тез кириш учун эслаб қолиш',
     'login_biometric_reason': 'Иловага кириш учун шахсингизни тасдиқланг',
 
-    // Settings / Profile
+    
     'settings_title': 'Профиль ва созламалар',
     'settings_profile': 'Профиль',
     'settings_user_info': 'Фойдаланувчи маълумотлари',
@@ -887,7 +887,7 @@ class AppStrings {
     'settings_privacy_note':
         '«Чиқиш» тугмасини босиш орқали сиз жорий сеансни якунлайсиз.',
 
-    // Operations
+    
     'operations_title': 'Операциялар',
     'operations_create': 'Операция',
     'operations_empty': 'Операциялар йўқ',
@@ -930,7 +930,7 @@ class AppStrings {
     'operations_clear_filters': 'Фильтрларни тозалаш',
     'operations_found': 'Топилди:',
 
-    // Cash
+    
     'cash_title': 'Касса',
     'cash_balances': 'Қолдиқлар',
     'cash_register_open': 'Смена очик',
@@ -945,12 +945,12 @@ class AppStrings {
     'cash_opened_at': 'Очилган',
     'cash_no_data': 'Маълумот йўқ',
 
-    // Currencies
+    
     'currencies_title': 'Валюталар',
     'currencies_buy': 'Харид',
     'currencies_sell': 'Сотув',
 
-    // Analytics
+    
     'analytics_title': 'Аналитика',
     'analytics_no_data': 'Кўрсатиш учун маълумот йўқ',
     'analytics_no_data_desc': 'Операциялардан сўнг статистика пайдо бўлади',
@@ -967,7 +967,7 @@ class AppStrings {
     'analytics_cash_balances': 'Кассадаги қолдиқлар',
     'analytics_reports': 'Ҳисоботлар',
 
-    // Reports
+    
     'reports_title': 'Ҳисоботлар',
     'reports_subtitle': 'Ҳисоботларни юклаб олиш',
     'reports_desc':
@@ -987,7 +987,7 @@ class AppStrings {
         'Файл фойдаланишга тайёр. Юбориш ёки сақлаш учун «Улашиш» тугмасини босинг.',
     'reports_open_share': 'Улашиш / Сақлаш',
 
-    // General
+    
     'general_retry': 'Қайта уриниш',
     'general_refresh': 'Янгилаш',
     'general_loading': 'Юкланмоқда...',

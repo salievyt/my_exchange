@@ -33,7 +33,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Delay update check to avoid calling notifyListeners during build phase
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForUpdate();
     });
@@ -48,7 +48,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      // App went to background — lock it
+      
       context.read<AuthProvider>().lockApp();
     }
   }

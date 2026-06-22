@@ -104,17 +104,17 @@ class ReportsProvider extends ChangeNotifier {
 
       final filename = 'my_exchange_${type.value}_$dateStr.${format.value}';
 
-      // Save to app documents directory (persistent storage)
+      
       final dir = await getApplicationDocumentsDirectory();
       final filePath = '${dir.path}/$filename';
 
-      // Remove old file if exists
+      
       final oldFile = File(filePath);
       if (await oldFile.exists()) {
         await oldFile.delete();
       }
 
-      // Download the file
+      
       await _dioClient.dio.download(
         endpoint,
         filePath,
@@ -127,7 +127,7 @@ class ReportsProvider extends ChangeNotifier {
         },
       );
 
-      // Verify file exists and has content
+      
       final file = File(filePath);
       if (!await file.exists() || await file.length() == 0) {
         throw Exception('Файл не был загружен');
@@ -135,7 +135,7 @@ class ReportsProvider extends ChangeNotifier {
 
       _savedFilePath = filePath;
 
-      // Open share sheet so user can save / send / open the file
+      
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(filePath)],
@@ -165,7 +165,7 @@ class ReportsProvider extends ChangeNotifier {
     if (data is Map && data['error'] != null) {
       return data['error'].toString();
     }
-    // Check for network errors vs server errors
+    
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
       return 'Сервер не отвечает. Проверьте подключение к интернету.';

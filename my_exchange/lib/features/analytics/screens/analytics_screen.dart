@@ -92,17 +92,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                     ),
 
-                  // ── Summary ──
+                  
                   if (isWide) _buildWideSummary(data, isDark)
                   else _buildNarrowSummary(data, isDark),
 
                   const SizedBox(height: 16),
 
-                  // ── Period selector ──
+                  
                   _buildPeriodSelector(isDark),
                   const SizedBox(height: 12),
 
-                  // ── Daily chart ──
+                  
                   if (provider.dailyData.isNotEmpty)
                     _buildCard(
                       title: local.t('analytics_daily_chart'),
@@ -123,7 +123,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
                   if (provider.dailyData.isNotEmpty) const SizedBox(height: 14),
 
-                  // ── Currency + Profit charts (responsive) ──
+                  
                   if (isWide)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +160,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   if (provider.currencyStats.isNotEmpty || provider.profitability.isNotEmpty)
                     const SizedBox(height: 14),
 
-                  // ── Exchange rates ──
+                  
                   if (data.exchangeRates.isNotEmpty)
                     _buildCard(title: local.t('analytics_rates'), icon: Icons.currency_exchange,
                       color: AppColors.primary, isDark: isDark, index: 3,
@@ -191,7 +191,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
                   if (data.exchangeRates.isNotEmpty) const SizedBox(height: 14),
 
-                  // ── Cashiers + Cash balances (responsive) ──
+                  
                   if (isWide)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +232,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // ── Summary ──
+  
 
   Widget _buildNarrowSummary(AnalyticsData data, bool isDark) => Column(children: [
     Row(children: [
@@ -266,7 +266,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       icon: Icons.people_rounded, color: AppColors.info, isDark: isDark)),
   ]);
 
-  // ── Period Selector ──
+  
 
   Widget _buildPeriodSelector(bool isDark) {
     const periods = [(7, '7 дней'), (14, '14 дней'), (30, '30 дней')];
@@ -309,7 +309,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // ── Card builder ──
+  
 
   Widget _buildCard({
     required String title, required IconData icon, required Color color,
@@ -320,7 +320,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // ── Loading / Empty ──
+  
 
   Widget _buildSkeletonLoading(bool isDark) => SingleChildScrollView(
     padding: const EdgeInsets.all(16),
@@ -371,9 +371,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Top-level helpers
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 Color _currencyColor(String code) {
   switch (code) {
@@ -387,9 +387,9 @@ Color _currencyColor(String code) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  Supporting Widgets
-// ═══════════════════════════════════════════════════════════════════
+
+
+
 
 class _ModernCard extends StatelessWidget {
   final bool isDark; final Color color; final String title;

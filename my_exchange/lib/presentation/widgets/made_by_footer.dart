@@ -22,11 +22,11 @@ class MadeByFooter extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Thin divider
+        
         Container(height: 1, color: dividerColor),
         const SizedBox(height: 20),
 
-        // Logo
+        
         Container(
           width: 120,
           height: 36,
@@ -40,7 +40,7 @@ class MadeByFooter extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // Version + studio on one line
+        
         Text(
           [
             if (version != null) 'v$version',
@@ -55,7 +55,7 @@ class MadeByFooter extends StatelessWidget {
         ),
         const SizedBox(height: 4),
 
-        // Tagline
+        
         Text(
           'Сделано с любовью',
           style: TextStyle(

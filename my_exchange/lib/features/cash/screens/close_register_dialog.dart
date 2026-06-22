@@ -35,7 +35,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
       }
     }
 
-    // Load today's stats
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OperationProvider>().loadTodayStats();
     });
@@ -132,7 +132,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
               ),
               const SizedBox(height: 24),
 
-              // ── Daily Totals Section ─────────────────────────
+              
               Consumer<OperationProvider>(
                 builder: (context, opProvider, child) {
                   final stats = opProvider.todayStats;

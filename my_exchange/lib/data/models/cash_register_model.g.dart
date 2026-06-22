@@ -1,10 +1,10 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+
 
 part of 'cash_register_model.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
+
+
+
 
 CashRegisterModel _$CashRegisterModelFromJson(Map<String, dynamic> json) =>
     CashRegisterModel(

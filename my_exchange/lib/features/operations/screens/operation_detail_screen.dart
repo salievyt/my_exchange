@@ -18,7 +18,7 @@ class OperationDetailScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // ── App Bar with gradient ─────────────────────────────
+          
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
@@ -36,13 +36,13 @@ class OperationDetailScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Background pattern
+                    
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _DotsPatternPainter(),
                       ),
                     ),
-                    // Main info overlay
+                    
                     Positioned(
                       left: 20,
                       right: 20,
@@ -95,7 +95,7 @@ class OperationDetailScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              // Edit button
+              
               if (operation.canBeCancelled)
                 IconButton(
                   icon: const Icon(Icons.edit_rounded, color: Colors.white),
@@ -105,12 +105,12 @@ class OperationDetailScreen extends StatelessWidget {
             ],
           ),
 
-          // ── Body content ──────────────────────────────────────
+          
           SliverPadding(
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Amount section — prominent
+                
                 _SectionCard(
                   child: Column(
                     children: [
@@ -197,7 +197,7 @@ class OperationDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Client info section
+                
                 if (operation.clientName != null ||
                     operation.clientCompany != null)
                   _SectionCard(
@@ -222,7 +222,7 @@ class OperationDetailScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
 
-                // Cashier & details section
+                
                 _SectionCard(
                   title: 'Детали',
                   icon: Icons.info_outline,
@@ -267,7 +267,7 @@ class OperationDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Comment section
+                
                 if (operation.comment != null &&
                     operation.comment!.isNotEmpty)
                   _SectionCard(
@@ -292,7 +292,7 @@ class OperationDetailScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 32),
 
-                // Edit button at bottom
+                
                 if (operation.canBeCancelled)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -313,7 +313,7 @@ class OperationDetailScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
 
-                // Status timeline
+                
                 _SectionCard(
                   title: 'Статус',
                   icon: Icons.timeline_rounded,
@@ -340,14 +340,14 @@ class OperationDetailScreen extends StatelessWidget {
       if (result == true) {
         onEdit?.call();
         if (context.mounted) {
-          Navigator.pop(context); // Go back to list
+          Navigator.pop(context); 
         }
       }
     });
   }
 }
 
-// ─── Sub-widgets (kept from original) ─────────────────────────────
+
 
 class _Badge extends StatelessWidget {
   final String label;

@@ -78,11 +78,11 @@ class _CashScreenState extends State<CashScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Register status card
+              
               _buildRegisterCard(),
               const SizedBox(height: 16),
 
-              // Error banner (if error and we have data)
+              
               Consumer<CashProvider>(
                 builder: (context, provider, child) {
                   if (provider.errorMessage != null &&
@@ -100,7 +100,7 @@ class _CashScreenState extends State<CashScreen> {
                 },
               ),
 
-              // Balances
+              
               Text(
                 local.t('cash_balances'),
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -112,7 +112,7 @@ class _CashScreenState extends State<CashScreen> {
                     return _buildSkeletonBalanceList();
                   }
 
-                  // Error state with retry (no data)
+                  
                   if (provider.errorMessage != null &&
                       provider.balances.isEmpty) {
                     return ErrorStateWidget(
@@ -176,7 +176,7 @@ class _CashScreenState extends State<CashScreen> {
       builder: (context, provider, loc, child) {
         final register = provider.currentRegister;
 
-        // Show loading shimmer while checking register status
+        
         if (provider.isRegisterLoading && register == null) {
           return Card(
             child: Padding(
@@ -456,21 +456,21 @@ class _BalanceCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // ── Mini progress bar ────────────────────────────────
+            
             ClipRRect(
               borderRadius: BorderRadius.circular(3),
               child: SizedBox(
                 height: 6,
                 child: Stack(
                   children: [
-                    // Background
+                    
                     Container(
                       decoration: BoxDecoration(
                         color: colors.outline.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                    // Reserved segment (orange, behind available)
+                    
                     if (reservedRatio > 0)
                       FractionallySizedBox(
                         widthFactor: (reservedRatio + availableRatio).clamp(0, 1),
@@ -481,7 +481,7 @@ class _BalanceCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    // Available segment (green)
+                    
                     if (availableRatio > 0)
                       FractionallySizedBox(
                         widthFactor: availableRatio.clamp(0, 1),
@@ -497,7 +497,7 @@ class _BalanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            // Utilization label
+            
             Text(
               '${utilizationPercent.toStringAsFixed(0)}% ${local.t('cash_available').toLowerCase()}',
               style: TextStyle(

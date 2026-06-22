@@ -45,7 +45,7 @@ class AuthProvider extends ChangeNotifier {
   bool get biometricEnabled => _biometricEnabled;
   bool get isLocked => _isLocked;
 
-  // ─── Biometric ────────────────────────────────────────────────
+  
 
   Future<void> checkBiometricAvailability() async {
     try {
@@ -105,7 +105,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ─── PIN Code ─────────────────────────────────────────────────
+  
 
   Future<bool> hasPinCode() async {
     final pin = await _secureStorage.read(key: _pinCodeKey);
@@ -132,7 +132,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── App Lock / Unlock ────────────────────────────────────────
+  
 
   Future<void> lockApp() async {
     if (await hasAnyLockMethod()) {
@@ -151,7 +151,7 @@ class AuthProvider extends ChangeNotifier {
     return hasPin || (_biometricEnabled && _biometricAvailable);
   }
 
-  // ─── Authentication ───────────────────────────────────────────
+  
 
   Future<void> login({
     required String username,
@@ -173,8 +173,8 @@ class AuthProvider extends ChangeNotifier {
         _user = user;
         _status = AuthStatus.authenticated;
 
-        // Check if PIN or biometric is set up
-        _isLocked = false; // Don't lock immediately after login
+        
+        _isLocked = false; 
         await checkBiometricAvailability();
         await loadBiometricSetting();
 
@@ -222,7 +222,7 @@ class AuthProvider extends ChangeNotifier {
           _status = AuthStatus.unauthenticated;
         }
 
-        // After successful auth check, load PIN setting to determine if app should be locked
+        
         if (_status == AuthStatus.authenticated) {
           final prefs = await SharedPreferences.getInstance();
           final hasPin = prefs.getBool(_pinEnabledKey) ?? false;

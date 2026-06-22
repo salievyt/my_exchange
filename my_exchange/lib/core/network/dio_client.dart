@@ -9,10 +9,10 @@ abstract class NetworkInfo {
 
 /// Network info implementation
 class NetworkInfoImpl implements NetworkInfo {
-  // In a real app, use connectivity_plus package
+  
   @override
   Future<bool> get isConnected async {
-    // Placeholder - implement with connectivity_plus
+    
     return true;
   }
 }
@@ -34,7 +34,7 @@ class DioClient {
             return handler.next(options);
           }
 
-          // Add auth token to headers
+          
           final accessToken = await _secureStorage.read(
             key: StorageKeys.accessToken,
           );
@@ -52,7 +52,7 @@ class DioClient {
           }
 
           if (error.response?.statusCode == 401) {
-            // Token expired - try to refresh
+            
             final refreshToken = await _secureStorage.read(
               key: StorageKeys.refreshToken,
             );
@@ -63,19 +63,19 @@ class DioClient {
                   data: {'refresh': refreshToken},
                 );
 
-                // Save new tokens
+                
                 await _secureStorage.write(
                   key: StorageKeys.accessToken,
                   value: response.data['access'],
                 );
 
-                // Retry original request
+                
                 error.requestOptions.headers['Authorization'] =
                     'Bearer ${response.data['access']}';
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
               } catch (e) {
-                // Refresh failed - clear tokens
+                
                 await _secureStorage.delete(key: StorageKeys.accessToken);
                 await _secureStorage.delete(key: StorageKeys.refreshToken);
               }

@@ -6,7 +6,7 @@ import '../../core/errors/failures.dart';
 
 /// Cash repository interface
 abstract class CashRepository {
-  // Balances
+  
   Future<Either<Failure, List<CashBalance>>> getBalances({
     int? page,
     int? pageSize,
@@ -20,7 +20,7 @@ abstract class CashRepository {
 
   Future<Either<Failure, List<CashBalance>>> getLowBalances();
 
-  // Registers
+  
   Future<Either<Failure, List<CashRegister>>> getRegisters({
     int? page,
     int? pageSize,
@@ -48,7 +48,7 @@ abstract class CashRepository {
     String? comment,
   });
 
-  // Transactions
+  
   Future<Either<Failure, List<CashTransaction>>> getTransactions({
     int? page,
     int? pageSize,
