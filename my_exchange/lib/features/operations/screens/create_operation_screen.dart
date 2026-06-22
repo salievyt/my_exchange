@@ -293,6 +293,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
   Widget build(BuildContext context) {
     final title = _isEditing ? 'Редактирование операции' : 'Новая операция';
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
