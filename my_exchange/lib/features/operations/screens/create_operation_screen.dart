@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
@@ -323,6 +324,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                               isSelected: _operationType == OperationType.buy,
                               enabled: !_isEditing,
                               onTap: () {
+                                HapticFeedback.mediumImpact();
                                 setState(() {
                                   _operationType = OperationType.buy;
                                   _updateRateFromCurrency();
@@ -337,6 +339,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                               isSelected: _operationType == OperationType.sell,
                               enabled: !_isEditing,
                               onTap: () {
+                                HapticFeedback.mediumImpact();
                                 setState(() {
                                   _operationType = OperationType.sell;
                                   _updateRateFromCurrency();
