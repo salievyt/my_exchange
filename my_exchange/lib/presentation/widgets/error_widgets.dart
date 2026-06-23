@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/localization/localization_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 /// A compact error banner that appears at the top of content when an error occurs.
@@ -46,7 +48,7 @@ class ErrorBanner extends StatelessWidget {
               icon: const Icon(Icons.refresh, size: 20),
               color: AppColors.error,
               onPressed: onRetry,
-              tooltip: 'Повторить',
+              tooltip: context.watch<LocalizationProvider>().t('error_retry'),
               visualDensity: VisualDensity.compact,
             ),
           if (onDismiss != null)
@@ -54,7 +56,7 @@ class ErrorBanner extends StatelessWidget {
               icon: const Icon(Icons.close, size: 18),
               color: AppColors.error.withValues(alpha: 0.7),
               onPressed: onDismiss,
-              tooltip: 'Закрыть',
+              tooltip: context.watch<LocalizationProvider>().t('error_close'),
               visualDensity: VisualDensity.compact,
             ),
         ],
@@ -125,7 +127,7 @@ class ErrorStateWidget extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Повторить'),
+                label: Text(context.watch<LocalizationProvider>().t('error_retry')),
               ),
             ),
           ],

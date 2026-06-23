@@ -182,8 +182,8 @@ class _OperationsScreenState extends State<OperationsScreen> {
                     type: EmptyStateType.operations,
                     title: local.t('operations_empty'),
                     subtitle: provider.hasActiveFilters
-                        ? 'Попробуйте изменить параметры фильтрации'
-                        : 'Нажмите кнопку ниже, чтобы создать первую операцию',
+                        ? local.t('operations_filter_empty')
+                        : local.t('operations_empty_action'),
                     action: provider.hasActiveFilters
                         ? OutlinedButton.icon(
                             onPressed: () => provider.clearFilters(),
@@ -339,7 +339,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   void _cancelOperation(BuildContext context, Operation operation) {
-    context.read<LocalizationProvider>();
+    final local = context.read<LocalizationProvider>();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -359,17 +359,14 @@ class _OperationsScreenState extends State<OperationsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Отмена операции',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              local.t('operations_cancel_title'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         content: Text(
-          'Отменить операцию №${operation.operationNumber}?\n\n'
-          '${operation.operationType.displayName} '
-          '${CurrencyFormatter.formatWithSymbol(operation.amount, operation.currencyCode)} '
-          'по курсу ${CurrencyFormatter.formatRate(operation.rate)}.',
+          local.t('operations_cancel_confirm').replaceAll('{number}', operation.operationNumber.toString()),
           style: TextStyle(
             fontSize: 14,
             height: 1.4,
@@ -379,7 +376,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(local.t('operations_cancel_button')),
           ),
           Consumer<OperationProvider>(
             builder: (context, provider, child) {
@@ -398,7 +395,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           context.read<OperationProvider>().loadTodayStats();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('Операция отменена'),
+                              content: Text(local.t('operations_cancel_success')),
                               backgroundColor: AppColors.success,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -411,7 +408,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             SnackBar(
                               content: Text(
                                 provider.errorMessage ??
-                                    'Ошибка отмены операции',
+                                    local.t('operations_cancel_error'),
                               ),
                               backgroundColor: AppColors.error,
                               behavior: SnackBarBehavior.floating,
@@ -437,7 +434,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                           ),
                         ),
                       )
-                    : const Text('Подтвердить отмену'),
+                    : Text(local.t('operations_cancel_confirm_button')),
               );
             },
           ),
@@ -713,6 +710,7 @@ class _OperationColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.watch<LocalizationProvider>();
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -766,7 +764,7 @@ class _OperationColumn extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                'Нет операций',
+                local.t('operations_no_results'),
                 style: TextStyle(
                   fontSize: 12,
                   color: color.withValues(alpha: 0.4),
@@ -795,7 +793,7 @@ class _OperationColumn extends StatelessWidget {
                         backgroundColor: AppColors.error,
                         foregroundColor: Colors.white,
                         icon: Icons.cancel_outlined,
-                        label: 'Отменить',
+                        label: context.watch<LocalizationProvider>().t('operation_card_cancel'),
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(12),
                           bottomRight: Radius.circular(12),
@@ -812,7 +810,7 @@ class _OperationColumn extends StatelessWidget {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         icon: Icons.edit_rounded,
-                        label: 'Править',
+                        label: context.watch<LocalizationProvider>().t('operation_card_edit'),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           bottomLeft: Radius.circular(12),
@@ -921,14 +919,14 @@ class _CompactOperationCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Курс: ${CurrencyFormatter.formatRate(operation.rate)}',
+                context.watch<LocalizationProvider>().t('operation_card_rate').replaceAll('{rate}', CurrencyFormatter.formatRate(operation.rate)),
                 style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
               ),
               const Divider(height: 12),
               Row(
                 children: [
                   Text(
-                    '${CurrencyFormatter.format(operation.totalAmount, symbol: 'сом')}',
+                    CurrencyFormatter.format(operation.totalAmount, symbol: context.watch<LocalizationProvider>().t('general_som')),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -1036,11 +1034,11 @@ class _CurrencyFilterChipState extends State<_CurrencyFilterChip> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Фильтр по валюте',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  widget.local.t('operations_filter_currency_title'),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const Divider(height: 1),

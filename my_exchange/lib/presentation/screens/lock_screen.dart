@@ -103,7 +103,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       auth.unlockApp();
     } else {
       setState(() {
-        _errorMessage = 'Неверный PIN-код';
+        _errorMessage = context.read<LocalizationProvider>().t('lock_wrong_pin');
         _enteredPin = '';
       });
     }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/localization/localization_provider.dart';
 
 class MadeByFooter extends StatelessWidget {
   final String? version;
@@ -57,7 +59,7 @@ class MadeByFooter extends StatelessWidget {
 
         
         Text(
-          'Сделано с любовью',
+          context.watch<LocalizationProvider>().t('footer_made_with_love'),
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w400,

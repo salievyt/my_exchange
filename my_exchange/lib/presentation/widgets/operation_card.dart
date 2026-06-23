@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/operation.dart';
@@ -36,7 +38,7 @@ class OperationCard extends StatelessWidget {
             backgroundColor: AppColors.error,
             foregroundColor: Colors.white,
             icon: Icons.cancel_outlined,
-            label: 'Отменить',
+            label: context.watch<LocalizationProvider>().t('operation_card_cancel'),
             borderRadius: const BorderRadius.only(
               topRight: Radius.circular(12),
               bottomRight: Radius.circular(12),
@@ -53,7 +55,7 @@ class OperationCard extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             icon: Icons.edit_rounded,
-            label: 'Править',
+            label: context.watch<LocalizationProvider>().t('operation_card_edit'),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),
               bottomLeft: Radius.circular(12),
@@ -168,7 +170,7 @@ class OperationCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Курс: ${CurrencyFormatter.formatRate(operation.rate)}',
+                          '${context.watch<LocalizationProvider>().t('operation_card_rate').replaceAll('{rate}', CurrencyFormatter.formatRate(operation.rate))}',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -188,7 +190,7 @@ class OperationCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Итого: ${CurrencyFormatter.format(operation.totalAmount, symbol: 'сом')}',
+                      context.watch<LocalizationProvider>().t('operation_card_total').replaceAll('{amount}', CurrencyFormatter.format(operation.totalAmount, symbol: 'сом')),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

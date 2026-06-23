@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/localization/localization_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Dialog shown when a new app version is available.
@@ -42,8 +44,8 @@ class UpdateNotificationDialog extends StatelessWidget {
             const SizedBox(height: 20),
 
             
-            const Text(
-              'Доступно обновление',
+            Text(
+              context.watch<LocalizationProvider>().t('update_available'),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -60,7 +62,7 @@ class UpdateNotificationDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'Версия $version',
+                context.watch<LocalizationProvider>().t('update_version').replaceAll('{version}', version),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -81,18 +83,18 @@ class UpdateNotificationDialog extends StatelessWidget {
                     color: AppColors.warning.withValues(alpha: 0.3),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.warning_amber_rounded,
                       color: AppColors.warning,
                       size: 18,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      'Обязательное обновление',
-                      style: TextStyle(
+                      context.watch<LocalizationProvider>().t('update_required'),
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.warning,
@@ -108,8 +110,8 @@ class UpdateNotificationDialog extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Что нового:',
+                  Text(
+                    context.watch<LocalizationProvider>().t('update_whats_new'),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -146,14 +148,14 @@ class UpdateNotificationDialog extends StatelessWidget {
                     if (updateUrl != null && updateUrl!.isNotEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Ссылка для обновления: $updateUrl'),
+                          content: Text(context.watch<LocalizationProvider>().t('update_link').replaceAll('{url}', updateUrl ?? '')),
                           backgroundColor: AppColors.info,
                         ),
                       );
                     }
                   },
                   icon: const Icon(Icons.download_rounded),
-                  label: const Text('Обновить сейчас'),
+                  label: Text(context.watch<LocalizationProvider>().t('update_now')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -164,7 +166,7 @@ class UpdateNotificationDialog extends StatelessWidget {
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Позже'),
+                    child: Text(context.watch<LocalizationProvider>().t('update_later')),
                   ),
                 ],
               ],

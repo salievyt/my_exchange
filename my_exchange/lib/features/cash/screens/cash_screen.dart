@@ -126,10 +126,10 @@ class _CashScreenState extends State<CashScreen> {
                   }
 
                   if (provider.balances.isEmpty) {
-                    return const EmptyStateIllustration(
+                    return EmptyStateIllustration(
                       type: EmptyStateType.cash,
-                      title: 'Нет балансов',
-                      subtitle: 'Балансы появятся после открытия смены и совершения первых операций',
+                      title: loc.t('cash_no_balances'),
+                      subtitle: loc.t('cash_no_balances_desc'),
                     );
                   }
 

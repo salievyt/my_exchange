@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/operation.dart';
 import '../../operations/screens/create_operation_screen.dart';
@@ -12,6 +14,7 @@ class OperationDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final local = context.watch<LocalizationProvider>();
     final isBuy = operation.operationType == OperationType.buy;
     final typeColor = isBuy ? colors.tertiary : colors.error;
 
@@ -99,7 +102,7 @@ class OperationDetailScreen extends StatelessWidget {
               if (operation.canBeCancelled)
                 IconButton(
                   icon: const Icon(Icons.edit_rounded, color: Colors.white),
-                  tooltip: 'Редактировать',
+                  tooltip: local.t('operation_detail_edit_tooltip'),
                   onPressed: () => _editOperation(context),
                 ),
             ],
@@ -118,7 +121,7 @@ class OperationDetailScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _InfoBlock(
-                              label: 'Сумма операции',
+                              label: local.t('operation_detail_amount'),
                               value: CurrencyFormatter.formatWithSymbol(
                                 operation.amount,
                                 operation.currencyCode,
@@ -142,7 +145,7 @@ class OperationDetailScreen extends StatelessWidget {
                             child: Column(
                               children: [
                                 Text(
-                                  'Курс',
+                                  local.t('operation_detail_rate_label'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: colors.onSurfaceVariant,
@@ -172,7 +175,7 @@ class OperationDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Итого в сомах',
+                            local.t('operation_detail_total_som'),
                             style: TextStyle(
                               fontSize: 14,
                               color: colors.onSurfaceVariant,
@@ -182,7 +185,7 @@ class OperationDetailScreen extends StatelessWidget {
                           Text(
                             CurrencyFormatter.format(
                               operation.totalAmount,
-                              symbol: 'сом',
+                              symbol: local.t('general_som'),
                             ),
                             style: TextStyle(
                               fontSize: 22,
@@ -201,19 +204,19 @@ class OperationDetailScreen extends StatelessWidget {
                 if (operation.clientName != null ||
                     operation.clientCompany != null)
                   _SectionCard(
-                    title: 'Клиент',
+                    title: local.t('operation_detail_client'),
                     icon: Icons.person_outline,
                     child: Column(
                       children: [
                         if (operation.clientName != null)
                           _InfoRow(
-                            label: 'Имя',
+                            label: local.t('operation_detail_client_name'),
                             value: operation.clientName!,
                           ),
                         if (operation.clientCompany != null) ...[
                           const SizedBox(height: 12),
                           _InfoRow(
-                            label: 'Компания',
+                            label: local.t('operation_detail_client_company'),
                             value: operation.clientCompany!,
                           ),
                         ],
@@ -224,12 +227,12 @@ class OperationDetailScreen extends StatelessWidget {
 
                 
                 _SectionCard(
-                  title: 'Детали',
+                  title: local.t('operation_detail_details'),
                   icon: Icons.info_outline,
                   child: Column(
                     children: [
                       _InfoRow(
-                        label: 'Кассир',
+                        label: local.t('operation_detail_cashier'),
                         value: operation.cashierName,
                         trailing: Text(
                           '@${operation.cashierUsername}',
@@ -241,7 +244,7 @@ class OperationDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       _InfoRow(
-                        label: 'Дата создания',
+                        label: local.t('operation_detail_created'),
                         value: DateFormatter.formatDateTime(
                           operation.createdAt,
                           format: 'dd.MM.yyyy HH:mm',
@@ -249,7 +252,7 @@ class OperationDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       _InfoRow(
-                        label: 'Последнее изменение',
+                        label: local.t('operation_detail_updated'),
                         value: DateFormatter.formatDateTime(
                           operation.updatedAt,
                           format: 'dd.MM.yyyy HH:mm',
@@ -258,7 +261,7 @@ class OperationDetailScreen extends StatelessWidget {
                       if (operation.id > 0) ...[
                         const SizedBox(height: 12),
                         _InfoRow(
-                          label: 'ID операции',
+                          label: local.t('operation_detail_id'),
                           value: '#${operation.id}',
                         ),
                       ],
@@ -271,7 +274,7 @@ class OperationDetailScreen extends StatelessWidget {
                 if (operation.comment != null &&
                     operation.comment!.isNotEmpty)
                   _SectionCard(
-                    title: 'Комментарий',
+                    title: local.t('operation_detail_comment'),
                     icon: Icons.notes_rounded,
                     child: Container(
                       width: double.infinity,
@@ -301,7 +304,7 @@ class OperationDetailScreen extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _editOperation(context),
                         icon: const Icon(Icons.edit_rounded),
-                        label: const Text('Редактировать операцию'),
+                        label: Text(local.t('operation_detail_edit_button')),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -315,7 +318,7 @@ class OperationDetailScreen extends StatelessWidget {
 
                 
                 _SectionCard(
-                  title: 'Статус',
+                  title: local.t('operation_detail_status'),
                   icon: Icons.timeline_rounded,
                   child: _StatusTimeline(status: operation.status),
                 ),
@@ -540,24 +543,25 @@ class _StatusTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final local = context.watch<LocalizationProvider>();
     final steps = [
       _TimelineStepData(
-        label: 'Операция создана',
-        subtitle: 'Проведена в системе',
+        label: local.t('operation_detail_status_created'),
+        subtitle: local.t('operation_detail_status_created_sub'),
         isCompleted: true,
         isLast: false,
       ),
       _TimelineStepData(
         label: status == OperationStatus.active
-            ? 'Исполнена'
+            ? local.t('operation_detail_status_executed')
             : status == OperationStatus.cancelled
-                ? 'Отменена'
-                : 'Частично отменена',
+                ? local.t('operation_detail_status_cancelled')
+                : local.t('operation_detail_status_partial'),
         subtitle: status == OperationStatus.active
-            ? 'Операция завершена успешно'
+            ? local.t('operation_detail_status_executed_sub')
             : status == OperationStatus.cancelled
-                ? 'Операция отменена'
-                : 'Часть операции отменена',
+                ? local.t('operation_detail_status_cancelled_sub')
+                : local.t('operation_detail_status_partial_sub'),
         isCompleted: true,
         isLast: true,
         color: status == OperationStatus.active
