@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../models/user_model.dart';
 
 /// Auth remote data source
@@ -47,12 +49,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String username,
     required String password,
   }) async {
+    debugPrint('[Auth API] login($username) -> POST ${ApiEndpoints.login}');
     try {
       final response = await dioClient.dio.post(
         ApiEndpoints.login,
         data: {'username': username, 'password': password},
         options: Options(extra: {'skipAuth': true}),
       );
+      debugPrint('[Auth API] login success (${response.statusCode})');
 
       final data = _asMap(response.data);
       final accessToken = data['access'] as String;
@@ -68,17 +72,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final userResponse = await dioClient.dio.get(ApiEndpoints.usersMe);
       return UserModel.fromJson(_asMap(userResponse.data));
     } on DioException catch (e) {
+      debugPrint('[Auth API] login ERROR (${e.response?.statusCode}): ${e.response?.data}');
       throw AuthException(
         message: _errorMessage(e.response?.data, fallback: 'Ошибка авторизации'),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
+      debugPrint('[Auth API] login UNEXPECTED ERROR: $e');
       throw AuthException(message: 'Ошибка авторизации: ${e.toString()}');
     }
   }
 
   @override
   Future<UserModel> refreshToken(String refreshToken) async {
+    debugPrint('[Auth API] refreshToken -> POST ${ApiEndpoints.refresh}');
     try {
       final response = await dioClient.dio.post(
         ApiEndpoints.refresh,
@@ -91,13 +98,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         key: StorageKeys.accessToken,
         value: accessToken,
       );
+      debugPrint('[Auth API] refreshToken success');
 
       final userResponse = await dioClient.dio.get(ApiEndpoints.usersMe);
       return UserModel.fromJson(_asMap(userResponse.data));
     } on DioException catch (e) {
+      debugPrint('[Auth API] refreshToken ERROR (${e.response?.statusCode}): ${e.response?.data}');
       await clearTokens();
       throw AuthException(
-        message: 'Токен истек',
+        message: extractDrfErrorMessage(e, 'Токен истек'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -116,12 +125,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> getCurrentUser() async {
+    debugPrint('[Auth API] getCurrentUser -> GET ${ApiEndpoints.usersMe}');
     try {
       final response = await dioClient.dio.get(ApiEndpoints.usersMe);
+      debugPrint('[Auth API] getCurrentUser success');
       return UserModel.fromJson(_asMap(response.data));
     } on DioException catch (e) {
+      debugPrint('[Auth API] getCurrentUser ERROR (${e.response?.statusCode}): ${e.response?.data}');
       throw AuthException(
-        message: 'Ошибка получения данных пользователя',
+        message: extractDrfErrorMessage(e, 'Ошибка получения данных пользователя'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -132,6 +144,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String currentPassword,
     required String newPassword,
   }) async {
+    debugPrint('[Auth API] changePassword -> POST ${ApiEndpoints.changePassword}');
     try {
       await dioClient.dio.post(
         ApiEndpoints.changePassword,
@@ -140,7 +153,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'new_password': newPassword,
         },
       );
+      debugPrint('[Auth API] changePassword success');
     } on DioException catch (e) {
+      debugPrint('[Auth API] changePassword ERROR (${e.response?.statusCode}): ${e.response?.data}');
       throw AuthException(
         message: _errorMessage(e.response?.data, fallback: 'Ошибка смены пароля'),
         statusCode: e.response?.statusCode,
@@ -186,6 +201,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     throw const FormatException('Некорректный формат ответа сервера');
   }
 
+  /// Parses auth error responses. Handles both DRF format and custom format.
+  /// Delegates to [extractDrfErrorMessage] for standard formats,
+  /// but also handles string/List responses that DRF sometimes returns for auth.
   String _errorMessage(dynamic data, {required String fallback}) {
     if (data is String && data.trim().isNotEmpty) {
       return data;
@@ -194,8 +212,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return data.join(', ');
     }
     if (data is Map) {
+      
+      final error = data['error'];
+      if (error != null) {
+        if (error is List && error.isNotEmpty) return error.first.toString();
+        return error.toString();
+      }
+
       final detail = data['detail'];
       if (detail != null) {
+        if (detail is List && detail.isNotEmpty) return detail.first.toString();
         return detail.toString();
       }
 
@@ -208,9 +234,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       if (data.isNotEmpty) {
-        return data.entries
-            .map((entry) => '${entry.key}: ${entry.value}')
-            .join(', ');
+        final firstKey = data.keys.first;
+        final firstValue = data[firstKey];
+        if (firstValue is List && firstValue.isNotEmpty) {
+          return firstValue.first.toString();
+        }
+        return firstValue.toString();
       }
     }
     return fallback;

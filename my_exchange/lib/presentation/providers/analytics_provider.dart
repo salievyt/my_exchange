@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../../core/network/dio_client.dart';
 import '../../di/service_locator.dart';
 
@@ -83,9 +84,10 @@ class AnalyticsProvider extends ChangeNotifier {
       _data = AnalyticsData.fromJson(response.data as Map<String, dynamic>);
       _errorMessage = null;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data['detail']?.toString() ??
-          'Ошибка загрузки аналитики';
+      debugPrint('[Analytics] loadDashboard ERROR (${e.response?.statusCode}): ${e.response?.data}');
+      _errorMessage = extractDrfErrorMessage(e, 'Ошибка загрузки аналитики');
     } catch (e) {
+      debugPrint('[Analytics] loadDashboard UNEXPECTED ERROR: $e');
       _errorMessage = 'Ошибка загрузки аналитики: ${e.toString()}';
     }
 

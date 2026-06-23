@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../models/operation_model.dart';
 
 /// Operation remote data source
@@ -90,7 +92,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       return results.map((json) => OperationModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения операций',
+        message: extractDrfErrorMessage(e, 'Ошибка получения операций'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -118,33 +120,36 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     String? clientCompany,
     String? comment,
   }) async {
-    try {
-      final data = <String, dynamic>{
-        'operation_type': operationType,
-        'currency': currencyId,
-        'rate': rate.toString(),
-        'amount': amount.toString(),
-      };
-      if (clientName != null) {
-        data['client_name'] = clientName;
-      }
-      if (clientCompany != null) {
-        data['client_company'] = clientCompany;
-      }
-      if (comment != null) {
-        data['comment'] = comment;
-      }
+    final data = <String, dynamic>{
+      'operation_type': operationType,
+      'currency': currencyId,
+      'rate': rate.toString(),
+      'amount': amount.toString(),
+    };
+    if (clientName != null) data['client_name'] = clientName;
+    if (clientCompany != null) data['client_company'] = clientCompany;
+    if (comment != null) data['comment'] = comment;
 
+    debugPrint('[API] createOperation -> POST ${ApiEndpoints.operations}');
+    debugPrint('[API] Request data: $data');
+
+    try {
       final response = await dioClient.dio.post(
         ApiEndpoints.operations,
         data: data,
       );
+      debugPrint('[API] createOperation success (${response.statusCode}): ${response.data}');
       return OperationModel.fromJson(response.data);
     } on DioException catch (e) {
+      debugPrint('[API] createOperation ERROR (${e.response?.statusCode}):');
+      debugPrint('[API]   Request URL: ${e.requestOptions.uri}');
+      debugPrint('[API]   Request data: ${e.requestOptions.data}');
+      debugPrint('[API]   Response body: ${e.response?.data}');
+      debugPrint('[API]   Headers: ${e.response?.headers}');
+      debugPrint('[API]   Error: ${e.message}');
+      debugPrint('[API]   StackTrace: ${e.stackTrace}');
       throw ServerException(
-        message:
-            e.response?.data['detail']?.toString() ??
-            'Ошибка создания операции',
+        message: extractDrfErrorMessage(e, 'Ошибка создания операции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -159,29 +164,34 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     String? clientName,
     String? clientCompany,
   }) async {
-    try {
-      final data = <String, dynamic>{
-        'amount': amount.toString(),
-        'rate': rate.toString(),
-      };
-      if (comment != null) {
-        data['comment'] = comment;
-      }
-      if (clientName != null) {
-        data['client_name'] = clientName;
-      }
-      if (clientCompany != null) {
-        data['client_company'] = clientCompany;
-      }
+    final data = <String, dynamic>{
+      'amount': amount.toString(),
+      'rate': rate.toString(),
+    };
+    if (comment != null) data['comment'] = comment;
+    if (clientName != null) data['client_name'] = clientName;
+    if (clientCompany != null) data['client_company'] = clientCompany;
 
+    debugPrint('[API] updateOperation($id) -> PATCH ${ApiEndpoints.operations}$id/');
+    debugPrint('[API] Request data: $data');
+
+    try {
       final response = await dioClient.dio.patch(
         '${ApiEndpoints.operations}$id/',
         data: data,
       );
+      debugPrint('[API] updateOperation success (${response.statusCode}): ${response.data}');
       return OperationModel.fromJson(response.data);
     } on DioException catch (e) {
+      debugPrint('[API] updateOperation ERROR (${e.response?.statusCode}):');
+      debugPrint('[API]   Request URL: ${e.requestOptions.uri}');
+      debugPrint('[API]   Request data: ${e.requestOptions.data}');
+      debugPrint('[API]   Response body: ${e.response?.data}');
+      debugPrint('[API]   Headers: ${e.response?.headers}');
+      debugPrint('[API]   Error: ${e.message}');
+      debugPrint('[API]   StackTrace: ${e.stackTrace}');
       throw ServerException(
-        message: 'Ошибка обновления операции',
+        message: extractDrfErrorMessage(e, 'Ошибка обновления операции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -189,11 +199,14 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
 
   @override
   Future<void> deleteOperation(String id) async {
+    debugPrint('[API] deleteOperation($id) -> DELETE ${ApiEndpoints.operations}$id/');
     try {
       await dioClient.dio.delete('${ApiEndpoints.operations}$id/');
+      debugPrint('[API] deleteOperation success');
     } on DioException catch (e) {
+      debugPrint('[API] deleteOperation ERROR: ${e.message}');
       throw ServerException(
-        message: 'Ошибка удаления операции',
+        message: extractDrfErrorMessage(e, 'Ошибка удаления операции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -204,19 +217,27 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     required String id,
     double? cancelAmount,
   }) async {
+    final data = <String, dynamic>{};
+    if (cancelAmount != null) data['cancel_amount'] = cancelAmount.toString();
+
+    debugPrint('[API] cancelOperation($id) -> POST ${ApiEndpoints.operationCancel}$id/cancel/');
+    debugPrint('[API] Request data: $data');
+
     try {
-      final data = <String, dynamic>{};
-      if (cancelAmount != null) {
-        data['cancel_amount'] = cancelAmount.toString();
-      }
       final response = await dioClient.dio.post(
         '${ApiEndpoints.operationCancel}$id/cancel/',
         data: data,
       );
+      debugPrint('[API] cancelOperation success (${response.statusCode}): ${response.data}');
       return OperationModel.fromJson(response.data);
     } on DioException catch (e) {
+      debugPrint('[API] cancelOperation ERROR (${e.response?.statusCode}):');
+      debugPrint('[API]   Request URL: ${e.requestOptions.uri}');
+      debugPrint('[API]   Response body: ${e.response?.data}');
+      debugPrint('[API]   Error: ${e.message}');
+      debugPrint('[API]   StackTrace: ${e.stackTrace}');
       throw ServerException(
-        message: 'Ошибка отмены операции',
+        message: extractDrfErrorMessage(e, 'Ошибка отмены операции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -231,7 +252,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       return List<Map<String, dynamic>>.from(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения истории операции',
+        message: extractDrfErrorMessage(e, 'Ошибка получения истории операции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -244,7 +265,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения статистики за сегодня',
+        message: extractDrfErrorMessage(e, 'Ошибка получения статистики за сегодня'),
         statusCode: e.response?.statusCode,
       );
     }

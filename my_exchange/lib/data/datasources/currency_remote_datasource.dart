@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../models/currency_model.dart';
 
 /// Currency remote data source
@@ -76,8 +77,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       return results.map((json) => CurrencyModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data['detail']?.toString() ?? 'Ошибка получения валют',
+        message: extractDrfErrorMessage(e, 'Ошибка получения валют'),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
@@ -102,7 +102,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       return results.map((json) => CurrencyModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения активных валют',
+        message: extractDrfErrorMessage(e, 'Ошибка получения активных валют'),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
@@ -148,7 +148,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       return CurrencyModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка создания валюты',
+        message: extractDrfErrorMessage(e, 'Ошибка создания валюты'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -180,7 +180,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       return CurrencyModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка обновления валюты',
+        message: extractDrfErrorMessage(e, 'Ошибка обновления валюты'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -192,7 +192,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       await dioClient.dio.delete('${ApiEndpoints.currencies}$id/');
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка удаления валюты',
+        message: extractDrfErrorMessage(e, 'Ошибка удаления валюты'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -207,7 +207,7 @@ class CurrencyRemoteDataSourceImpl implements CurrencyRemoteDataSource {
       return List<Map<String, dynamic>>.from(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения истории курса',
+        message: extractDrfErrorMessage(e, 'Ошибка получения истории курса'),
         statusCode: e.response?.statusCode,
       );
     }

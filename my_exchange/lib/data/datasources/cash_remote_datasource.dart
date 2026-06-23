@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../models/cash_balance_model.dart';
 import '../models/cash_register_model.dart';
 import '../models/cash_transaction_model.dart';
@@ -100,7 +101,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return results.map((json) => CashBalanceModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения остатков',
+        message: extractDrfErrorMessage(e, 'Ошибка получения остатков'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -127,7 +128,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения сводки по остаткам',
+        message: extractDrfErrorMessage(e, 'Ошибка получения сводки по остаткам'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -142,7 +143,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return results.map((json) => CashBalanceModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения низких остатков',
+        message: extractDrfErrorMessage(e, 'Ошибка получения низких остатков'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -172,7 +173,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return results.map((json) => CashRegisterModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения кассовых смен',
+        message: extractDrfErrorMessage(e, 'Ошибка получения кассовых смен'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -202,7 +203,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
         throw NotFoundException(message: 'Активная смена не найдена');
       }
       throw ServerException(
-        message: 'Ошибка получения текущей смены',
+        message: extractDrfErrorMessage(e, 'Ошибка получения текущей смены'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -226,8 +227,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return CashRegisterModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data['detail']?.toString() ?? 'Ошибка открытия смены',
+        message: extractDrfErrorMessage(e, 'Ошибка открытия смены'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -252,7 +252,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return CashRegisterModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка закрытия смены',
+        message: extractDrfErrorMessage(e, 'Ошибка закрытия смены'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -276,7 +276,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return CashRegisterModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка обновления смены',
+        message: extractDrfErrorMessage(e, 'Ошибка обновления смены'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -308,7 +308,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка получения транзакций',
+        message: extractDrfErrorMessage(e, 'Ошибка получения транзакций'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -338,7 +338,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       return CashTransactionModel.fromJson(response.data);
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка создания транзакции',
+        message: extractDrfErrorMessage(e, 'Ошибка создания транзакции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -356,7 +356,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
         throw NotFoundException(message: 'Транзакция не найдена');
       }
       throw ServerException(
-        message: 'Ошибка получения транзакции',
+        message: extractDrfErrorMessage(e, 'Ошибка получения транзакции'),
         statusCode: e.response?.statusCode,
       );
     }
@@ -368,7 +368,7 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
       await dioClient.dio.delete('${ApiEndpoints.cashTransactions}$id/');
     } on DioException catch (e) {
       throw ServerException(
-        message: 'Ошибка удаления транзакции',
+        message: extractDrfErrorMessage(e, 'Ошибка удаления транзакции'),
         statusCode: e.response?.statusCode,
       );
     }

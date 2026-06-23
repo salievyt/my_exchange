@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../../di/service_locator.dart';
 import '../../core/network/dio_client.dart';
 
@@ -148,11 +149,13 @@ class ReportsProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
+      debugPrint('[Reports] downloadReport ERROR (${e.response?.statusCode}): ${e.response?.data}');
       _errorMessage = _extractError(e);
       _isLoading = false;
       notifyListeners();
       return false;
     } catch (e) {
+      debugPrint('[Reports] downloadReport UNEXPECTED ERROR: $e');
       _errorMessage = 'Ошибка: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
@@ -160,11 +163,8 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
+  /// Extracts error message from response, with network-specific hints.
   String _extractError(DioException e) {
-    final data = e.response?.data;
-    if (data is Map && data['error'] != null) {
-      return data['error'].toString();
-    }
     
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
@@ -173,7 +173,8 @@ class ReportsProvider extends ChangeNotifier {
     if (e.type == DioExceptionType.connectionError) {
       return 'Нет подключения к интернету. Проверьте соединение.';
     }
-    return 'Ошибка загрузки отчёта';
+    
+    return extractDrfErrorMessage(e, 'Ошибка загрузки отчёта');
   }
 
   void clearMessages() {

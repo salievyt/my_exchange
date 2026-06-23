@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/utils/drf_error_helper.dart';
 import '../models/app_version_model.dart';
 
 /// Notification remote data source
@@ -43,9 +44,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       }
       return null;
     } on DioException catch (e) {
-      
       throw ServerException(
-        message: 'Ошибка проверки обновлений',
+        message: extractDrfErrorMessage(e, 'Ошибка проверки обновлений'),
         statusCode: e.response?.statusCode,
       );
     }

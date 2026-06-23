@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/operation.dart';
@@ -161,7 +162,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCurrencyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Выберите валюту')),
+        SnackBar(content: Text(context.read<LocalizationProvider>().t('create_operation_select_currency'))),
       );
       return;
     }
@@ -178,10 +179,10 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Недостаточно сом (KGS) в кассе. Доступно: '
-                  '${CurrencyFormatter.format(kgsBalance, symbol: "сом")}, '
-                  'требуется: ${CurrencyFormatter.format(_totalAmount, symbol: "сом")}',
+                content:              Text(
+                  context.read<LocalizationProvider>().t('create_operation_insufficient_kgs')
+                    .replaceAll('{balance}', CurrencyFormatter.format(kgsBalance, symbol: context.read<LocalizationProvider>().t('general_som')))
+                    .replaceAll('{required}', CurrencyFormatter.format(_totalAmount, symbol: context.read<LocalizationProvider>().t('general_som'))),
                 ),
                 backgroundColor: AppColors.error,
                 duration: const Duration(seconds: 4),
@@ -201,8 +202,9 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Недостаточно ${currency.code} в кассе. Доступно: '
-                    '${CurrencyFormatter.format(currencyBalance)}',
+                    context.read<LocalizationProvider>().t('create_operation_insufficient_currency')
+                      .replaceAll('{currency}', currency.code)
+                      .replaceAll('{balance}', CurrencyFormatter.format(currencyBalance)),
                   ),
                   backgroundColor: AppColors.error,
                   duration: const Duration(seconds: 4),
@@ -215,36 +217,47 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
       }
     }
 
+final clientName = _clientNameController.text.trim().isEmpty
+        ? null
+        : _clientNameController.text.trim();
+    final clientCompany = _clientCompanyController.text.trim().isEmpty
+        ? null
+        : _clientCompanyController.text.trim();
+    final commentText = _commentController.text.trim().isEmpty
+        ? null
+        : _commentController.text.trim();
+
+    debugPrint('[Screen] _submit: operationType=${_operationType.value} currencyId=$_selectedCurrencyId');
+    debugPrint('[Screen]   amount=$amount rate=$rate total=$_totalAmount');
+    debugPrint('[Screen]   clientName=$clientName clientCompany=$clientCompany');
+    debugPrint('[Screen]   isEditing=$_isEditing');
+
     if (_isEditing && widget.operation != null) {
       
       final success = await provider.updateOperation(
         id: widget.operation!.id.toString(),
         amount: amount,
         rate: rate,
-        clientName: _clientNameController.text.trim().isEmpty
-            ? null
-            : _clientNameController.text.trim(),
-        clientCompany: _clientCompanyController.text.trim().isEmpty
-            ? null
-            : _clientCompanyController.text.trim(),
-        comment: _commentController.text.trim().isEmpty
-            ? null
-            : _commentController.text.trim(),
+        clientName: clientName,
+        clientCompany: clientCompany,
+        comment: commentText,
       );
 
       if (mounted) {
         if (success) {
+          debugPrint('[Screen] updateOperation SUCCESS, popping...');
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Операция обновлена'),
+            SnackBar(
+              content: Text(context.read<LocalizationProvider>().t('create_operation_success_updated')),
               backgroundColor: AppColors.success,
             ),
           );
         } else {
+          debugPrint('[Screen] updateOperation FAILED: ${provider.errorMessage}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(provider.errorMessage ?? 'Ошибка обновления операции'),
+              content: Text(provider.errorMessage ?? context.read<LocalizationProvider>().t('create_operation_error_update')),
               backgroundColor: AppColors.error,
             ),
           );
@@ -257,30 +270,26 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
         currencyId: _selectedCurrencyId!,
         rate: rate,
         amount: amount,
-        clientName: _clientNameController.text.trim().isEmpty
-            ? null
-            : _clientNameController.text.trim(),
-        clientCompany: _clientCompanyController.text.trim().isEmpty
-            ? null
-            : _clientCompanyController.text.trim(),
-        comment: _commentController.text.trim().isEmpty
-            ? null
-            : _commentController.text.trim(),
+        clientName: clientName,
+        clientCompany: clientCompany,
+        comment: commentText,
       );
 
       if (mounted) {
         if (operation != null) {
+          debugPrint('[Screen] createOperation SUCCESS: id=${operation.id} number=${operation.operationNumber}, popping...');
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Операция успешно создана'),
+            SnackBar(
+              content: Text(context.read<LocalizationProvider>().t('create_operation_success_created')),
               backgroundColor: AppColors.success,
             ),
           );
         } else {
+          debugPrint('[Screen] createOperation FAILED: ${provider.errorMessage}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(provider.errorMessage ?? 'Ошибка создания операции'),
+              content: Text(provider.errorMessage ?? context.read<LocalizationProvider>().t('create_operation_error_create')),
               backgroundColor: AppColors.error,
             ),
           );
@@ -291,7 +300,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isEditing ? 'Редактирование операции' : 'Новая операция';
+    final local = context.watch<LocalizationProvider>();
+    final title = _isEditing ? local.t('create_operation_title_edit') : local.t('create_operation_title_new');
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(title)),
@@ -309,8 +319,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Тип операции',
+                      Text(
+                        local.t('create_operation_type'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -363,9 +373,9 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Валюта',
-                        style: TextStyle(
+                      Text(
+                        local.t('create_operation_currency'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -379,8 +389,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                             );
                           }
                           return DropdownButtonFormField<int>(
-                            decoration: const InputDecoration(
-                              labelText: 'Выберите валюту',
+                            decoration: InputDecoration(
+                              labelText: local.t('create_operation_currency_select'),
                             ),
                             value: _selectedCurrencyId,
                             items: provider.currencies.map((currency) {
@@ -400,7 +410,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                                     });
                                   },
                             validator: (value) {
-                              if (value == null) return 'Выберите валюту';
+                              if (value == null) return local.t('create_operation_currency_select');
                               return null;
                             },
                           );
@@ -419,16 +429,16 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Параметры операции',
-                        style: TextStyle(
+                      Text(
+                        local.t('create_operation_params'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Изменение любых двух полей автоматически пересчитывает третье',
+                        local.t('create_operation_params_hint'),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -444,17 +454,17 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                         ),
                         decoration: InputDecoration(
                           labelText: _operationType == OperationType.buy
-                              ? 'Сумма покупки (валюта)'
-                              : 'Сумма продажи (валюта)',
+                              ? local.t('create_operation_amount_buy_label')
+                              : local.t('create_operation_amount_sell_label'),
                           prefixIcon: const Icon(Icons.currency_exchange),
                         ),
                         onChanged: _onAmountChanged,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Введите сумму';
+                            return local.t('create_operation_amount_required');
                           }
                           final amt = CurrencyFormatter.parse(value);
-                          if (amt <= 0) return 'Некорректная сумма';
+                          if (amt <= 0) return local.t('create_operation_amount_invalid');
                           return null;
                         },
                       ),
@@ -467,17 +477,17 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                           decimal: true,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Курс обмена',
+                          labelText: local.t('create_operation_rate_label'),
                           prefixIcon: const Icon(Icons.trending_up),
                           suffixText: 'сом',
                         ),
                         onChanged: _onRateChanged,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Введите курс';
+                            return local.t('create_operation_rate_required');
                           }
                           final r = CurrencyFormatter.parse(value);
-                          if (r <= 0) return 'Некорректный курс';
+                          if (r <= 0) return local.t('create_operation_rate_invalid');
                           return null;
                         },
                       ),
@@ -490,17 +500,17 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                           decimal: true,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Итого к выдаче (сом)',
+                          labelText: local.t('create_operation_total_label'),
                           prefixIcon: const Icon(Icons.calculate),
                           suffixText: 'сом',
                         ),
                         onChanged: _onTotalChanged,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Введите итоговую сумму';
+                            return local.t('create_operation_total_required');
                           }
                           final t = CurrencyFormatter.parse(value);
-                          if (t <= 0) return 'Некорректная сумма';
+                          if (t <= 0) return local.t('create_operation_total_invalid');
                           return null;
                         },
                       ),
@@ -521,7 +531,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                         children: [
                           Expanded(
                             child: _SummaryItem(
-                              label: 'Сумма',
+                              label: local.t('create_operation_summary_amount'),
                               value: CurrencyFormatter.format(_amount),
                             ),
                           ),
@@ -531,7 +541,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                           ),
                           Expanded(
                             child: _SummaryItem(
-                              label: 'Курс',
+                              label: local.t('create_operation_summary_rate'),
                               value: _rate.toStringAsFixed(4),
                             ),
                           ),
@@ -541,7 +551,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                           ),
                           Expanded(
                             child: _SummaryItem(
-                              label: 'Итого',
+                              label: local.t('create_operation_summary_total'),
                               value: '${CurrencyFormatter.format(_totalAmount)} сом',
                               isBold: true,
                             ),
@@ -561,8 +571,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Информация о клиенте',
+                      Text(
+                        local.t('create_operation_client_info'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -571,17 +581,17 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _clientNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Имя клиента (необязательно)',
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          labelText: local.t('create_operation_client_name'),
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _clientCompanyController,
-                        decoration: const InputDecoration(
-                          labelText: 'Компания (необязательно)',
-                          prefixIcon: Icon(Icons.business_outlined),
+                        decoration: InputDecoration(
+                          labelText: local.t('create_operation_client_company'),
+                          prefixIcon: const Icon(Icons.business_outlined),
                         ),
                       ),
                     ],
@@ -597,9 +607,9 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Комментарий',
-                        style: TextStyle(
+                      Text(
+                        local.t('create_operation_comment_label'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -608,8 +618,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                       TextFormField(
                         controller: _commentController,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Комментарий (необязательно)',
+                        decoration: InputDecoration(
+                          labelText: local.t('create_operation_comment_optional'),
                           alignLabelWithHint: true,
                         ),
                       ),
@@ -638,7 +648,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
                               ),
                             )
                           : Text(
-                              _isEditing ? 'Сохранить изменения' : 'Создать операцию',
+                              _isEditing ? local.t('create_operation_save') : local.t('create_operation_create'),
                               style: const TextStyle(fontSize: 18),
                             ),
                     ),

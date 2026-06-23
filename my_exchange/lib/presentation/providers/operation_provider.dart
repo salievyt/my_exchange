@@ -137,6 +137,10 @@ class OperationProvider extends ChangeNotifier {
     String? clientCompany,
     String? comment,
   }) async {
+    debugPrint('[Provider] createOperation started:');
+    debugPrint('[Provider]   type=$operationType currencyId=$currencyId rate=$rate amount=$amount');
+    debugPrint('[Provider]   clientName=$clientName clientCompany=$clientCompany');
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -156,10 +160,12 @@ class OperationProvider extends ChangeNotifier {
     return result.fold(
       (failure) {
         _errorMessage = failure.message;
+        debugPrint('[Provider] createOperation FAILED: ${failure.message} (status: ${failure.statusCode})');
         notifyListeners();
         return null;
       },
       (operation) {
+        debugPrint('[Provider] createOperation SUCCESS: id=${operation.id} number=${operation.operationNumber}');
         _operations.insert(0, operation);
         notifyListeners();
         return operation;
@@ -175,6 +181,8 @@ class OperationProvider extends ChangeNotifier {
     String? clientName,
     String? clientCompany,
   }) async {
+    debugPrint('[Provider] updateOperation($id) started: rate=$rate amount=$amount');
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -193,11 +201,12 @@ class OperationProvider extends ChangeNotifier {
     return result.fold(
       (failure) {
         _errorMessage = failure.message;
+        debugPrint('[Provider] updateOperation FAILED: ${failure.message} (status: ${failure.statusCode})');
         notifyListeners();
         return false;
       },
       (operation) {
-        
+        debugPrint('[Provider] updateOperation SUCCESS: id=${operation.id} number=${operation.operationNumber}');
         final index = _operations.indexWhere((o) => o.id == operation.id);
         if (index != -1) {
           _operations[index] = operation;
@@ -231,6 +240,8 @@ class OperationProvider extends ChangeNotifier {
   }
 
   Future<bool> cancelOperation(String id, {double? cancelAmount}) async {
+    debugPrint('[Provider] cancelOperation($id) started: cancelAmount=$cancelAmount');
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -245,11 +256,12 @@ class OperationProvider extends ChangeNotifier {
     return result.fold(
       (failure) {
         _errorMessage = failure.message;
+        debugPrint('[Provider] cancelOperation FAILED: ${failure.message} (status: ${failure.statusCode})');
         notifyListeners();
         return false;
       },
       (operation) {
-        
+        debugPrint('[Provider] cancelOperation SUCCESS: id=${operation.id} status=${operation.status}');
         final index = _operations.indexWhere((o) => o.id == operation.id);
         if (index != -1) {
           _operations[index] = operation;
