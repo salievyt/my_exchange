@@ -10,11 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production')
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,6 +39,8 @@ INSTALLED_APPS = [
     'apps.logs',
     'apps.analytics',
     'apps.notifications',
+    'apps.requests',
+    'apps.bot',
 ]
 
 MIDDLEWARE = [
@@ -129,6 +132,88 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Jazzmin — Django Admin Theme
+JAZZMIN_SETTINGS = {
+    # Title and branding
+    'site_title': 'My Exchange',
+    'site_header': 'My Exchange',
+    'site_brand': 'My Exchange',
+    'welcome_sign': 'Добро пожаловать в My Exchange',
+    'copyright': 'My Exchange © 2026',
+    
+    # Logo (uses static files)
+    'site_logo': None,
+    'login_logo': None,
+    'login_logo_dark': None,
+    
+    # Icons
+    'icons': {
+        'auth.User': 'fas fa-user',
+        'auth.Group': 'fas fa-users-cog',
+        'users.User': 'fas fa-user',
+        'users.LoginHistory': 'fas fa-sign-in-alt',
+        'currencies.Currency': 'fas fa-money-bill-wave',
+        'currencies.ExchangeRate': 'fas fa-chart-line',
+        'currencies.CurrencyRateHistory': 'fas fa-history',
+        'operations.Operation': 'fas fa-exchange-alt',
+        'operations.OperationEditHistory': 'fas fa-pen',
+        'operations.OperationCancellation': 'fas fa-ban',
+        'cash.CashBalance': 'fas fa-coins',
+        'cash.CashTransaction': 'fas fa-hand-holding-usd',
+        'cash.CashRegister': 'fas fa-cash-register',
+        'logs.AuditLog': 'fas fa-clipboard-list',
+    },
+    
+    # Related modal
+    'related_modal_active': True,
+    
+    # UI customizer
+    'show_ui_builder': False,
+    
+    # Top menu
+    'custom_links': None,
+    
+    # Dashboard widgets
+    'dashboard_widgets': [
+        {
+            'name': 'request_stats',
+            'class': 'apps.requests.admin.RequestDashboardWidget',
+            'width': 'col-lg-6',
+        },
+    ],
+    
+    # Order of apps in menu
+    'order_with_respect_to': [
+        'users',
+        'currencies',
+        'operations',
+        'cash',
+        'logs',
+        'notifications',
+        'reports',
+        'analytics',
+        'auth',
+    ],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    'theme': 'flatly',
+    'dark_mode_theme': None,
+    'brand_colour': 'primary',
+    'accent': 'primary',
+    'navbar': 'navbar navbar-expand-lg navbar-dark bg-primary',
+    'sidebar': 'sidebar-dark-primary',
+    'button_classes': {
+        'primary': 'btn btn-primary',
+        'secondary': 'btn btn-secondary',
+        'info': 'btn btn-info',
+        'warning': 'btn btn-warning',
+        'danger': 'btn btn-danger',
+        'success': 'btn btn-success',
+    },
+    'actions_sticky_top': True,
+}
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -180,19 +265,38 @@ CSRF_TRUSTED_ORIGINS = config(
     default='http://localhost:3000,http://127.0.0.1:3000,https://dev.phantom-ink.online'
 ).split(',')
 
-CSRF_COOKIE_SECURE = False  # True в production с HTTPS
+# HTTPS / SSL — enforced by nginx, Django just needs to know it's behind HTTPS
+SECURE_SSL_REDIRECT = False  # nginx handles HTTP→HTTPS redirect
+
+# Trust X-Forwarded-Proto when behind a reverse proxy (nginx, Caddy, etc.)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# HSTS — force HTTPS for 1 year (nginx also sets this)
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=bool)
+
+# Secure cookies — use env vars so they can be disabled when not behind HTTPS
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = False  # True в production с HTTPS
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Security Settings
+# Security Headers
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Backup settings
 BACKUP_DIR = BASE_DIR / 'backups'
 BACKUP_KEEP_DAYS = config('BACKUP_KEEP_DAYS', default=30, cast=int)
+
+# Telegram Bot settings
+BOT_TOKEN = config('BOT_TOKEN', default='')
+BOT_WEBHOOK_URL = config('BOT_WEBHOOK_URL', default='')
 
 # Notification settings
 NOTIFY_LOW_CASH_THRESHOLD = config('NOTIFY_LOW_CASH_THRESHOLD', default=1000, cast=float)

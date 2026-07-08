@@ -2,6 +2,7 @@
 Operation models for My Exchange project.
 """
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 import uuid
@@ -118,8 +119,9 @@ class Operation(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.operation_number:
-            # Generate unique operation number
-            date_str = self.created_at.strftime('%Y%m%d') if self.created_at else ''
+            # Use timezone.now() as fallback since created_at is set after save via auto_now_add
+            now = timezone.now()
+            date_str = self.created_at.strftime('%Y%m%d') if self.created_at else now.strftime('%Y%m%d')
             unique_id = uuid.uuid4().hex[:6].upper()
             self.operation_number = f"OP-{date_str}-{unique_id}"
         super().save(*args, **kwargs)

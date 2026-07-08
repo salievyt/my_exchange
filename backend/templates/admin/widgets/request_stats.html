@@ -1,0 +1,97 @@
+{% load i18n %}
+
+<div class="card" style="border-left: 4px solid #2563eb;">
+    <div class="card-header">
+        <h3 class="card-title">
+            📋 {% trans "Заявки на регистрацию" %}
+        </h3>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>{% trans "Статус" %}</th>
+                    <th class="text-right">{% trans "Количество" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="badge badge-warning">{% trans "На рассмотрении" %}</span>
+                    </td>
+                    <td class="text-right">
+                        <strong>{{ pending_count }}</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-success">{% trans "Одобрено" %}</span>
+                    </td>
+                    <td class="text-right">
+                        <strong>{{ approved_count }}</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-danger">{% trans "Отклонено" %}</span>
+                    </td>
+                    <td class="text-right">
+                        <strong>{{ rejected_count }}</strong>
+                    </td>
+                </tr>
+                <tr class="table-active">
+                    <td><strong>{% trans "Всего" %}</strong></td>
+                    <td class="text-right"><strong>{{ total_count }}</strong></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="badge badge-info">{% trans "За сегодня" %}</span>
+                    </td>
+                    <td class="text-right">
+                        <strong>{{ today_count }}</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% if latest_requests %}
+    <div class="card-footer p-0">
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th colspan="3" class="small text-muted">
+                        {% trans "Последние заявки" %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in latest_requests %}
+                <tr>
+                    <td class="text-nowrap small">{{ req.created_at|date:"H:i" }}</td>
+                    <td class="small">{{ req.name }}</td>
+                    <td class="text-right">
+                        {% if req.status == 'pending' %}
+                            <span class="badge badge-warning">⏳</span>
+                        {% elif req.status == 'approved' %}
+                            <span class="badge badge-success">✅</span>
+                        {% elif req.status == 'rejected' %}
+                            <span class="badge badge-danger">❌</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="card-footer text-center">
+        <a href="{% url 'admin:requests_registrationrequest_changelist' %}?status__exact=pending" class="btn btn-sm btn-primary">
+            🔍 {% trans "Перейти к заявкам" %}
+        </a>
+        <a href="{% url 'admin:requests_registrationrequest_changelist' %}" class="btn btn-sm btn-secondary">
+            📋 {% trans "Все заявки" %}
+        </a>
+    </div>
+</div>

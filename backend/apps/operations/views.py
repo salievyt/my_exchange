@@ -233,16 +233,23 @@ class OperationViewSet(viewsets.ModelViewSet):
                 cancel_amount=cancel_amount,
                 reason=reason
             )
-            
-            # Update operation status
+
+            # Get or create cash balance for the operation's currency
+            cash_balance, _ = CashBalance.objects.get_or_create(
+                currency=operation.currency,
+                defaults={'balance': 0}
+            )
+
+            # Update operation status and reverse cash balance
             if cancellation_type == 'full':
                 operation.status = OperationStatus.CANCELLED
                 # Reverse cash balance
                 if operation.operation_type == OperationType.BUY:
-                    operation.cash_balance.balance -= operation.amount
+                    cash_balance.balance -= operation.amount
                 else:
-                    operation.cash_balance.balance += operation.amount
-                operation.cash_balance.save()
+                    cash_balance.balance += operation.amount
+                cash_balance.save()
+                operation.save()
             else:
                 operation.status = OperationStatus.PARTIALLY_CANCELLED
                 # Update operation amount

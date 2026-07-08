@@ -16,7 +16,7 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['action', 'user', 'model_name']
-    search_fields = ['username', 'ip_address', 'details']
+    search_fields = ['user__username', 'ip_address', 'details']
     ordering_fields = ['timestamp']
     ordering = ['-timestamp']
     
