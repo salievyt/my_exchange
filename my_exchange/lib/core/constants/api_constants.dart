@@ -1,5 +1,5 @@
 /// API Base URL
-const String baseUrl = 'https://dev.phantom-ink.online';
+const String baseUrl = 'https://api.myexchange.online';
 
 /// API Endpoints
 class ApiEndpoints {
@@ -69,7 +69,7 @@ class StorageKeys {
 /// App Constants
 class AppConstants {
   static const String appName = 'My Exchange';
-  static const String appVersion = '1.2.0';
+  static const String appVersion = '1.3.0';
 
   
   static const int defaultPageSize = 20;
