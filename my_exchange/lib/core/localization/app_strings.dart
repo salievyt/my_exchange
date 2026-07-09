@@ -168,6 +168,7 @@ class AppStrings {
     'cash_reserved': 'Зарезервировано',
     'cash_cashier': 'Кассир',
     'cash_opened_at': 'Открыта',
+    'cash_opening_balance': 'Начальные остатки',
     'cash_no_data': 'Нет данных',
 
     
@@ -369,6 +370,10 @@ class AppStrings {
     'transaction_amount': 'Сумма',
     'transaction_amount_required': 'Введите сумму',
     'transaction_amount_invalid': 'Некорректная сумма',
+    'transaction_client_name': 'Клиент (необязательно)',
+    'transaction_client_company': 'Наименование компании (необязательно)',
+    'transaction_rate': 'Курс (если иностранная валюта)',
+    'transaction_rate_hint': 'Необязательно',
     'transaction_comment': 'Комментарий (необязательно)',
     'transaction_cancel': 'Отмена',
     'transaction_create': 'Создать',
@@ -436,6 +441,17 @@ class AppStrings {
     'entity_transaction_type_deposit': 'Внесение наличности',
     'entity_transaction_type_withdrawal': 'Выдача наличности',
     'entity_transaction_type_inkassation': 'Инкассация',
+
+    
+    'onboarding_skip': 'Пропустить',
+    'onboarding_next': 'Далее',
+    'onboarding_get_started': 'Начать работу',
+    'onboarding_welcome_title': 'Добро пожаловать в My Exchange',
+    'onboarding_welcome_desc': 'Управляйте обменными операциями быстро и эффективно. Следите за курсами валют, ведите кассу и анализируйте прибыль.',
+    'onboarding_operations_title': 'Операции и касса',
+    'onboarding_operations_desc': 'Создавайте операции покупки и продажи валют, управляйте кассовыми сменами и отслеживайте движение денег в реальном времени.',
+    'onboarding_analytics_title': 'Аналитика и отчёты',
+    'onboarding_analytics_desc': 'Отслеживайте прибыль, популярность валют и загружайте детальные отчёты в один клик.',
   };
 
   
@@ -571,6 +587,7 @@ class AppStrings {
     'cash_reserved': 'Резервделген',
     'cash_cashier': 'Кассир',
     'cash_opened_at': 'Ачылган',
+    'cash_opening_balance': 'Баштапкы калдыктар',
     'cash_no_data': 'Маалымат жок',
 
     
@@ -751,6 +768,10 @@ class AppStrings {
     'transaction_amount': 'Сумма',
     'transaction_amount_required': 'Сумманы киргизиңиз',
     'transaction_amount_invalid': 'Туура эмес сумма',
+    'transaction_client_name': 'Кардар (милдеттүү эмес)',
+    'transaction_client_company': 'Компания (милдеттүү эмес)',
+    'transaction_rate': 'Курс (эгер чет элдик валюта болсо)',
+    'transaction_rate_hint': 'Милдеттүү эмес',
     'transaction_comment': 'Комментарий (милдеттүү эмес)',
     'transaction_cancel': 'Жокко чыгаруу',
     'transaction_create': 'Түзүү',
@@ -806,6 +827,17 @@ class AppStrings {
     'entity_transaction_type_deposit': 'Накталай акча киргизүү',
     'entity_transaction_type_withdrawal': 'Накталай акча чыгаруу',
     'entity_transaction_type_inkassation': 'Инкассация',
+
+    
+    'onboarding_skip': 'Өткөрүү',
+    'onboarding_next': 'Кийинки',
+    'onboarding_get_started': 'Баштоо',
+    'onboarding_welcome_title': 'My Exchange колдонмосуна кош келиңиз',
+    'onboarding_welcome_desc': 'Акча алмашуу операцияларын тез жана натыйжалуу башкарыңыз. Валюта курсун көзөмөлдөп, кассаны жүргүзүп, кирешени талдаңыз.',
+    'onboarding_operations_title': 'Операциялар жана касса',
+    'onboarding_operations_desc': 'Валюта сатып алуу жана сатуу операцияларын түзүңүз, касса сменаларын башкарыңыз, акча кыймылын көзөмөлдөңүз.',
+    'onboarding_analytics_title': 'Аналитика жана отчеттор',
+    'onboarding_analytics_desc': 'Кирешени, популярдуу валюталарды көзөмөлдөп, толук отчетторду бир баскыч менен жүктөп алыңыз.',
   };
 
   
@@ -940,6 +972,7 @@ class AppStrings {
     'cash_reserved': 'Reserved',
     'cash_cashier': 'Cashier',
     'cash_opened_at': 'Opened at',
+    'cash_opening_balance': 'Opening Balances',
     'cash_no_data': 'No data',
 
     
@@ -1120,6 +1153,10 @@ class AppStrings {
     'transaction_amount': 'Amount',
     'transaction_amount_required': 'Enter amount',
     'transaction_amount_invalid': 'Invalid amount',
+    'transaction_client_name': 'Client (optional)',
+    'transaction_client_company': 'Company (optional)',
+    'transaction_rate': 'Rate (if foreign currency)',
+    'transaction_rate_hint': 'Optional',
     'transaction_comment': 'Comment (optional)',
     'transaction_cancel': 'Cancel',
     'transaction_create': 'Create',
@@ -1175,6 +1212,17 @@ class AppStrings {
     'entity_transaction_type_deposit': 'Cash Deposit',
     'entity_transaction_type_withdrawal': 'Cash Withdrawal',
     'entity_transaction_type_inkassation': 'Inkassation',
+
+    
+    'onboarding_skip': 'Skip',
+    'onboarding_next': 'Next',
+    'onboarding_get_started': 'Get Started',
+    'onboarding_welcome_title': 'Welcome to My Exchange',
+    'onboarding_welcome_desc': 'Manage currency exchange operations quickly and efficiently. Track exchange rates, manage cash register, and analyze profits.',
+    'onboarding_operations_title': 'Operations & Cash',
+    'onboarding_operations_desc': 'Create buy and sell currency operations, manage cash register shifts, and track money flow in real time.',
+    'onboarding_analytics_title': 'Analytics & Reports',
+    'onboarding_analytics_desc': 'Track profitability, popular currencies, and download detailed reports with one click.',
   };
 
   
@@ -1310,6 +1358,7 @@ class AppStrings {
     'cash_reserved': 'Zahiralangan',
     'cash_cashier': 'Kassir',
     'cash_opened_at': 'Ochilgan',
+    'cash_opening_balance': 'Boshlang\'ich qoldiqlar',
     'cash_no_data': "Ma'lumot yo'q",
 
     
@@ -1545,6 +1594,17 @@ class AppStrings {
     'entity_transaction_type_deposit': 'Naqd pul kiritish',
     'entity_transaction_type_withdrawal': 'Naqd pul chiqarish',
     'entity_transaction_type_inkassation': 'Inkassatsiya',
+
+    
+    'onboarding_skip': "O'tkazib yuborish",
+    'onboarding_next': 'Keyingi',
+    'onboarding_get_started': 'Boshlash',
+    'onboarding_welcome_title': "My Exchange ga xush kelibsiz",
+    'onboarding_welcome_desc': 'Valyuta ayirboshlash operatsiyalarini tez va samarali boshqaring. Valyuta kurslarini kuzating, kassani yuriting va foydani tahlil qiling.',
+    'onboarding_operations_title': 'Operatsiyalar va kassa',
+    'onboarding_operations_desc': 'Valyuta sotib olish va sotish operatsiyalarini yarating, kassa smenalarini boshqaring va pul harakatini real vaqtda kuzating.',
+    'onboarding_analytics_title': 'Analitika va hisobotlar',
+    'onboarding_analytics_desc': "Foydani, ommabop valyutalarni kuzating va to'liq hisobotlarni bir tugma bilan yuklab oling.",
   };
 
   
@@ -1680,6 +1740,7 @@ class AppStrings {
     'cash_reserved': 'Заҳираланган',
     'cash_cashier': 'Кассир',
     'cash_opened_at': 'Очилган',
+    'cash_opening_balance': 'Бошланғич қолдиқлар',
     'cash_no_data': 'Маълумот йўқ',
 
     
@@ -1860,6 +1921,10 @@ class AppStrings {
     'transaction_amount': 'Сумма',
     'transaction_amount_required': 'Суммани киритинг',
     'transaction_amount_invalid': 'Нотўғри сумма',
+    'transaction_client_name': 'Мизож (ихтиёрий)',
+    'transaction_client_company': 'Компания (ихтиёрий)',
+    'transaction_rate': 'Курс (чет эл валютаси бўлса)',
+    'transaction_rate_hint': 'Ихтиёрий',
     'transaction_comment': 'Изоҳ (ихтиёрий)',
     'transaction_cancel': 'Бекор қилиш',
     'transaction_create': 'Яратиш',
@@ -1915,5 +1980,16 @@ class AppStrings {
     'entity_transaction_type_deposit': 'Нақд пул киритиш',
     'entity_transaction_type_withdrawal': 'Нақд пул чиқариш',
     'entity_transaction_type_inkassation': 'Инкассация',
+
+    
+    'onboarding_skip': 'Ўтказиб юбориш',
+    'onboarding_next': 'Кейинги',
+    'onboarding_get_started': 'Бошлаш',
+    'onboarding_welcome_title': 'My Exchange га хуш келибсиз',
+    'onboarding_welcome_desc': 'Валюта айирбошлаш операцияларини тез ва самарали бошқаринг. Валюта курсларини кузатинг, кассани юритинг ва фойдани таҳлил қилинг.',
+    'onboarding_operations_title': 'Операциялар ва касса',
+    'onboarding_operations_desc': 'Валюта сотиб олиш ва сотиш операцияларини яратинг, касса сменаларини бошқаринг ва пул ҳаракатини реал вақтда кузатинг.',
+    'onboarding_analytics_title': 'Аналитика ва ҳисоботлар',
+    'onboarding_analytics_desc': 'Фойдани, оммабоп валюталарни кузатинг ва тўлиқ ҳисоботларни бир тугма билан юклаб олинг.',
   };
 }
