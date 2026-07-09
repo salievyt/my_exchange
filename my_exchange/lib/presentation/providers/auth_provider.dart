@@ -43,6 +43,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _status == AuthStatus.loading;
   bool get biometricAvailable => _biometricAvailable;
   bool get biometricEnabled => _biometricEnabled;
+  bool _onboardingCompleted = false;
+  bool get onboardingCompleted => _onboardingCompleted;
   bool get isLocked => _isLocked;
 
   
@@ -153,6 +155,21 @@ class AuthProvider extends ChangeNotifier {
 
   
 
+  Future<void> checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+    notifyListeners();
+  }
+
+  Future<void> completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+    _onboardingCompleted = true;
+    notifyListeners();
+  }
+
+  
+
   Future<void> login({
     required String username,
     required String password,
@@ -177,6 +194,7 @@ class AuthProvider extends ChangeNotifier {
         _isLocked = false; 
         await checkBiometricAvailability();
         await loadBiometricSetting();
+        await checkOnboarding();
 
         notifyListeners();
       },
@@ -224,6 +242,7 @@ class AuthProvider extends ChangeNotifier {
 
         
         if (_status == AuthStatus.authenticated) {
+          await checkOnboarding();
           final prefs = await SharedPreferences.getInstance();
           final hasPin = prefs.getBool(_pinEnabledKey) ?? false;
           await checkBiometricAvailability();

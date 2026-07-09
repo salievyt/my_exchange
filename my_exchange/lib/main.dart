@@ -16,6 +16,7 @@ import 'presentation/providers/reports_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/lock_screen.dart';
+import 'presentation/screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,6 +115,11 @@ class AuthWrapper extends StatelessWidget {
         
         if (authProvider.isLocked) {
           return const LockScreen();
+        }
+
+        
+        if (!authProvider.onboardingCompleted) {
+          return const OnboardingScreen();
         }
 
         
