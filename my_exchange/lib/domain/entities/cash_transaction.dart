@@ -31,6 +31,9 @@ class CashTransaction extends Equatable {
   final int cashierId;
   final String cashierUsername;
   final String cashierName;
+  final String? clientName;
+  final String? clientCompany;
+  final double? rate;
   final String? comment;
   final DateTime createdAt;
 
@@ -45,6 +48,9 @@ class CashTransaction extends Equatable {
     required this.cashierId,
     required this.cashierUsername,
     required this.cashierName,
+    this.clientName,
+    this.clientCompany,
+    this.rate,
     this.comment,
     required this.createdAt,
   });
@@ -61,6 +67,9 @@ class CashTransaction extends Equatable {
     cashierId,
     cashierUsername,
     cashierName,
+    clientName,
+    clientCompany,
+    rate,
     comment,
     createdAt,
   ];

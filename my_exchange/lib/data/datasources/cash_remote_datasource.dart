@@ -63,6 +63,9 @@ abstract class CashRemoteDataSource {
     required String transactionType,
     required int currencyId,
     required double amount,
+    String? clientName,
+    String? clientCompany,
+    double? rate,
     String? comment,
   });
 
@@ -319,6 +322,9 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
     required String transactionType,
     required int currencyId,
     required double amount,
+    String? clientName,
+    String? clientCompany,
+    double? rate,
     String? comment,
   }) async {
     try {
@@ -327,9 +333,10 @@ class CashRemoteDataSourceImpl implements CashRemoteDataSource {
         'currency': currencyId,
         'amount': amount.toString(),
       };
-      if (comment != null) {
-        data['comment'] = comment;
-      }
+      if (clientName != null) data['client_name'] = clientName;
+      if (clientCompany != null) data['client_company'] = clientCompany;
+      if (rate != null) data['rate'] = rate;
+      if (comment != null) data['comment'] = comment;
 
       final response = await dioClient.dio.post(
         ApiEndpoints.cashTransactions,

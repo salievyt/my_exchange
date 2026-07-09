@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../presentation/providers/cash_provider.dart';
@@ -52,6 +53,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final loc = context.read<LocalizationProvider>();
     final closingBalance = <String, double>{};
     for (var entry in _controllers.entries) {
       final value = entry.value.text.trim();
@@ -74,19 +76,20 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
 
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
+      final colors = Theme.of(context).colorScheme;
       Navigator.pop(context);
       if (success) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Смена успешно закрыта'),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
+            content: Text(loc.t('close_register_success')),
+            backgroundColor: colors.tertiary,
           ),
         );
       } else {
         messenger.showSnackBar(
           SnackBar(
-            content: Text(provider.errorMessage ?? 'Ошибка закрытия смены'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Text(provider.errorMessage ?? loc.t('close_register_error')),
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -96,6 +99,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final local = context.read<LocalizationProvider>();
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -122,10 +126,10 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Закрытие смены',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      local.t('close_register_title'),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.onSurface),
                     ),
                   ),
                 ],
@@ -143,9 +147,9 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                         color: AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Итоги дня загружаются...',
+                          local.t('close_register_loading'),
                           style: TextStyle(color: AppColors.textSecondary),
                         ),
                       ),
@@ -173,13 +177,13 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                     ),
                     child: Column(
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.today, color: Colors.white, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.today, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              'Итоги дня',
-                              style: TextStyle(
+                              local.t('close_register_summary'),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -192,7 +196,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                           children: [
                             Expanded(
                               child: _StatItem(
-                                label: 'Всего операций',
+                                label: local.t('close_register_total_ops'),
                                 value: '$totalOps',
                                 color: Colors.white,
                               ),
@@ -200,7 +204,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: _StatItem(
-                                label: 'Покупок',
+                                label: local.t('close_register_buys'),
                                 value: '$buyOps',
                                 color: AppColors.buyColor,
                               ),
@@ -208,7 +212,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: _StatItem(
-                                label: 'Продаж',
+                                label: local.t('close_register_sells'),
                                 value: '$sellOps',
                                 color: AppColors.sellColor,
                               ),
@@ -221,7 +225,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                             const Icon(Icons.calculate, color: Colors.white, size: 16),
                             const SizedBox(width: 8),
                             Text(
-                              'Оборот: ${CurrencyFormatter.format(totalAmount, symbol: 'сом')}',
+                              '${local.t('close_register_turnover').replaceFirst('{amount}', CurrencyFormatter.format(totalAmount, symbol: local.t('general_som')))}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -231,7 +235,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                             const Spacer(),
                             if (cancelledCount > 0)
                               Text(
-                                'Отмен: $cancelledCount',
+                                local.t('close_register_cancelled').replaceFirst('{count}', cancelledCount.toString()),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.7),
                                   fontSize: 12,
@@ -247,7 +251,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
               const SizedBox(height: 20),
 
               Text(
-                'Внесите фактические остатки по валютам',
+                local.t('close_register_enter_balances'),
                 style: TextStyle(color: colors.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
@@ -273,13 +277,13 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Обязательное поле';
+                              return local.t('close_register_required');
                             }
                             final amount = double.tryParse(
                               value.replaceAll(',', '.'),
                             );
                             if (amount == null || amount < 0) {
-                              return 'Некорректная сумма';
+                              return local.t('close_register_invalid');
                             }
                             return null;
                           },
@@ -291,8 +295,8 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Комментарий (необязательно)',
+                decoration: InputDecoration(
+                  labelText: local.t('close_register_comment'),
                   alignLabelWithHint: true,
                 ),
                 onChanged: (value) => _comment = value,
@@ -303,7 +307,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Отмена'),
+                      child: Text(local.t('close_register_cancel')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -313,7 +317,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.error,
                       ),
-                      child: const Text('Закрыть смену'),
+                      child: Text(local.t('close_register_confirm')),
                     ),
                   ),
                 ],

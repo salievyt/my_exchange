@@ -91,6 +91,9 @@ class CashProvider extends ChangeNotifier {
       (register) {
         _currentRegister = register;
         notifyListeners();
+        
+        loadBalances();
+        checkCurrentRegister();
         return true;
       },
     );
@@ -123,6 +126,9 @@ class CashProvider extends ChangeNotifier {
       (register) {
         _currentRegister = register;
         notifyListeners();
+        
+        loadBalances();
+        checkCurrentRegister();
         return true;
       },
     );
@@ -132,6 +138,9 @@ class CashProvider extends ChangeNotifier {
     required String transactionType,
     required int currencyId,
     required double amount,
+    String? clientName,
+    String? clientCompany,
+    double? rate,
     String? comment,
   }) async {
     _isLoading = true;
@@ -142,6 +151,9 @@ class CashProvider extends ChangeNotifier {
       transactionType: transactionType,
       currencyId: currencyId,
       amount: amount,
+      clientName: clientName,
+      clientCompany: clientCompany,
+      rate: rate,
       comment: comment,
     );
 
@@ -156,6 +168,8 @@ class CashProvider extends ChangeNotifier {
       (transaction) {
         _transactions.insert(0, transaction);
         notifyListeners();
+        
+        loadBalances();
         return true;
       },
     );

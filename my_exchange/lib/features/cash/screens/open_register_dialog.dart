@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/localization_provider.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/providers/currency_provider.dart';
 
@@ -52,9 +53,10 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
       }
     }
 
+    final loc = context.read<LocalizationProvider>();
     if (openingBalance.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Введите хотя бы один остаток')),
+        SnackBar(content: Text(loc.t('open_register_need_balance'))),
       );
       return;
     }
@@ -67,19 +69,20 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
 
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
+      final colors = Theme.of(context).colorScheme;
       Navigator.pop(context);
       if (success) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Смена успешно открыта'),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
+            content: Text(loc.t('open_register_success')),
+            backgroundColor: colors.tertiary,
           ),
         );
       } else {
         messenger.showSnackBar(
           SnackBar(
-            content: Text(provider.errorMessage ?? 'Ошибка открытия смены'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Text(provider.errorMessage ?? loc.t('open_register_error')),
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -88,6 +91,8 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final local = context.read<LocalizationProvider>();
+    final colors = Theme.of(context).colorScheme;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SingleChildScrollView(
@@ -103,26 +108,26 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
+                      color: colors.tertiary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.play_arrow,
-                      color: Theme.of(context).colorScheme.tertiary,
+                      color: colors.tertiary,
                       size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'Открытие смены',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    local.t('open_register_title'),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.onSurface),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               Text(
-                'Внесите начальные остатки по валютам',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                local.t('open_register_hint'),
+                style: TextStyle(color: colors.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               Consumer<CurrencyProvider>(
@@ -150,7 +155,7 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                                 value.replaceAll(',', '.'),
                               );
                               if (amount == null || amount < 0) {
-                                return 'Некорректная сумма';
+                                return local.t('open_register_invalid');
                               }
                             }
                             return null;
@@ -164,8 +169,8 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 onChanged: (value) => _comment = value,
-                decoration: const InputDecoration(
-                  labelText: 'Комментарий (необязательно)',
+                decoration: InputDecoration(
+                  labelText: local.t('open_register_comment'),
                   alignLabelWithHint: true,
                 ),
               ),
@@ -175,14 +180,14 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Отмена'),
+                      child: Text(local.t('open_register_cancel')),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _submit,
-                      child: const Text('Открыть смену'),
+                      child: Text(local.t('open_register_confirm')),
                     ),
                   ),
                 ],

@@ -17,6 +17,9 @@ class CashTransactionModel extends CashTransaction {
     @JsonKey(name: 'cashier') required super.cashierId,
     required super.cashierUsername,
     required super.cashierName,
+    super.clientName,
+    super.clientCompany,
+    super.rate,
     super.comment,
     required super.createdAt,
   });
@@ -37,6 +40,9 @@ class CashTransactionModel extends CashTransaction {
     cashierId: cashierId,
     cashierUsername: cashierUsername,
     cashierName: cashierName,
+    clientName: clientName,
+    clientCompany: clientCompany,
+    rate: rate,
     comment: comment,
     createdAt: createdAt,
   );

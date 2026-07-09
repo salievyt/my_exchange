@@ -155,12 +155,14 @@ class _CashScreenState extends State<CashScreen> {
         builder: (context, provider, loc, child) {
           if (!provider.isRegisterOpen) {
             return FloatingActionButton.extended(
+              heroTag: 'cash_open_shift',
               onPressed: () => _showOpenRegisterDialog(),
               icon: const Icon(Icons.play_arrow),
               label: Text(loc.t('cash_open_shift')),
             );
           }
           return FloatingActionButton.extended(
+            heroTag: 'cash_transaction',
             onPressed: () => _showTransactionDialog(),
             icon: const Icon(Icons.add),
             label: Text(loc.t('cash_transaction')),
@@ -175,6 +177,7 @@ class _CashScreenState extends State<CashScreen> {
     return Consumer2<CashProvider, LocalizationProvider>(
       builder: (context, provider, loc, child) {
         final register = provider.currentRegister;
+        final isOpen = register?.isOpen ?? false;
 
         
         if (provider.isRegisterLoading && register == null) {
@@ -222,7 +225,7 @@ class _CashScreenState extends State<CashScreen> {
           );
         }
 
-        if (register == null) {
+        if (register == null || !isOpen) {
           return Card(
             color: Colors.orange.withValues(alpha: 0.1),
             child: Padding(
@@ -337,6 +340,46 @@ class _CashScreenState extends State<CashScreen> {
                     ),
                   ],
                 ),
+                
+                if (register.openingBalance != null &&
+                    register.openingBalance!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    loc.t('cash_opening_balance'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...register.openingBalance!.entries.map((entry) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            entry.key,
+                            style: TextStyle(
+                              color: colors.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            CurrencyFormatter.format(entry.value),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
               ],
             ),
           ),

@@ -14,6 +14,9 @@ class TransactionDialog extends StatefulWidget {
 class _TransactionDialogState extends State<TransactionDialog> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  final _clientNameController = TextEditingController();
+  final _clientCompanyController = TextEditingController();
+  final _rateController = TextEditingController();
   final _commentController = TextEditingController();
 
   String _transactionType = 'deposit';
@@ -22,6 +25,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
   @override
   void dispose() {
     _amountController.dispose();
+    _clientNameController.dispose();
+    _clientCompanyController.dispose();
+    _rateController.dispose();
     _commentController.dispose();
     super.dispose();
   }
@@ -29,40 +35,57 @@ class _TransactionDialogState extends State<TransactionDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCurrencyId == null) {
+      final loc = context.read<LocalizationProvider>();
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Выберите валюту')));
+      ).showSnackBar(SnackBar(content: Text(loc.t('transaction_currency_placeholder'))));
       return;
     }
 
     final provider = context.read<CashProvider>();
     final amount = double.parse(_amountController.text.replaceAll(',', '.'));
 
+    final clientName = _clientNameController.text.trim().isEmpty
+        ? null
+        : _clientNameController.text.trim();
+    final clientCompany = _clientCompanyController.text.trim().isEmpty
+        ? null
+        : _clientCompanyController.text.trim();
+    final rateText = _rateController.text.trim();
+    final rate = rateText.isNotEmpty
+        ? double.tryParse(rateText.replaceAll(',', '.'))
+        : null;
+
+    final loc = context.read<LocalizationProvider>();
     final success = await provider.createTransaction(
       transactionType: _transactionType,
       currencyId: _selectedCurrencyId!,
       amount: amount,
+      clientName: clientName,
+      clientCompany: clientCompany,
+      rate: rate,
       comment: _commentController.text.trim().isEmpty
           ? null
           : _commentController.text.trim(),
     );
 
     if (mounted) {
+      final colors = Theme.of(context).colorScheme;
       Navigator.pop(context);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Транзакция успешно создана'),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
+            content: Text(loc.t('transaction_success')),
+            backgroundColor: colors.tertiary,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              provider.errorMessage ?? 'Ошибка создания транзакции',
+              provider.errorMessage ?? loc.t('transaction_error'),
             ),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -72,6 +95,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final local = context.read<LocalizationProvider>();
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SingleChildScrollView(
@@ -97,9 +121,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'Транзакция',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    local.t('transaction_title'),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -111,7 +135,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
                   Expanded(
                     child: _TransactionTypeButton(
                       type: 'deposit',
-                      label: 'Внесение',
+                      label: local.t('transaction_deposit'),
                       icon: Icons.add,
                       isSelected: _transactionType == 'deposit',
                       onTap: () => setState(() => _transactionType = 'deposit'),
@@ -121,7 +145,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
                   Expanded(
                     child: _TransactionTypeButton(
                       type: 'withdrawal',
-                      label: 'Выдача',
+                      label: local.t('transaction_withdrawal'),
                       icon: Icons.remove,
                       isSelected: _transactionType == 'withdrawal',
                       onTap: () =>
@@ -136,7 +160,9 @@ class _TransactionDialogState extends State<TransactionDialog> {
               Consumer<CurrencyProvider>(
                 builder: (context, provider, child) {
                   return DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(labelText: 'Валюта'),
+                    decoration: InputDecoration(
+                      labelText: local.t('transaction_currency'),
+                    ),
                     items: provider.currencies.map((currency) {
                       return DropdownMenuItem(
                         value: currency.id,
@@ -147,7 +173,7 @@ class _TransactionDialogState extends State<TransactionDialog> {
                       setState(() => _selectedCurrencyId = value);
                     },
                     validator: (value) {
-                      if (value == null) return 'Выберите валюту';
+                      if (value == null) return local.t('transaction_currency_placeholder');
                       return null;
                     },
                   );
@@ -161,15 +187,15 @@ class _TransactionDialogState extends State<TransactionDialog> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Сумма',
-                  prefixIcon: Icon(Icons.attach_money),
+                decoration: InputDecoration(
+                  labelText: local.t('transaction_amount'),
+                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Введите сумму';
+                  if (value == null || value.isEmpty) return local.t('transaction_amount_required');
                   final amount = double.tryParse(value.replaceAll(',', '.'));
                   if (amount == null || amount <= 0) {
-                    return 'Некорректная сумма';
+                    return local.t('transaction_amount_invalid');
                   }
                   return null;
                 },
@@ -178,10 +204,44 @@ class _TransactionDialogState extends State<TransactionDialog> {
 
               
               TextFormField(
+                controller: _clientNameController,
+                decoration: InputDecoration(
+                  labelText: local.t('transaction_client_name'),
+                  prefixIcon: const Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              
+              TextFormField(
+                controller: _clientCompanyController,
+                decoration: InputDecoration(
+                  labelText: local.t('transaction_client_company'),
+                  prefixIcon: const Icon(Icons.business_outlined),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              
+              TextFormField(
+                controller: _rateController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: local.t('transaction_rate'),
+                  hintText: local.t('transaction_rate_hint'),
+                  prefixIcon: const Icon(Icons.trending_up),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              
+              TextFormField(
                 controller: _commentController,
                 maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Комментарий (необязательно)',
+                decoration: InputDecoration(
+                  labelText: local.t('transaction_comment'),
                   alignLabelWithHint: true,
                 ),
               ),
@@ -193,14 +253,14 @@ class _TransactionDialogState extends State<TransactionDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Отмена'),
+                      child: Text(local.t('transaction_cancel')),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _submit,
-                      child: const Text('Создать'),
+                      child: Text(local.t('transaction_create')),
                     ),
                   ),
                 ],

@@ -62,6 +62,9 @@ abstract class CashRepository {
     required String transactionType,
     required int currencyId,
     required double amount,
+    String? clientName,
+    String? clientCompany,
+    double? rate,
     String? comment,
   });
 

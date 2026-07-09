@@ -22,6 +22,9 @@ CashTransactionModel _$CashTransactionModelFromJson(
   cashierId: jsonInt(json['cashier']),
   cashierUsername: json['cashier_username'] as String? ?? '',
   cashierName: json['cashier_name'] as String? ?? '',
+  clientName: json['client_name'] as String?,
+  clientCompany: json['client_company'] as String?,
+  rate: json['rate'] != null ? jsonDouble(json['rate']) : null,
   comment: json['comment'] as String?,
   createdAt: jsonDateTime(json['created_at']),
 );
@@ -39,6 +42,9 @@ Map<String, dynamic> _$CashTransactionModelToJson(
   'cashier': instance.cashierId,
   'cashier_username': instance.cashierUsername,
   'cashier_name': instance.cashierName,
+  'client_name': instance.clientName,
+  'client_company': instance.clientCompany,
+  'rate': instance.rate,
   'comment': instance.comment,
   'created_at': instance.createdAt.toIso8601String(),
 };

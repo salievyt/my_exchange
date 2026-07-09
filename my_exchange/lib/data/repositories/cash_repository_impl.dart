@@ -196,6 +196,9 @@ class CashRepositoryImpl implements CashRepository {
     required String transactionType,
     required int currencyId,
     required double amount,
+    String? clientName,
+    String? clientCompany,
+    double? rate,
     String? comment,
   }) async {
     try {
@@ -203,6 +206,9 @@ class CashRepositoryImpl implements CashRepository {
         transactionType: transactionType,
         currencyId: currencyId,
         amount: amount,
+        clientName: clientName,
+        clientCompany: clientCompany,
+        rate: rate,
         comment: comment,
       );
       return Right(transaction.toEntity());
