@@ -235,6 +235,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'operations_create',
         onPressed: () {
           Navigator.push(
             context,
