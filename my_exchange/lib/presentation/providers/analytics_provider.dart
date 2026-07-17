@@ -75,10 +75,16 @@ class AnalyticsProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _shiftStats = [];
   bool _shiftOpen = false;
   String? _shiftStartedAt;
+  
+  /// Cash valuation data
+  List<Map<String, dynamic>> _cashValuation = [];
+  double _totalCashKgs = 0.0;
 
   List<Map<String, dynamic>> get shiftStats => _shiftStats;
   bool get shiftOpen => _shiftOpen;
   String? get shiftStartedAt => _shiftStartedAt;
+  List<Map<String, dynamic>> get cashValuation => _cashValuation;
+  double get totalCashKgs => _totalCashKgs;
 
   /// Load dashboard analytics data
   Future<void> loadDashboard() async {
@@ -102,6 +108,24 @@ class AnalyticsProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// Load cash valuation (balance × average rate for each currency)
+  Future<void> loadCashValuation() async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiEndpoints.cashBalancesAverageRates,
+      );
+      final data = response.data as Map<String, dynamic>;
+      _cashValuation =
+          (data['currency_breakdown'] as List<dynamic>?)
+                  ?.cast<Map<String, dynamic>>() ??
+              [];
+      _totalCashKgs = (data['total_kgs'] as num?)?.toDouble() ?? 0.0;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[Analytics] loadCashValuation ERROR: $e');
+    }
   }
 
   /// Load per-currency shift stats
@@ -189,6 +213,7 @@ class AnalyticsProvider extends ChangeNotifier {
       loadCashierLoad(),
       loadProfitability(),
       loadShiftStats(),
+      loadCashValuation(),
     ]);
   }
 

@@ -134,6 +134,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   if (provider.shiftStats.isNotEmpty && provider.shiftOpen) const SizedBox(height: 14),
 
                   
+                  if (provider.cashValuation.isNotEmpty && provider.shiftOpen)
+                    _buildCashValuationCard(provider, isDark),
+                  if (provider.cashValuation.isNotEmpty && provider.shiftOpen) const SizedBox(height: 14),
+
+                  
                   if (isWide)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,6 +360,53 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         icon: const Icon(Icons.refresh), label: Text(local.t('operations_load'))),
     ]),
   );
+
+  Widget _buildCashValuationCard(AnalyticsProvider provider, bool isDark) {
+    final breakdown = provider.cashValuation;
+    final totalKgs = provider.totalCashKgs;
+
+    final rows = breakdown.map((b) => _CashValuationRow(
+      data: b,
+      isDark: isDark,
+    )).toList();
+
+    return _buildCard(
+      title: 'Стоимость кассы (средний курс)',
+      icon: Icons.account_balance_wallet_rounded,
+      color: AppColors.success,
+      isDark: isDark,
+      index: provider.dailyData.isNotEmpty || (provider.shiftStats.isNotEmpty && provider.shiftOpen) ? 4 : 2,
+      children: [
+        ...rows,
+        if (breakdown.length > 1) ...[        
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Итого',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                '${CurrencyFormatter.format(totalKgs)} сом',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.success,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
 
   Widget _buildNoDataCard(bool isDark, LocalizationProvider local) => StaggeredFadeIn(index: 6,
     itemDuration: const Duration(milliseconds: 400),
@@ -692,5 +744,66 @@ class _CashBalanceRow extends StatelessWidget {
             fontWeight: FontWeight.w500)),
       ])),
     ]));
+  }
+}
+
+class _CashValuationRow extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final bool isDark;
+
+  const _CashValuationRow({required this.data, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = data['currency'] as String? ?? '';
+    final balance = (data['balance'] as num?)?.toDouble() ?? 0.0;
+    final avgRate = (data['average_rate'] as num?)?.toDouble() ?? 0.0;
+    final kgsEq = (data['kgs_equivalent'] as num?)?.toDouble() ?? 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          _CurrencyCodeChip(code: code, color: _currencyColor(code)),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$code \u2022 ${CurrencyFormatter.format(balance)}',
+                  style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                if (avgRate > 0 && code != 'KGS')
+                  Text(
+                    '\u0441\u0440. ${CurrencyFormatter.formatRate(avgRate)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '${CurrencyFormatter.format(kgsEq)} \u0441\u043e\u043c',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.success,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
