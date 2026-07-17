@@ -40,6 +40,7 @@ class ApiEndpoints {
   static const String analyticsCashierLoad = '/api/analytics/cashier-load/';
   static const String analyticsOperations = '/api/analytics/operations/';
   static const String analyticsProfitability = '/api/analytics/profitability/';
+  static const String analyticsShiftStats = '/api/analytics/shift-stats/';
 
   
   static const String reportsDaily = '/api/reports/daily/';

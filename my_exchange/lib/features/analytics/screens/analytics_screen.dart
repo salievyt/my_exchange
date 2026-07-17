@@ -124,6 +124,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   if (provider.dailyData.isNotEmpty) const SizedBox(height: 14),
 
                   
+                  if (provider.shiftStats.isNotEmpty && provider.shiftOpen)
+                    _buildCard(
+                      title: 'Операции по валютам (смена)',
+                      icon: Icons.currency_exchange_rounded,
+                      color: AppColors.secondary, isDark: isDark, index: provider.dailyData.isNotEmpty ? 2 : 1,
+                      children: provider.shiftStats.map((stat) => _ShiftCurrencyRow(stat: stat, isDark: isDark)).toList(),
+                    ),
+                  if (provider.shiftStats.isNotEmpty && provider.shiftOpen) const SizedBox(height: 14),
+
+                  
                   if (isWide)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,6 +518,151 @@ class _CashierRow extends StatelessWidget {
           style: TextStyle(fontSize: 11, color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary)),
       ])),
     ]));
+  }
+}
+
+class _ShiftCurrencyRow extends StatelessWidget {
+  final Map<String, dynamic> stat;
+  final bool isDark;
+
+  const _ShiftCurrencyRow({required this.stat, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = stat['currency'] as String? ?? '';
+    final buyAmount = (stat['buy_amount'] as num?)?.toDouble() ?? 0.0;
+    final sellAmount = (stat['sell_amount'] as num?)?.toDouble() ?? 0.0;
+    final avgBuyRate = (stat['avg_buy_rate'] as num?)?.toDouble() ?? 0.0;
+    final avgSellRate = (stat['avg_sell_rate'] as num?)?.toDouble() ?? 0.0;
+    final buyTotalKgs = (stat['buy_total_kgs'] as num?)?.toDouble() ?? 0.0;
+    final sellTotalKgs = (stat['sell_total_kgs'] as num?)?.toDouble() ?? 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _CurrencyCodeChip(code: code, color: _currencyColor(code)),
+              const SizedBox(width: 12),
+              Text(code,
+                style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _StatLine(
+                  label: 'Покупка',
+                  amount: '${CurrencyFormatter.format(buyAmount)} $code',
+                  rate: avgBuyRate > 0 ? 'ср. ${CurrencyFormatter.formatRate(avgBuyRate)}' : '',
+                  total: buyTotalKgs > 0 ? '${CurrencyFormatter.format(buyTotalKgs)} сом' : '',
+                  color: AppColors.buyColor,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 6),
+                Divider(height: 1, color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06)),
+                const SizedBox(height: 6),
+                _StatLine(
+                  label: 'Продажа',
+                  amount: '${CurrencyFormatter.format(sellAmount)} $code',
+                  rate: avgSellRate > 0 ? 'ср. ${CurrencyFormatter.formatRate(avgSellRate)}' : '',
+                  total: sellTotalKgs > 0 ? '${CurrencyFormatter.format(sellTotalKgs)} сом' : '',
+                  color: AppColors.sellColor,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatLine extends StatelessWidget {
+  final String label;
+  final String amount;
+  final String rate;
+  final String total;
+  final Color color;
+  final bool isDark;
+
+  const _StatLine({
+    required this.label,
+    required this.amount,
+    required this.rate,
+    required this.total,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 2,
+          child: Text(label,
+            style: TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white.withValues(alpha: 0.6) : AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(amount,
+            style: TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ),
+        if (rate.isNotEmpty)
+          Expanded(
+            flex: 2,
+            child: Text(rate,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white.withValues(alpha: 0.4) : AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        if (total.isNotEmpty)
+          Expanded(
+            flex: 2,
+            child: Text(total,
+              style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+      ],
+    );
   }
 }
 

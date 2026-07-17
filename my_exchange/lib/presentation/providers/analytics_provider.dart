@@ -71,6 +71,15 @@ class AnalyticsProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get dailyData => _dailyData;
   List<Map<String, dynamic>> get profitability => _profitability;
 
+  /// Per-currency shift stats
+  List<Map<String, dynamic>> _shiftStats = [];
+  bool _shiftOpen = false;
+  String? _shiftStartedAt;
+
+  List<Map<String, dynamic>> get shiftStats => _shiftStats;
+  bool get shiftOpen => _shiftOpen;
+  String? get shiftStartedAt => _shiftStartedAt;
+
   /// Load dashboard analytics data
   Future<void> loadDashboard() async {
     _isLoading = true;
@@ -93,6 +102,25 @@ class AnalyticsProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// Load per-currency shift stats
+  Future<void> loadShiftStats() async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiEndpoints.analyticsShiftStats,
+      );
+      final data = response.data as Map<String, dynamic>;
+      _shiftOpen = data['shift_open'] as bool? ?? false;
+      _shiftStartedAt = data['shift_started_at'] as String?;
+      _shiftStats =
+          (data['shift_stats'] as List<dynamic>?)
+                  ?.cast<Map<String, dynamic>>() ??
+              [];
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[Analytics] loadShiftStats ERROR: $e');
+    }
   }
 
   /// Load operations analytics (currency popularity + daily data)
@@ -160,6 +188,7 @@ class AnalyticsProvider extends ChangeNotifier {
       loadOperationsAnalytics(),
       loadCashierLoad(),
       loadProfitability(),
+      loadShiftStats(),
     ]);
   }
 

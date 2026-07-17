@@ -194,6 +194,74 @@ class AnalyticsProfitabilityView(views.APIView):
         })
 
 
+class ShiftCurrencyStatsView(views.APIView):
+    """Get per-currency operation stats since the start of the user's current shift."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        from apps.cash.models import CashRegister
+        
+        # Find user's current shift
+        current_register = CashRegister.objects.filter(
+            cashier=request.user,
+            is_open=True
+        ).first()
+        
+        if not current_register:
+            return Response({'shift_stats': [], 'shift_open': False, 'message': 'Нет открытой смены'})
+        
+        shift_start = current_register.opened_at
+        
+        # Filter operations since shift start
+        operations = Operation.objects.filter(
+            created_at__gte=shift_start,
+            status=OperationStatus.ACTIVE
+        )
+        
+        # Role-based filtering
+        if request.user.role == Role.CASHIER:
+            operations = operations.filter(cashier=request.user)
+        elif request.user.role == Role.SENIOR_CASHIER:
+            operations = operations.exclude(cashier__role=Role.ADMIN)
+        
+        # Per-currency stats
+        shift_stats = []
+        for currency in Currency.objects.filter(is_active=True).exclude(code='KGS'):
+            currency_ops = operations.filter(currency=currency)
+            
+            buy_ops = currency_ops.filter(operation_type=OperationType.BUY)
+            sell_ops = currency_ops.filter(operation_type=OperationType.SELL)
+            
+            buy_amount = float(buy_ops.aggregate(total=Sum('amount'))['total'] or 0)
+            sell_amount = float(sell_ops.aggregate(total=Sum('amount'))['total'] or 0)
+            
+            avg_buy_rate = buy_ops.aggregate(avg=Avg('rate'))['avg']
+            avg_sell_rate = sell_ops.aggregate(avg=Avg('rate'))['avg']
+            
+            # Calculate KGS equivalents using average rates (as requested by user)
+            buy_total_kgs = round(buy_amount * float(avg_buy_rate), 2) if avg_buy_rate else 0
+            sell_total_kgs = round(sell_amount * float(avg_sell_rate), 2) if avg_sell_rate else 0
+            
+            if buy_amount > 0 or sell_amount > 0:
+                shift_stats.append({
+                    'currency': currency.code,
+                    'currency_name': currency.name,
+                    'buy_amount': round(buy_amount, 2),
+                    'sell_amount': round(sell_amount, 2),
+                    'buy_total_kgs': round(buy_total_kgs, 2),
+                    'sell_total_kgs': round(sell_total_kgs, 2),
+                    'avg_buy_rate': round(float(avg_buy_rate), 4) if avg_buy_rate else 0,
+                    'avg_sell_rate': round(float(avg_sell_rate), 4) if avg_sell_rate else 0,
+                })
+        
+        return Response({
+            'shift_open': True,
+            'shift_started_at': shift_start.isoformat(),
+            'shift_stats': shift_stats,
+        })
+
+
 class CashierLoadView(views.APIView):
     """Get cashier workload analytics."""
     
