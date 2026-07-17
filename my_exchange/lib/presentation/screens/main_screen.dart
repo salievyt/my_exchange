@@ -7,8 +7,11 @@ import '../../features/cash/screens/cash_screen.dart';
 import '../../features/currencies/screens/currencies_screen.dart';
 import '../../features/analytics/screens/analytics_screen.dart';
 import '../providers/update_notification_provider.dart';
+import '../providers/notification_center_provider.dart';
+import '../providers/news_provider.dart';
 import '../screens/settings_screen.dart';
 import '../widgets/update_notification_dialog.dart';
+import '../widgets/news_banner_carousel.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -36,6 +39,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForUpdate();
+      _checkNotifications();
+      _loadNews();
     });
   }
 
@@ -67,6 +72,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     updateProvider.checkForUpdate();
   }
 
+  void _checkNotifications() {
+    context.read<NotificationCenterProvider>().loadNotifications();
+  }
+
+  void _loadNews() {
+    context.read<NewsProvider>().loadNews();
+  }
+
   void _onUpdateChecked() {
     if (!mounted) return;
     final updateProvider = context.read<UpdateNotificationProvider>();
@@ -95,34 +108,48 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      body: RepaintBoundary(
-        child: Stack(
-        children: List.generate(_screens.length, (index) {
-          final isSelected = _currentIndex == index;
-          final isSlidingRight = index > _previousIndex;
-          final slideX = isSelected
-              ? 0.0
-              : (isSlidingRight ? 0.15 : -0.15);
-
-          return RepaintBoundary(
-            child: AnimatedSlide(
-              offset: Offset(slideX, 0),
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              child: AnimatedOpacity(
-                opacity: isSelected ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                child: IgnorePointer(
-                  ignoring: !isSelected,
-                  child: _screens[index],
+      body: Column(
+        children: [
+          
+          Consumer<NewsProvider>(
+            builder: (context, newsProvider, _) {
+              if (!newsProvider.hasNews) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: NewsBannerCarousel(news: newsProvider.news),
+              );
+            },
+          ),
+          Expanded(              child: RepaintBoundary(
+                child: Stack(
+                  children: List.generate(_screens.length, (index) {
+                    final isSelected = _currentIndex == index;
+                    final isSlidingRight = index > _previousIndex;
+                    final slideX = isSelected
+                        ? 0.0
+                        : (isSlidingRight ? 0.15 : -0.15);
+                    return RepaintBoundary(
+                      child: AnimatedSlide(
+                        offset: Offset(slideX, 0),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedOpacity(
+                          opacity: isSelected ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOutCubic,
+                          child: IgnorePointer(
+                            ignoring: !isSelected,
+                            child: _screens[index],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),
-          );
-        }),
-      ),
-      ),
+          ],
+        ),
       bottomNavigationBar: Consumer<LocalizationProvider>(
         builder: (context, local, child) {
           return NavigationBar(

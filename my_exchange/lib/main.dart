@@ -11,6 +11,8 @@ import 'presentation/providers/operation_provider.dart';
 import 'presentation/providers/cash_provider.dart';
 import 'presentation/providers/analytics_provider.dart';
 import 'presentation/providers/update_notification_provider.dart';
+import 'presentation/providers/notification_center_provider.dart';
+import 'presentation/providers/news_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/reports_provider.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -63,6 +65,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CashProvider()),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
         ChangeNotifierProvider(create: (_) => UpdateNotificationProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationCenterProvider()),
+        ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
       ],
       child: Consumer2<LocalizationProvider, ThemeProvider>(

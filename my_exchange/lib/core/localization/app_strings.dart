@@ -166,6 +166,7 @@ class AppStrings {
     'cash_transaction': 'Транзакция',
     'cash_available': 'Доступно',
     'cash_reserved': 'Зарезервировано',
+    'cash_avg_rate': 'Ср. курс',
     'cash_cashier': 'Кассир',
     'cash_opened_at': 'Открыта',
     'cash_opening_balance': 'Начальные остатки',

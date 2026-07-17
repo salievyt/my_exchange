@@ -1,22 +1,22 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'cash_register_model.dart';
 
-
-
-
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 CashRegisterModel _$CashRegisterModelFromJson(Map<String, dynamic> json) =>
     CashRegisterModel(
-      id: jsonInt(json['id']),
-      cashierId: jsonInt(json['cashier']),
-      cashierUsername: json['cashier_username'] as String? ?? '',
-      cashierName: json['cashier_name'] as String? ?? '',
-      openedAt: jsonDateTime(json['opened_at']),
+      id: (json['id'] as num).toInt(),
+      cashierId: (json['cashier'] as num).toInt(),
+      cashierUsername: json['cashier_username'] as String,
+      cashierName: json['cashier_name'] as String,
+      openedAt: DateTime.parse(json['opened_at'] as String),
       closedAt: json['closed_at'] == null
           ? null
           : DateTime.parse(json['closed_at'] as String),
-      isOpen: json['is_open'] == true,
+      isOpen: json['is_open'] as bool,
       openingBalance: _parseBalanceMap(json['opening_balance']),
       closingBalance: _parseBalanceMap(json['closing_balance']),
       comment: json['comment'] as String?,

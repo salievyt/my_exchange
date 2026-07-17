@@ -1,14 +1,19 @@
 import 'package:flutter/foundation.dart';
+import '../../core/constants/api_constants.dart';
+import '../../core/network/dio_client.dart';
+import '../../di/service_locator.dart';
 import '../../domain/entities/cash_balance.dart';
 import '../../domain/entities/cash_register.dart';
 import '../../domain/entities/cash_transaction.dart';
 import '../../domain/repositories/cash_repository.dart';
-import '../../di/service_locator.dart';
 
 class CashProvider extends ChangeNotifier {
   final CashRepository _repository;
+  final DioClient _dioClient;
 
-  CashProvider() : _repository = sl<CashRepository>();
+  CashProvider()
+      : _repository = sl<CashRepository>(),
+        _dioClient = sl<DioClient>();
 
   List<CashBalance> _balances = [];
   CashRegister? _currentRegister;
@@ -16,6 +21,9 @@ class CashProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isRegisterLoading = false;
   String? _errorMessage;
+  Map<String, double> _averageRates = {};
+
+  Map<String, double> get averageRates => _averageRates;
 
   List<CashBalance> get balances => _balances;
   CashRegister? get currentRegister => _currentRegister;
@@ -45,6 +53,20 @@ class CashProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  Future<void> loadAverageRates() async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiEndpoints.cashBalancesAverageRates,
+      );
+      final data = response.data as Map<String, dynamic>;
+      final rates = data['average_rates'] as Map<String, dynamic>? ?? {};
+      _averageRates = rates.map((k, v) => MapEntry(k, (v as num).toDouble()));
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[Cash] loadAverageRates ERROR: $e');
+    }
   }
 
   Future<void> checkCurrentRegister() async {

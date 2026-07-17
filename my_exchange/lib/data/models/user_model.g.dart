@@ -1,26 +1,23 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'user_model.dart';
 
-
-
-
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
-  id: jsonInt(json['id']),
-  username: json['username'] as String? ?? '',
+  id: (json['id'] as num).toInt(),
+  username: json['username'] as String,
   email: json['email'] as String?,
   firstName: json['first_name'] as String?,
   lastName: json['last_name'] as String?,
-  role: $enumDecodeNullable(
-    _$UserRoleEnumMap,
-    json['role'],
-  ) ?? UserRole.cashier,
+  role: $enumDecode(_$UserRoleEnumMap, json['role']),
   phone: json['phone'] as String?,
-  isTwoFactorEnabled: json['is_two_factor_enabled'] == true,
-  createdAt: jsonDateTime(json['created_at']),
-  updatedAt: jsonDateTime(json['updated_at']),
-  isActive: json['is_active'] == true,
+  isTwoFactorEnabled: json['is_two_factor_enabled'] as bool,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  isActive: json['is_active'] as bool,
 );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{

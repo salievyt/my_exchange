@@ -29,6 +29,7 @@ class ApiEndpoints {
   static const String cashBalances = '/api/cash/balances/';
   static const String cashBalancesSummary = '/api/cash/balances/summary/';
   static const String cashBalancesLow = '/api/cash/balances/low_balance/';
+  static const String cashBalancesAverageRates = '/api/cash/balances/average_rates/';
   static const String cashRegisters = '/api/cash/registers/';
   static const String cashRegistersCurrent = '/api/cash/registers/current/';
   static const String cashRegistersOpen = '/api/cash/registers/open/';
@@ -50,6 +51,8 @@ class ApiEndpoints {
 
   
   static const String notifications = '/api/notifications/';
+  static const String appNotifications = '/api/notifications/app-notifications/';
+  static const String notificationTrack = '/api/notifications/app-notifications/';  
   static const String notificationsSend = '/api/notifications/send/';
   static const String notificationsError = '/api/notifications/error/';
   static const String notificationsAppVersion = '/api/notifications/app-version/';

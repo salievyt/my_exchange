@@ -1,32 +1,32 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'cash_transaction_model.dart';
 
-
-
-
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 CashTransactionModel _$CashTransactionModelFromJson(
   Map<String, dynamic> json,
 ) => CashTransactionModel(
-  id: jsonInt(json['id']),
-  transactionType: $enumDecodeNullable(
+  id: (json['id'] as num).toInt(),
+  transactionType: $enumDecode(
     _$TransactionTypeEnumMap,
     json['transaction_type'],
-  ) ?? TransactionType.deposit,
-  currencyId: jsonInt(json['currency']),
-  currencyCode: json['currency_code'] as String? ?? '',
-  amount: jsonDouble(json['amount']),
-  balanceBefore: jsonDouble(json['balance_before']),
-  balanceAfter: jsonDouble(json['balance_after']),
-  cashierId: jsonInt(json['cashier']),
-  cashierUsername: json['cashier_username'] as String? ?? '',
-  cashierName: json['cashier_name'] as String? ?? '',
+  ),
+  currencyId: (json['currency'] as num).toInt(),
+  currencyCode: json['currency_code'] as String,
+  amount: (json['amount'] as num).toDouble(),
+  balanceBefore: (json['balance_before'] as num).toDouble(),
+  balanceAfter: (json['balance_after'] as num).toDouble(),
+  cashierId: (json['cashier'] as num).toInt(),
+  cashierUsername: json['cashier_username'] as String,
+  cashierName: json['cashier_name'] as String,
   clientName: json['client_name'] as String?,
   clientCompany: json['client_company'] as String?,
-  rate: json['rate'] != null ? jsonDouble(json['rate']) : null,
+  rate: (json['rate'] as num?)?.toDouble(),
   comment: json['comment'] as String?,
-  createdAt: jsonDateTime(json['created_at']),
+  createdAt: DateTime.parse(json['created_at'] as String),
 );
 
 Map<String, dynamic> _$CashTransactionModelToJson(
