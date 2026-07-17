@@ -270,6 +270,7 @@ final clientName = _clientNameController.text.trim().isEmpty
         currencyId: _selectedCurrencyId!,
         rate: rate,
         amount: amount,
+        totalAmount: _totalAmount,
         clientName: clientName,
         clientCompany: clientCompany,
         comment: commentText,

@@ -26,6 +26,7 @@ abstract class OperationRemoteDataSource {
     required int currencyId,
     required double rate,
     required double amount,
+    required double totalAmount,
     String? clientName,
     String? clientCompany,
     String? comment,
@@ -116,6 +117,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
     required int currencyId,
     required double rate,
     required double amount,
+    required double totalAmount,
     String? clientName,
     String? clientCompany,
     String? comment,
@@ -125,6 +127,7 @@ class OperationRemoteDataSourceImpl implements OperationRemoteDataSource {
       'currency': currencyId,
       'rate': rate.toString(),
       'amount': amount.toString(),
+      'total_amount': totalAmount.toString(),
     };
     if (clientName != null) data['client_name'] = clientName;
     if (clientCompany != null) data['client_company'] = clientCompany;

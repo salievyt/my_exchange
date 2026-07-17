@@ -22,6 +22,7 @@ abstract class OperationRepository {
     required int currencyId,
     required double rate,
     required double amount,
+    required double totalAmount,
     String? clientName,
     String? clientCompany,
     String? comment,

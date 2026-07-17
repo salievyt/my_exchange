@@ -133,12 +133,13 @@ class OperationProvider extends ChangeNotifier {
     required int currencyId,
     required double rate,
     required double amount,
+    required double totalAmount,
     String? clientName,
     String? clientCompany,
     String? comment,
   }) async {
     debugPrint('[Provider] createOperation started:');
-    debugPrint('[Provider]   type=$operationType currencyId=$currencyId rate=$rate amount=$amount');
+    debugPrint('[Provider]   type=$operationType currencyId=$currencyId rate=$rate amount=$amount total=$totalAmount');
     debugPrint('[Provider]   clientName=$clientName clientCompany=$clientCompany');
 
     _isLoading = true;
@@ -150,6 +151,7 @@ class OperationProvider extends ChangeNotifier {
       currencyId: currencyId,
       rate: rate,
       amount: amount,
+      totalAmount: totalAmount,
       clientName: clientName,
       clientCompany: clientCompany,
       comment: comment,
