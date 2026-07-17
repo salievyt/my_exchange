@@ -17,16 +17,6 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
   String _comment = '';
 
   @override
-  void initState() {
-    super.initState();
-    
-    final currencies = context.read<CurrencyProvider>().currencies;
-    for (var currency in currencies) {
-      _controllers[currency.id] = TextEditingController();
-    }
-  }
-
-  @override
   void dispose() {
     for (var controller in _controllers.values) {
       controller.dispose();
@@ -137,6 +127,10 @@ class _OpenRegisterDialogState extends State<OpenRegisterDialog> {
                   }
                   return Column(
                     children: provider.currencies.map((currency) {
+                      _controllers.putIfAbsent(
+                        currency.id,
+                        () => TextEditingController(),
+                      );
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextFormField(

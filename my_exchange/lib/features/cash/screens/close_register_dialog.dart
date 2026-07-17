@@ -21,22 +21,6 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
   @override
   void initState() {
     super.initState();
-    final provider = context.read<CashProvider>();
-    final currencies = context.read<CurrencyProvider>().foreignCurrencies;
-
-    for (var currency in currencies) {
-      _controllers[currency.id] = TextEditingController();
-      try {
-        final balance = provider.balances.firstWhere(
-          (b) => b.currencyId == currency.id,
-        );
-        _controllers[currency.id]!.text = balance.balance.toString();
-      } catch (_) {
-        _controllers[currency.id]!.text = '0';
-      }
-    }
-
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OperationProvider>().loadTodayStats();
     });
@@ -263,6 +247,22 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   final displayCurrencies = provider.foreignCurrencies;
                   return Column(
                     children: displayCurrencies.map((currency) {
+                      _controllers.putIfAbsent(
+                        currency.id,
+                        () {
+                          final controller = TextEditingController();
+                          final cashProvider = context.read<CashProvider>();
+                          try {
+                            final balance = cashProvider.balances.firstWhere(
+                              (b) => b.currencyId == currency.id,
+                            );
+                            controller.text = balance.balance.toString();
+                          } catch (_) {
+                            controller.text = '0';
+                          }
+                          return controller;
+                        },
+                      );
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextFormField(
