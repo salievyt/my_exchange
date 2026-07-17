@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../../core/utils/json_helpers.dart';
 import '../../domain/entities/cash_balance.dart';
 
 part 'cash_balance_model.g.dart';
@@ -13,6 +12,7 @@ class CashBalanceModel extends CashBalance {
     required super.currencyName,
     required super.currencySymbol,
     required super.balance,
+    required super.balanceFromOperations,
     required super.reserved,
     required super.availableBalance,
     required super.lastUpdated,
@@ -30,6 +30,7 @@ class CashBalanceModel extends CashBalance {
     currencyName: currencyName,
     currencySymbol: currencySymbol,
     balance: balance,
+    balanceFromOperations: balanceFromOperations,
     reserved: reserved,
     availableBalance: availableBalance,
     lastUpdated: lastUpdated,

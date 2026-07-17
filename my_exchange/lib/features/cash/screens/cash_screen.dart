@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/localization_provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../presentation/providers/cash_provider.dart';
 import '../../../presentation/widgets/error_widgets.dart';
@@ -22,8 +23,10 @@ class _CashScreenState extends State<CashScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CashProvider>().loadBalances();
-      context.read<CashProvider>().checkCurrentRegister();
+      final provider = context.read<CashProvider>();
+      provider.loadBalances();
+      provider.checkCurrentRegister();
+      provider.loadAverageRates();
     });
   }
 
@@ -61,8 +64,10 @@ class _CashScreenState extends State<CashScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<CashProvider>().loadBalances();
-              context.read<CashProvider>().checkCurrentRegister();
+              final provider = context.read<CashProvider>();
+              provider.loadBalances();
+              provider.checkCurrentRegister();
+              provider.loadAverageRates();
             },
           ),
         ],
@@ -72,6 +77,7 @@ class _CashScreenState extends State<CashScreen> {
           final cashProvider = context.read<CashProvider>();
           await cashProvider.loadBalances();
           await cashProvider.checkCurrentRegister();
+          await cashProvider.loadAverageRates();
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -412,8 +418,9 @@ class _CashScreenState extends State<CashScreen> {
 
 class _BalanceCard extends StatelessWidget {
   final dynamic balance;
+  final double? averageRate;
 
-  const _BalanceCard({required this.balance});
+  const _BalanceCard({required this.balance}) : averageRate = null;
 
   @override
   Widget build(BuildContext context) {
@@ -498,6 +505,68 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ],
             ),
+            
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  
+                  if (averageRate != null && balance.currencyCode != 'KGS')
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.trending_up_rounded, size: 14, color: colors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${local.t('cash_avg_rate')}: ${CurrencyFormatter.formatRate(averageRate!)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: colors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  
+                  _BalanceVariantRow(
+                    label: 'Фактический остаток',
+                    amount: CurrencyFormatter.format(balance.balance, symbol: balance.currencySymbol),
+                    color: colors.primary,
+                    isDark: Theme.of(context).brightness == Brightness.dark,
+                  ),
+                  const SizedBox(height: 4),
+                  _BalanceVariantRow(
+                    label: 'Без транзакций',
+                    amount: CurrencyFormatter.format(balance.balanceFromOperations, symbol: balance.currencySymbol),
+                    color: AppColors.success,
+                    isDark: Theme.of(context).brightness == Brightness.dark,
+                  ),
+                  if (balance.balance != balance.balanceFromOperations) ...[
+                    const SizedBox(height: 4),
+                    Divider(height: 1, color: colors.outline.withValues(alpha: 0.2)),
+                    const SizedBox(height: 4),
+                    _BalanceVariantRow(
+                      label: 'Транзакции (внес/выд)',
+                      amount: CurrencyFormatter.format(
+                        balance.balance - balance.balanceFromOperations,
+                        symbol: balance.currencySymbol,
+                      ),
+                      color: (balance.balance - balance.balanceFromOperations) >= 0
+                          ? AppColors.info
+                          : AppColors.warning,
+                      isDark: Theme.of(context).brightness == Brightness.dark,
+                    ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(height: 12),
             
             ClipRRect(
@@ -559,5 +628,58 @@ class _BalanceCard extends StatelessWidget {
     if (percent > 50) return Colors.lightGreen;
     if (percent > 20) return Colors.amber;
     return Colors.orange;
+  }
+}
+
+class _BalanceVariantRow extends StatelessWidget {
+  final String label;
+  final String amount;
+  final Color color;
+  final bool isDark;
+
+  const _BalanceVariantRow({
+    required this.label,
+    required this.amount,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black54,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          amount,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
+    );
   }
 }

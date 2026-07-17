@@ -8,6 +8,7 @@ class CashBalance extends Equatable {
   final String currencyName;
   final String currencySymbol;
   final double balance;
+  final double balanceFromOperations;
   final double reserved;
   final double availableBalance;
   final DateTime lastUpdated;
@@ -19,6 +20,7 @@ class CashBalance extends Equatable {
     required this.currencyName,
     required this.currencySymbol,
     required this.balance,
+    this.balanceFromOperations = 0.0,
     required this.reserved,
     required this.availableBalance,
     required this.lastUpdated,
@@ -32,6 +34,7 @@ class CashBalance extends Equatable {
     currencyName,
     currencySymbol,
     balance,
+    balanceFromOperations,
     reserved,
     availableBalance,
     lastUpdated,

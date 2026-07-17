@@ -1,22 +1,24 @@
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'cash_balance_model.dart';
 
-
-
-
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 CashBalanceModel _$CashBalanceModelFromJson(Map<String, dynamic> json) =>
     CashBalanceModel(
-      id: jsonInt(json['id']),
-      currencyId: jsonInt(json['currency']),
-      currencyCode: json['currency_code'] as String? ?? '',
-      currencyName: json['currency_name'] as String? ?? '',
-      currencySymbol: json['currency_symbol'] as String? ?? '',
-      balance: jsonDouble(json['balance']),
-      reserved: jsonDouble(json['reserved']),
-      availableBalance: jsonDouble(json['available_balance']),
-      lastUpdated: jsonDateTime(json['last_updated']),
+      id: (json['id'] as num).toInt(),
+      currencyId: (json['currency'] as num).toInt(),
+      currencyCode: json['currency_code'] as String,
+      currencyName: json['currency_name'] as String,
+      currencySymbol: json['currency_symbol'] as String,
+      balance: (json['balance'] as num).toDouble(),
+      balanceFromOperations: (json['balance_from_operations'] as num)
+          .toDouble(),
+      reserved: (json['reserved'] as num).toDouble(),
+      availableBalance: (json['available_balance'] as num).toDouble(),
+      lastUpdated: DateTime.parse(json['last_updated'] as String),
     );
 
 Map<String, dynamic> _$CashBalanceModelToJson(CashBalanceModel instance) =>
@@ -27,6 +29,7 @@ Map<String, dynamic> _$CashBalanceModelToJson(CashBalanceModel instance) =>
       'currency_name': instance.currencyName,
       'currency_symbol': instance.currencySymbol,
       'balance': instance.balance,
+      'balance_from_operations': instance.balanceFromOperations,
       'reserved': instance.reserved,
       'available_balance': instance.availableBalance,
       'last_updated': instance.lastUpdated.toIso8601String(),

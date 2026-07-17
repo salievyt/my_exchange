@@ -12,14 +12,25 @@ class CashBalanceSerializer(serializers.ModelSerializer):
     currency_name = serializers.CharField(source='currency.name', read_only=True)
     currency_symbol = serializers.CharField(source='currency.symbol', read_only=True)
     available_balance = serializers.ReadOnlyField()
+    balance_from_operations = serializers.SerializerMethodField()
     
     class Meta:
         model = CashBalance
         fields = [
             'id', 'currency', 'currency_code', 'currency_name', 'currency_symbol',
-            'balance', 'reserved', 'available_balance', 'last_updated'
+            'balance', 'balance_from_operations', 'reserved', 'available_balance', 'last_updated'
         ]
         read_only_fields = ['last_updated']
+    
+    def get_balance_from_operations(self, obj):
+        """Get balance considering only buy/sell operations (excl cash transactions).
+        Reads from serializer context 'ops_balance' dict, falls back to actual balance.
+        """
+        ops_balance = self.context.get('ops_balance', {})
+        code = obj.currency.code
+        if code in ops_balance:
+            return ops_balance[code]
+        return float(obj.balance)
 
 
 class CashTransactionSerializer(serializers.ModelSerializer):
