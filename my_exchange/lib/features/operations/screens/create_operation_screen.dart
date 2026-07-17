@@ -37,6 +37,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
 
   
   String _lastChangedField = '';
+  String _firstField = '';
   bool _isUpdating = false;
 
   @override
@@ -88,6 +89,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
   void _onAmountChanged(String value) {
     if (_isUpdating) return;
     _lastChangedField = 'amount';
+    if (_firstField.isEmpty && value.isNotEmpty) _firstField = 'amount';
     _recalculate();
   }
 
@@ -100,6 +102,7 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
   void _onTotalChanged(String value) {
     if (_isUpdating) return;
     _lastChangedField = 'total';
+    if (_firstField.isEmpty && value.isNotEmpty) _firstField = 'total';
     _recalculate();
   }
 
@@ -116,13 +119,13 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
         _totalAmount = amount * rate;
         _totalController.text = _totalAmount.toStringAsFixed(2);
       } else if (_lastChangedField == 'rate') {
-        // Курс изменён — сохранить поле, которое заполнил пользователь
-        if (amount > 0) {
-          // Сумма была введена → сохранить сумму, пересчитать итог
+        // Курс изменён — сохранить поле, которое пользователь заполнил первым
+        if ((_firstField == 'amount' || _firstField.isEmpty) && amount > 0) {
+          // Первым ввели сумму (или поле не определено, но сумма есть) → сохранить сумму
           _totalAmount = amount * rate;
           _totalController.text = _totalAmount.toStringAsFixed(2);
-        } else if (total > 0) {
-          // Итог был введён → сохранить итог, пересчитать сумму
+        } else if (_firstField == 'total' && total > 0) {
+          // Первым ввели итог → сохранить итог, пересчитать сумму
           _amount = total / rate;
           _amountController.text = _amount.toStringAsFixed(2);
           _totalAmount = total;
@@ -137,6 +140,11 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
       _amount = CurrencyFormatter.parse(_amountController.text);
       _rate = CurrencyFormatter.parse(_rateController.text);
       _totalAmount = CurrencyFormatter.parse(_totalController.text);
+
+      // Сбросить _firstField если оба поля пусты
+      if (_amount <= 0 && _totalAmount <= 0) {
+        _firstField = '';
+      }
 
       _isUpdating = false;
     });
@@ -160,8 +168,8 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
           final amount = CurrencyFormatter.parse(_amountController.text);
           final total = CurrencyFormatter.parse(_totalController.text);
 
-          if (_lastChangedField == 'total' && total > 0 && _rate > 0) {
-            // Пользователь ввёл итог → сохранить итог, пересчитать сумму
+          if (_firstField == 'total' && total > 0 && _rate > 0) {
+            // Первым ввели итог → сохранить итог, пересчитать сумму
             _amount = total / _rate;
             _amountController.text = _amount.toStringAsFixed(2);
             _totalAmount = total;
