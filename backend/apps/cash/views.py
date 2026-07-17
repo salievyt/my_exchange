@@ -342,23 +342,24 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
         
         # Update CashBalance records with opening balances
         opening_balances = {}
-        for currency_code, amount in opening_balance_data.items():                try:
-                    amount = float(amount)
-                except (TypeError, ValueError):
-                    continue
-                if amount < 0:
-                    continue
-                currency = Currency.objects.filter(code=currency_code).first()
-                if currency:
-                    decimal_amount = Decimal(str(amount))
-                    cash_balance, created = CashBalance.objects.get_or_create(
-                        currency=currency,
-                        defaults={'balance': decimal_amount}
-                    )
-                    if not created:
-                        cash_balance.balance = decimal_amount
-                        cash_balance.save()
-                    opening_balances[currency_code] = amount
+        for currency_code, amount in opening_balance_data.items():
+            try:
+                amount = float(amount)
+            except (TypeError, ValueError):
+                continue
+            if amount < 0:
+                continue
+            currency = Currency.objects.filter(code=currency_code).first()
+            if currency:
+                decimal_amount = Decimal(str(amount))
+                cash_balance, created = CashBalance.objects.get_or_create(
+                    currency=currency,
+                    defaults={'balance': decimal_amount}
+                )
+                if not created:
+                    cash_balance.balance = decimal_amount
+                    cash_balance.save()
+                opening_balances[currency_code] = amount
         
         if not opening_balances:
             return Response(
