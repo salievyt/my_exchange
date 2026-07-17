@@ -244,7 +244,7 @@ class _CloseRegisterDialogState extends State<CloseRegisterDialog> {
                   if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final displayCurrencies = provider.foreignCurrencies;
+                  final displayCurrencies = provider.currencies;
                   return Column(
                     children: displayCurrencies.map((currency) {
                       _controllers.putIfAbsent(
