@@ -54,25 +54,6 @@ class OperationCreateSerializer(serializers.ModelSerializer):
         if attrs.get('amount', 0) <= 0:
             raise serializers.ValidationError({"amount": "Сумма должна быть положительной"})
         
-        # Validate rate matches current exchange rate (with small tolerance)
-        currency = attrs.get('currency')
-        operation_type = attrs.get('operation_type')
-        rate = attrs.get('rate')
-        
-        if currency and operation_type:
-            current_rate = ExchangeRate.objects.filter(
-                currency=currency,
-                operation_type=operation_type,
-                is_active=True
-            ).first()
-            
-            if current_rate:
-                tolerance = 0.01  # 1% tolerance
-                if abs(float(rate) - float(current_rate.rate)) / float(current_rate.rate) > tolerance:
-                    raise serializers.ValidationError({
-                        "rate": f"Курс отличается от текущего более чем на 1%. Текущий: {current_rate.rate}"
-                    })
-        
         return attrs
     
     def create(self, validated_data):
