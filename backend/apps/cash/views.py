@@ -10,6 +10,7 @@ from django.utils import timezone
 import json
 from .models import CashBalance, CashTransaction, CashRegister, CashTransactionType
 from .serializers import CashBalanceSerializer, CashTransactionSerializer, CashTransactionCreateSerializer, CashRegisterSerializer
+from apps.currencies.models import Currency
 from apps.users.models import Role
 
 
@@ -153,7 +154,7 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def open(self, request):
-        """Open new cash register session."""
+        """Open new cash register session with opening balances."""
         # Check if user already has open register
         existing = CashRegister.objects.filter(
             cashier=request.user,
@@ -166,11 +167,39 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Get opening balances
+        # Get opening balances from request
+        opening_balance_data = request.data.get('opening_balance', {})
+        if not opening_balance_data or not isinstance(opening_balance_data, dict):
+            return Response(
+                {"error": "Не указаны начальные остатки"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update CashBalance records with opening balances
         opening_balances = {}
-        balances = CashBalance.objects.all().order_by('id')
-        for balance in balances:
-            opening_balances[balance.currency.code] = float(balance.balance)
+        for currency_code, amount in opening_balance_data.items():
+            try:
+                amount = float(amount)
+            except (TypeError, ValueError):
+                continue
+            if amount < 0:
+                continue
+            currency = Currency.objects.filter(code=currency_code).first()
+            if currency:
+                cash_balance, created = CashBalance.objects.get_or_create(
+                    currency=currency,
+                    defaults={'balance': amount}
+                )
+                if not created:
+                    cash_balance.balance = amount
+                    cash_balance.save()
+                opening_balances[currency_code] = amount
+        
+        if not opening_balances:
+            return Response(
+                {"error": "Не указаны корректные начальные остатки"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Create register
         register = CashRegister.objects.create(
