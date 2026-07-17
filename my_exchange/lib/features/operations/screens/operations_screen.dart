@@ -605,7 +605,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       builder: (context, currencyProv, child) {
                         return _CurrencyFilterChip(
                           selectedCurrencyId: provider.currencyIdFilter,
-                          currencies: currencyProv.currencies,
+                          currencies: currencyProv.foreignCurrencies,
                           onSelected: (id) {
                             provider.setCurrencyIdFilter(id);
                           },
