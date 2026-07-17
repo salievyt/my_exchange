@@ -75,7 +75,8 @@ class AnalyticsProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _shiftStats = [];
   bool _shiftOpen = false;
   String? _shiftStartedAt;
-  
+  double _shiftTotalProfit = 0.0;
+
   /// Cash valuation data
   List<Map<String, dynamic>> _cashValuation = [];
   double _totalCashKgs = 0.0;
@@ -83,6 +84,7 @@ class AnalyticsProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get shiftStats => _shiftStats;
   bool get shiftOpen => _shiftOpen;
   String? get shiftStartedAt => _shiftStartedAt;
+  double get shiftTotalProfit => _shiftTotalProfit;
   List<Map<String, dynamic>> get cashValuation => _cashValuation;
   double get totalCashKgs => _totalCashKgs;
 
@@ -141,6 +143,7 @@ class AnalyticsProvider extends ChangeNotifier {
           (data['shift_stats'] as List<dynamic>?)
                   ?.cast<Map<String, dynamic>>() ??
               [];
+      _shiftTotalProfit = (data['total_profit'] as num?)?.toDouble() ?? 0.0;
       notifyListeners();
     } catch (e) {
       debugPrint('[Analytics] loadShiftStats ERROR: $e');

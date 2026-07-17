@@ -244,6 +244,13 @@ class ShiftCurrencyStatsView(views.APIView):
             sell_total_kgs = round(sell_amount * float(avg_sell_rate), 2) if avg_sell_rate else 0
             
             if buy_amount > 0 or sell_amount > 0:
+                # Calculate profit for this currency:
+                # Profit = sell_amount * (avg_sell_rate - avg_buy_rate)
+                # This is revenue from selling minus the cost of buying that amount at avg buy rate
+                avg_buy = float(avg_buy_rate) if avg_buy_rate else 0
+                avg_sell = float(avg_sell_rate) if avg_sell_rate else 0
+                profit = round(sell_amount * (avg_sell - avg_buy), 2) if sell_amount > 0 and avg_buy > 0 else 0
+                
                 shift_stats.append({
                     'currency': currency.code,
                     'currency_name': currency.name,
@@ -251,14 +258,19 @@ class ShiftCurrencyStatsView(views.APIView):
                     'sell_amount': round(sell_amount, 2),
                     'buy_total_kgs': round(buy_total_kgs, 2),
                     'sell_total_kgs': round(sell_total_kgs, 2),
-                    'avg_buy_rate': round(float(avg_buy_rate), 4) if avg_buy_rate else 0,
-                    'avg_sell_rate': round(float(avg_sell_rate), 4) if avg_sell_rate else 0,
+                    'avg_buy_rate': round(avg_buy, 4) if avg_buy_rate else 0,
+                    'avg_sell_rate': round(avg_sell, 4) if avg_sell_rate else 0,
+                    'profit': profit,
                 })
+        
+        # Calculate total profit across all currencies
+        total_profit = round(sum(s['profit'] for s in shift_stats), 2)
         
         return Response({
             'shift_open': True,
             'shift_started_at': shift_start.isoformat(),
             'shift_stats': shift_stats,
+            'total_profit': total_profit,
         })
 
 

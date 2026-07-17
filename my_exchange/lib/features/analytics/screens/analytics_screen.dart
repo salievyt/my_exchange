@@ -124,13 +124,38 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   if (provider.dailyData.isNotEmpty) const SizedBox(height: 14),
 
                   
-                  if (provider.shiftStats.isNotEmpty && provider.shiftOpen)
-                    _buildCard(
-                      title: 'Операции по валютам (смена)',
-                      icon: Icons.currency_exchange_rounded,
-                      color: AppColors.secondary, isDark: isDark, index: provider.dailyData.isNotEmpty ? 2 : 1,
-                      children: provider.shiftStats.map((stat) => _ShiftCurrencyRow(stat: stat, isDark: isDark)).toList(),
-                    ),
+                  if (provider.shiftStats.isNotEmpty && provider.shiftOpen) _buildCard(
+                    title: 'Операции по валютам (смена)',
+                    icon: Icons.currency_exchange_rounded,
+                    color: AppColors.secondary, isDark: isDark, index: provider.dailyData.isNotEmpty ? 2 : 1,
+                    children: [
+                      ...provider.shiftStats.map((stat) => _ShiftCurrencyRow(stat: stat, isDark: isDark)),
+                      const SizedBox(height: 8),
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Прибыль',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            '${CurrencyFormatter.format(provider.shiftTotalProfit)} сом',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: provider.shiftTotalProfit >= 0 ? AppColors.success : AppColors.warning,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                   if (provider.shiftStats.isNotEmpty && provider.shiftOpen) const SizedBox(height: 14),
 
                   
@@ -588,6 +613,7 @@ class _ShiftCurrencyRow extends StatelessWidget {
     final avgSellRate = (stat['avg_sell_rate'] as num?)?.toDouble() ?? 0.0;
     final buyTotalKgs = (stat['buy_total_kgs'] as num?)?.toDouble() ?? 0.0;
     final sellTotalKgs = (stat['sell_total_kgs'] as num?)?.toDouble() ?? 0.0;
+    final profit = (stat['profit'] as num?)?.toDouble() ?? 0.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -604,6 +630,31 @@ class _ShiftCurrencyRow extends StatelessWidget {
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
+              const Spacer(),
+              if (profit != 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: (profit > 0 ? AppColors.success : AppColors.warning).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(profit > 0 ? Icons.trending_up : Icons.trending_down, size: 14,
+                        color: profit > 0 ? AppColors.success : AppColors.warning),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${profit > 0 ? '+' : ''}${CurrencyFormatter.format(profit)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: profit > 0 ? AppColors.success : AppColors.warning,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 8),
