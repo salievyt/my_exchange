@@ -416,7 +416,7 @@ final clientName = _clientNameController.text.trim().isEmpty
                               labelText: local.t('create_operation_currency_select'),
                             ),
                             value: _selectedCurrencyId,
-                            items: provider.currencies.map((currency) {
+                            items: provider.foreignCurrencies.map((currency) {
                               return DropdownMenuItem(
                                 value: currency.id,
                                 child: Text(
