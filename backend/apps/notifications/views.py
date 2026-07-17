@@ -1,25 +1,117 @@
 """
 Views for Notifications app.
-Handles system notifications and alerts.
+In-App Notification & Update Center system.
 """
-from rest_framework import views, permissions, status
+from rest_framework import views, permissions, status, generics
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.conf import settings
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
-from apps.cash.models import CashBalance
-from apps.operations.models import Operation, OperationStatus
-from apps.users.models import Role
-from .models import AppVersion
-from .serializers import AppVersionSerializer, AppVersionCheckSerializer
+from .models import AppVersion, Notification, NotificationStatus, Platform
+from .serializers import (
+    AppVersionSerializer,
+    AppVersionCheckSerializer,
+    NotificationSerializer,
+    NotificationAdminSerializer,
+    NotificationStatsSerializer,
+)
+
+
+class AppNotificationsView(views.APIView):
+    """
+    Main in-app notification endpoint.
+    GET /api/v1/app/notifications/
+    
+    Returns:
+    - latest_version: latest app version info
+    - min_version: minimum supported version
+    - notifications: list of active notifications for this user
+    - force_update: whether a mandatory update is required
+    """
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        now = timezone.now()
+        
+        # --- Version info ---
+        platform = request.query_params.get('platform', 'android')
+        
+        # Latest version for this platform
+        latest_version = AppVersion.objects.filter(
+            platform=platform,
+            is_active=True,
+        ).order_by('-build_number').first()
+        
+        # Minimum supported version for this platform
+        min_version = AppVersion.objects.filter(
+            platform=platform,
+            is_active=True,
+            is_required=True,
+        ).order_by('-build_number').first()
+        
+        version_info = {
+            'latest_version': latest_version.version if latest_version else None,
+            'latest_build': latest_version.build_number if latest_version else None,
+            'latest_update_url': latest_version.update_url if latest_version else None,
+            'latest_changelog': latest_version.changelog if latest_version else '',
+            'min_version': min_version.version if min_version else None,
+            'min_build': min_version.build_number if min_version else None,
+            'force_update': min_version.is_required if min_version else False,
+        }
+        
+        # --- Active notifications ---
+        user = request.user
+        
+        # Base query: published, not expired, publish_at <= now
+        notifications_qs = Notification.objects.filter(
+            status=NotificationStatus.PUBLISHED,
+            publish_at__lte=now,
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        )
+        
+        # Filter by platform (ALL matches any)
+        notifications_qs = notifications_qs.filter(
+            Q(platform=Platform.ALL) | Q(platform=platform)
+        )
+        
+        # Filter by target audience (role)
+        if user.role:
+            notifications_qs = notifications_qs.filter(
+                Q(target_audience='') | 
+                Q(target_audience__iexact=user.role)
+            )
+        else:
+            notifications_qs = notifications_qs.filter(
+                Q(target_audience='')
+            )
+        
+        # Order by priority (highest first), then publish date
+        notifications_qs = notifications_qs.order_by('-priority', '-publish_at')
+        
+        serializer = NotificationSerializer(notifications_qs, many=True)
+        
+        # Determine if force update is required
+        force_update = (
+            min_version and 
+            request.query_params.get('current_build', '0').isdigit() and
+            int(request.query_params.get('current_build', '0')) < min_version.build_number
+        )
+        
+        return Response({
+            'version': version_info,
+            'notifications': serializer.data,
+            'unread_count': len(serializer.data),
+            'force_update': force_update,
+            'server_time': now.isoformat(),
+        })
 
 
 class NotificationView(views.APIView):
-    """Get user notifications."""
+    """Get user notifications (legacy endpoint)."""
     
     permission_classes = [permissions.IsAuthenticated]
     
@@ -44,7 +136,7 @@ class NotificationView(views.APIView):
         })
     
     def check_low_balance(self):
-        """Check for low cash balance notifications."""
+        from apps.cash.models import CashBalance
         notifications = []
         threshold = float(getattr(settings, 'NOTIFY_LOW_CASH_THRESHOLD', 1000))
         
@@ -65,26 +157,18 @@ class NotificationView(views.APIView):
         return notifications
     
     def check_shift_end(self):
-        """Check for shift end notifications."""
-        notifications = []
-        
-        # This would typically check if shift is about to end
-        # For now, return empty - can be extended based on business logic
-        
-        return notifications
+        return []
     
     def check_suspicious_operations(self, user):
-        """Check for suspicious operation patterns."""
+        from apps.operations.models import Operation, OperationStatus, OperationCancellation
+        from apps.users.models import Role
         notifications = []
         
-        # Only admin and senior cashier can see these
         if user.role not in [Role.ADMIN, Role.SENIOR_CASHIER]:
             return notifications
         
         today = timezone.now().date()
         
-        # Check for high number of cancellations
-        from apps.operations.models import OperationCancellation
         cancellations_today = OperationCancellation.objects.filter(
             cancelled_at__date=today
         ).count()
@@ -98,10 +182,9 @@ class NotificationView(views.APIView):
                 'timestamp': timezone.now().isoformat(),
             })
         
-        # Check for large operations
         large_ops = Operation.objects.filter(
             created_at__date=today,
-            total_amount__gt=1000000,  # More than 1M KGS
+            total_amount__gt=1000000,
             status=OperationStatus.ACTIVE
         ).count()
         
@@ -117,13 +200,33 @@ class NotificationView(views.APIView):
         return notifications
 
 
+class NotificationTrackView(views.APIView):
+    """Track notification view or click."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, notification_id):
+        try:
+            notification = Notification.objects.get(id=notification_id)
+        except Notification.DoesNotExist:
+            return Response({'error': 'Уведомление не найдено'}, status=status.HTTP_404_NOT_FOUND)
+        
+        action_type = request.data.get('action', 'view')
+        
+        if action_type == 'view':
+            notification.increment_view()
+        elif action_type == 'click':
+            notification.increment_click()
+        
+        return Response({'success': True})
+
+
 class SendNotificationView(views.APIView):
-    """Send notification via WebSocket."""
+    """Send notification via WebSocket (legacy)."""
     
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
-        """Send notification to specific user or group."""
         message = request.data.get('message')
         title = request.data.get('title', 'Уведомление')
         user_id = request.data.get('user_id')
@@ -135,15 +238,17 @@ class SendNotificationView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Only admin can send notifications
+        from apps.users.models import Role
         if request.user.role != Role.ADMIN:
             return Response(
                 {"error": "Только администратор может отправлять уведомления"},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Send via WebSocket
         try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            
             channel_layer = get_channel_layer()
             
             notification = {
@@ -155,13 +260,11 @@ class SendNotificationView(views.APIView):
             }
             
             if user_id:
-                # Send to specific user
                 async_to_sync(channel_layer.group_send)(
                     f'user_{user_id}',
                     notification
                 )
             else:
-                # Send to all admins
                 async_to_sync(channel_layer.group_send)(
                     'admins',
                     notification
@@ -185,7 +288,6 @@ class ErrorNotificationView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
-        """Report an error in the system."""
         error_message = request.data.get('error')
         operation_id = request.data.get('operation_id')
         
@@ -195,13 +297,34 @@ class ErrorNotificationView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Log error (in production, send to monitoring system)
-        # For now, just return success
         return Response({
             'message': 'Ошибка записана в лог',
             'error': error_message,
             'operation_id': operation_id,
             'timestamp': timezone.now().isoformat(),
+        })
+
+
+class ActiveNewsView(views.APIView):
+    """Get active news items for the scrollable banner."""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        from django.utils import timezone
+        now = timezone.now()
+        
+        news = News.objects.filter(
+            is_active=True,
+            published_at__lte=now,
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        ).order_by('-priority', '-published_at')
+        
+        serializer = NewsSerializer(news, many=True)
+        return Response({
+            'news': serializer.data,
+            'count': news.count(),
         })
 
 
@@ -211,30 +334,6 @@ class AppVersionCheckView(views.APIView):
     permission_classes = [permissions.AllowAny]
     
     def post(self, request):
-        """
-        Check for app update.
-        
-        Request body:
-        {
-            "platform": "android" | "ios",
-            "current_version": "0.1.0",
-            "build_number": 1
-        }
-        
-        Response on update available:
-        {
-            "update_available": true,
-            "version": "1.1.0",
-            "is_required": false,
-            "update_url": "...",
-            "changelog": "..."
-        }
-        
-        Response on no update:
-        {
-            "update_available": false
-        }
-        """
         serializer = AppVersionCheckSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -243,7 +342,6 @@ class AppVersionCheckView(views.APIView):
         current_version = serializer.validated_data['current_version']
         build_number = serializer.validated_data.get('build_number', 0)
         
-        # Find latest active version for this platform (highest build number)
         latest = AppVersion.objects.filter(
             platform=platform,
             is_active=True,
@@ -252,8 +350,6 @@ class AppVersionCheckView(views.APIView):
         if not latest:
             return Response({'update_available': False})
         
-        # Compare versions (simple string comparison may not work for semver)
-        # Use build_number for definitive comparison
         if build_number >= latest.build_number:
             return Response({'update_available': False})
         
