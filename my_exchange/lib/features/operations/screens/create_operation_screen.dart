@@ -112,28 +112,29 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
       _isUpdating = true;
 
       if (_lastChangedField == 'amount' && rate > 0) {
-        
+        // Сумма (валюта) введена → пересчитать итог (сомы)
         _totalAmount = amount * rate;
         _totalController.text = _totalAmount.toStringAsFixed(2);
-      } else if (_lastChangedField == 'rate' && amount > 0) {
-        
-        _totalAmount = amount * rate;
-        _totalController.text = _totalAmount.toStringAsFixed(2);
-      } else if (_lastChangedField == 'total' && amount > 0) {
-        
+      } else if (_lastChangedField == 'rate') {
+        // Курс изменён — сохранить поле, которое заполнил пользователь
         if (amount > 0) {
-          _rate = total / amount;
-          _rateController.text = _rate.toStringAsFixed(4);
-        }
-      } else if (_lastChangedField == 'total' && rate > 0) {
-        
-        if (rate > 0) {
+          // Сумма была введена → сохранить сумму, пересчитать итог
+          _totalAmount = amount * rate;
+          _totalController.text = _totalAmount.toStringAsFixed(2);
+        } else if (total > 0) {
+          // Итог был введён → сохранить итог, пересчитать сумму
           _amount = total / rate;
           _amountController.text = _amount.toStringAsFixed(2);
+          _totalAmount = total;
         }
+      } else if (_lastChangedField == 'total' && rate > 0) {
+        // Итог (сомы) введён → сохранить итог, пересчитать сумму в валюте
+        _amount = total / rate;
+        _amountController.text = _amount.toStringAsFixed(2);
+        _totalAmount = total;
       }
 
-      _amount = amount;
+      _amount = CurrencyFormatter.parse(_amountController.text);
       _rate = CurrencyFormatter.parse(_rateController.text);
       _totalAmount = CurrencyFormatter.parse(_totalController.text);
 
@@ -147,12 +148,33 @@ class _CreateOperationScreenState extends State<CreateOperationScreen> {
         _selectedCurrencyId!,
       );
       if (currency != null) {
+        final newRate = _operationType == OperationType.buy
+            ? (currency.buyRate ?? 0.0)
+            : (currency.sellRate ?? 0.0);
+
         setState(() {
-          _rate = _operationType == OperationType.buy
-              ? (currency.buyRate ?? 0.0)
-              : (currency.sellRate ?? 0.0);
+          _rate = newRate;
           _rateController.text = _rate.toStringAsFixed(4);
-          _recalculate();
+          _isUpdating = true;
+
+          final amount = CurrencyFormatter.parse(_amountController.text);
+          final total = CurrencyFormatter.parse(_totalController.text);
+
+          if (_lastChangedField == 'total' && total > 0 && _rate > 0) {
+            // Пользователь ввёл итог → сохранить итог, пересчитать сумму
+            _amount = total / _rate;
+            _amountController.text = _amount.toStringAsFixed(2);
+            _totalAmount = total;
+          } else if (amount > 0 && _rate > 0) {
+            // Во всех остальных случаях → сохранить сумму, пересчитать итог
+            _totalAmount = amount * _rate;
+            _totalController.text = _totalAmount.toStringAsFixed(2);
+          }
+
+          _amount = CurrencyFormatter.parse(_amountController.text);
+          _totalAmount = CurrencyFormatter.parse(_totalController.text);
+
+          _isUpdating = false;
         });
       }
     }
