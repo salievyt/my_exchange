@@ -216,8 +216,9 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
         )
     
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def close(self, request, pk=None):
-        """Close cash register session."""
+        """Close cash register session with closing balances."""
         register = self.get_object()
         
         if not register.is_open:
@@ -226,11 +227,40 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Get closing balances
+        # Get closing balances from request
+        closing_balance_data = request.data.get('closing_balance', {})
+        if not closing_balance_data or not isinstance(closing_balance_data, dict):
+            return Response(
+                {"error": "Не указаны конечные остатки"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update CashBalance records with closing balances
         closing_balances = {}
-        balances = CashBalance.objects.all().order_by('id')
-        for balance in balances:
-            closing_balances[balance.currency.code] = float(balance.balance)
+        for currency_code, amount in closing_balance_data.items():
+            try:
+                amount = float(amount)
+            except (TypeError, ValueError):
+                continue
+            if amount < 0:
+                continue
+            currency = Currency.objects.filter(code=currency_code).first()
+            if currency:
+                decimal_amount = Decimal(str(amount))
+                cash_balance, created = CashBalance.objects.get_or_create(
+                    currency=currency,
+                    defaults={'balance': decimal_amount}
+                )
+                if not created:
+                    cash_balance.balance = decimal_amount
+                    cash_balance.save()
+                closing_balances[currency_code] = amount
+        
+        if not closing_balances:
+            return Response(
+                {"error": "Не указаны корректные конечные остатки"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Close register
         register.closing_balance = json.dumps(closing_balances)
