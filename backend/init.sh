@@ -55,6 +55,10 @@ python manage.py migrate
 echo "Initializing default data..."
 python manage.py init_data
 
+# Collect static files
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
+
 # Create logs directory
 mkdir -p logs
 

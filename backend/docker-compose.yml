@@ -1,40 +1,110 @@
 services:
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - backend_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do
+        certbot renew --webroot -w /var/www/certbot --quiet;
+        sleep 12h & wait $${!};
+      done"
+    networks:
+      - backend_network
+
   db:
     image: postgres:15
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: my_exchange
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+    # Ports not exposed to host — only accessible within Docker network
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend_network
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
+    # Ports not exposed to host — only accessible within Docker network
+    expose:
+      - "6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend_network
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - AUTOHEAL_CONTAINER_LABELS=autoheal=true
+      - AUTOHEAL_START_PERIOD=120
+      - AUTOHEAL_INTERVAL=30
+    networks:
+      - backend_network
 
   backend:
     build: .
+    restart: unless-stopped
+    labels:
+      - "autoheal=true"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    # Ports not exposed to host — only accessible via nginx
+    expose:
+      - "8000"
+    healthcheck:
+      # Uses Python's stdlib http.client — no curl/wget needed
+      test: ["CMD", "python", "-c", "import http.client as h; c=h.HTTPConnection('localhost',8000); c.request('GET','/api/health/'); r=c.getresponse(); r.read(); exit(0 if r.status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     environment:
-      - DEBUG=True
+      - DEBUG=False
+      - SECURE_SSL_REDIRECT=False
+      - CSRF_COOKIE_SECURE=True
+      - SESSION_COOKIE_SECURE=True
       - DB_NAME=my_exchange
       - DB_USER=postgres
       - DB_PASSWORD=postgres
@@ -42,10 +112,10 @@ services:
       - DB_PORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - SECRET_KEY=django-insecure-dev-key-change-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1,dev.phantom-ink.online,*
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://dev.phantom-ink.online
-      - CSRF_TRUSTED_ORIGINS=https://dev.phantom-ink.online,http://localhost:3000,http://127.0.0.1:3000
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-key-change-in-production}
+      - ALLOWED_HOSTS=localhost,127.0.0.1,api.myexchange.online,myexchange.online,www.myexchange.online
+      - CORS_ALLOWED_ORIGINS=https://myexchange.online,https://www.myexchange.online,https://api.myexchange.online
+      - CSRF_TRUSTED_ORIGINS=https://api.myexchange.online,https://myexchange.online,https://www.myexchange.online
     depends_on:
       db:
         condition: service_healthy
@@ -54,9 +124,46 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py init_data &&
-             python manage.py runserver 0.0.0.0:8000"
+             exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --access-logfile - --error-logfile -"
+    networks:
+      - backend_network
+
+  bot:
+    build: .
+    restart: "no"
+    volumes:
+      - .:/app
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN:-}
+      - BOT_WEBHOOK_URL=${BOT_WEBHOOK_URL:-}
+      - BOT_WEBHOOK_SECRET=${BOT_WEBHOOK_SECRET:-}
+      - DEBUG=False
+      - DB_NAME=my_exchange
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-key-change-in-production}
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py setwebhook"
+    networks:
+      - backend_network
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+  certbot_conf:
+  certbot_www:
+
+networks:
+  backend_network:
+    driver: bridge
